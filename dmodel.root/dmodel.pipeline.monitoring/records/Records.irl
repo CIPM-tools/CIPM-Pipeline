@@ -1,0 +1,43 @@
+package dmodel.pipeline.monitoring.records
+
+template RecordWithSession {
+   string sessionId = "<not set>"
+}
+
+template ServiceContextRecord : RecordWithSession {
+	string serviceExecutionId = "<not set>"
+}
+
+entity ResourceUtilizationRecord : RecordWithSession {
+   string containerId = "<not set>"
+   string resourceId = "<not set>"
+   double utilization
+   long timestamp
+}
+
+entity BranchRecord : ServiceContextRecord {
+   string branchId = "<not set>"
+   string executedBranchId = "<not set>"
+}
+
+entity LoopRecord : ServiceContextRecord {
+   string loopId = "<not set>"
+   long loopIterationCount
+}
+
+entity ResponseTimeRecord : ServiceContextRecord {
+   string internalActionId = "<not set>"
+   string resourceId = "<not set>"
+   long startTime
+   long stopTime
+}
+
+entity ServiceCallRecord : ServiceContextRecord {
+   string serviceId = "<not set>"
+   string parameters = "<not set>"
+   string callerServiceExecutionId = "<not set>"
+   string callerId = "<not set>"
+   string assemblyId = "<not set>"
+   long entryTime
+   long exitTime
+}
