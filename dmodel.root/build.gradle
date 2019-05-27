@@ -1,0 +1,47 @@
+buildscript { 
+    repositories {
+        jcenter()
+		mavenCentral()
+    }
+}
+
+// checking the presence of an Eclipse API baseline repositorsy
+if (project.properties['api.baseline'] == null || project.properties['api.baseline'].isEmpty()) {
+	System.err.println("Cannot find an Eclipse API baseline repository")
+} else {	
+	println "Baseline repository is at: " + project.rootDir + project.properties['api.baseline']
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'maven'
+    
+    sourceSets {
+		main{
+        	java {
+            	srcDir 'src/main/java'
+            	srcDir 'src-gen/java'
+        	}
+        	resources {
+        		srcDirs= ["src/main/resources"]
+        	}
+    	}
+	}
+	
+	dependencies {
+		// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+		compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
+		
+		// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+		compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+	}
+
+    repositories {
+		maven {url project.rootDir.toString() + project.properties['api.baseline']}
+		maven {url 'http://repo.typesafe.com/typesafe/maven-releases/'}
+		maven {url 'http://www.jabylon.org/maven/'}
+		mavenCentral()
+		jcenter()
+    }
+}
