@@ -15,8 +15,6 @@ public class CorrespondenceTest {
 
 		for (Correspondence corr : model.getCorrespondences()) {
 			System.out.println("TEST");
-			System.out.println(corr.getATuids());
-			System.out.println(corr.getBTuids());
 		}
 	}
 
