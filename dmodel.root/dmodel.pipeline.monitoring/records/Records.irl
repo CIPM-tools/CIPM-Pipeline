@@ -4,12 +4,15 @@ template RecordWithSession {
    string sessionId = "<not set>"
 }
 
+template HostContextRecord {
+	string hostId = "<not set>"
+}
+
 template ServiceContextRecord : RecordWithSession {
 	string serviceExecutionId = "<not set>"
 }
 
-entity ResourceUtilizationRecord : RecordWithSession {
-   string containerId = "<not set>"
+entity ResourceUtilizationRecord : RecordWithSession, HostContextRecord {
    string resourceId = "<not set>"
    double utilization
    long timestamp
@@ -32,12 +35,12 @@ entity ResponseTimeRecord : ServiceContextRecord {
    long stopTime
 }
 
-entity ServiceCallRecord : ServiceContextRecord {
+entity ServiceCallRecord : ServiceContextRecord, HostContextRecord {
    string serviceId = "<not set>"
    string parameters = "<not set>"
    string callerServiceExecutionId = "<not set>"
    string callerId = "<not set>"
-   string assemblyId = "<not set>"
+   string executionContextId = "<not set>"
    long entryTime
    long exitTime
 }

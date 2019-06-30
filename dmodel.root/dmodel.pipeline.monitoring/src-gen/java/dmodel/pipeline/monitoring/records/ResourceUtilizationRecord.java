@@ -10,6 +10,7 @@ import kieker.common.record.io.IValueSerializer;
 import kieker.common.util.registry.IRegistry;
 
 import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.HostContextRecord;
 
 /**
  * @author Generic Kieker
@@ -17,17 +18,17 @@ import dmodel.pipeline.monitoring.records.RecordWithSession;
  * 
  * @since 1.13
  */
-public class ResourceUtilizationRecord extends AbstractMonitoringRecord implements IMonitoringRecord.Factory, IMonitoringRecord.BinaryFactory, RecordWithSession {			
+public class ResourceUtilizationRecord extends AbstractMonitoringRecord implements IMonitoringRecord.Factory, IMonitoringRecord.BinaryFactory, RecordWithSession, HostContextRecord {			
 	/** Descriptive definition of the serialization size of the record. */
 	public static final int SIZE = TYPE_SIZE_STRING // RecordWithSession.sessionId
-			 + TYPE_SIZE_STRING // ResourceUtilizationRecord.containerId
+			 + TYPE_SIZE_STRING // HostContextRecord.hostId
 			 + TYPE_SIZE_STRING // ResourceUtilizationRecord.resourceId
 			 + TYPE_SIZE_DOUBLE // ResourceUtilizationRecord.utilization
 			 + TYPE_SIZE_LONG; // ResourceUtilizationRecord.timestamp
 	
 	public static final Class<?>[] TYPES = {
 		String.class, // RecordWithSession.sessionId
-		String.class, // ResourceUtilizationRecord.containerId
+		String.class, // HostContextRecord.hostId
 		String.class, // ResourceUtilizationRecord.resourceId
 		double.class, // ResourceUtilizationRecord.utilization
 		long.class, // ResourceUtilizationRecord.timestamp
@@ -35,14 +36,14 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	
 	/** default constants. */
 	public static final String SESSION_ID = "<not set>";
-	public static final String CONTAINER_ID = "<not set>";
+	public static final String HOST_ID = "<not set>";
 	public static final String RESOURCE_ID = "<not set>";
-	private static final long serialVersionUID = -334658623684175942L;
+	private static final long serialVersionUID = 3576097541026322157L;
 	
 	/** property name array. */
 	private static final String[] PROPERTY_NAMES = {
 		"sessionId",
-		"containerId",
+		"hostId",
 		"resourceId",
 		"utilization",
 		"timestamp",
@@ -50,7 +51,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	
 	/** property declarations. */
 	private final String sessionId;
-	private final String containerId;
+	private final String hostId;
 	private final String resourceId;
 	private final double utilization;
 	private final long timestamp;
@@ -60,8 +61,8 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	 * 
 	 * @param sessionId
 	 *            sessionId
-	 * @param containerId
-	 *            containerId
+	 * @param hostId
+	 *            hostId
 	 * @param resourceId
 	 *            resourceId
 	 * @param utilization
@@ -69,9 +70,9 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	 * @param timestamp
 	 *            timestamp
 	 */
-	public ResourceUtilizationRecord(final String sessionId, final String containerId, final String resourceId, final double utilization, final long timestamp) {
+	public ResourceUtilizationRecord(final String sessionId, final String hostId, final String resourceId, final double utilization, final long timestamp) {
 		this.sessionId = sessionId == null?SESSION_ID:sessionId;
-		this.containerId = containerId == null?CONTAINER_ID:containerId;
+		this.hostId = hostId == null?HOST_ID:hostId;
 		this.resourceId = resourceId == null?RESOURCE_ID:resourceId;
 		this.utilization = utilization;
 		this.timestamp = timestamp;
@@ -90,7 +91,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public ResourceUtilizationRecord(final Object[] values) { // NOPMD (direct store of values)
 		AbstractMonitoringRecord.checkArray(values, TYPES);
 		this.sessionId = (String) values[0];
-		this.containerId = (String) values[1];
+		this.hostId = (String) values[1];
 		this.resourceId = (String) values[2];
 		this.utilization = (Double) values[3];
 		this.timestamp = (Long) values[4];
@@ -110,7 +111,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	protected ResourceUtilizationRecord(final Object[] values, final Class<?>[] valueTypes) { // NOPMD (values stored directly)
 		AbstractMonitoringRecord.checkArray(values, valueTypes);
 		this.sessionId = (String) values[0];
-		this.containerId = (String) values[1];
+		this.hostId = (String) values[1];
 		this.resourceId = (String) values[2];
 		this.utilization = (Double) values[3];
 		this.timestamp = (Long) values[4];
@@ -125,7 +126,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	 */
 	public ResourceUtilizationRecord(final IValueDeserializer deserializer) throws RecordInstantiationException {
 		this.sessionId = deserializer.getString();
-		this.containerId = deserializer.getString();
+		this.hostId = deserializer.getString();
 		this.resourceId = deserializer.getString();
 		this.utilization = deserializer.getDouble();
 		this.timestamp = deserializer.getLong();
@@ -141,7 +142,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public Object[] toArray() {
 		return new Object[] {
 			this.getSessionId(),
-			this.getContainerId(),
+			this.getHostId(),
 			this.getResourceId(),
 			this.getUtilization(),
 			this.getTimestamp(),
@@ -153,7 +154,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	@Override
 	public void registerStrings(final IRegistry<String> stringRegistry) {	// NOPMD (generated code)
 		stringRegistry.get(this.getSessionId());
-		stringRegistry.get(this.getContainerId());
+		stringRegistry.get(this.getHostId());
 		stringRegistry.get(this.getResourceId());
 	}
 	
@@ -164,7 +165,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public void serialize(final IValueSerializer serializer) throws BufferOverflowException {
 		//super.serialize(serializer);
 		serializer.putString(this.getSessionId());
-		serializer.putString(this.getContainerId());
+		serializer.putString(this.getHostId());
 		serializer.putString(this.getResourceId());
 		serializer.putDouble(this.getUtilization());
 		serializer.putLong(this.getTimestamp());
@@ -227,7 +228,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		if (!this.getSessionId().equals(castedRecord.getSessionId())) {
 			return false;
 		}
-		if (!this.getContainerId().equals(castedRecord.getContainerId())) {
+		if (!this.getHostId().equals(castedRecord.getHostId())) {
 			return false;
 		}
 		if (!this.getResourceId().equals(castedRecord.getResourceId())) {
@@ -248,8 +249,8 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	}
 	
 	
-	public final String getContainerId() {
-		return this.containerId;
+	public final String getHostId() {
+		return this.hostId;
 	}
 	
 	

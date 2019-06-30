@@ -8,5 +8,4 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan(basePackages = "dmodel.pipeline")
 @Configuration
 public class DModelRuntimeStarter {
-
 }

@@ -20,6 +20,7 @@ import org.emftext.language.java.JavaClasspath;
 import org.emftext.language.java.JavaPackage;
 import org.emftext.language.java.classifiers.impl.ClassImpl;
 import org.emftext.language.java.resource.JavaSourceOrClassFileResourceFactoryImpl;
+import org.emftext.language.java.resource.java.IJavaOptions;
 
 public class InstrumentationTest {
 
@@ -49,6 +50,9 @@ public class InstrumentationTest {
 	}
 
 	private static void setup() {
+		rs.getLoadOptions().put(IJavaOptions.DISABLE_LOCATION_MAP, Boolean.TRUE);
+		rs.getLoadOptions().put(IJavaOptions.DISABLE_LAYOUT_INFORMATION_RECORDING, Boolean.TRUE);
+
 		EPackage.Registry.INSTANCE.put("http://www.emftext.org/java", JavaPackage.eINSTANCE);
 		Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put("java",
 				new JavaSourceOrClassFileResourceFactoryImpl());
