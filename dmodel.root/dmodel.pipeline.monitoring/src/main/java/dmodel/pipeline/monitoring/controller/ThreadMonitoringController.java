@@ -233,7 +233,7 @@ public class ThreadMonitoringController {
 		public void exitService() {
 			final long stopTime = TIME_SOURCE.getTime();
 
-			ServiceCallRecord e = new ServiceCallRecord(this.sessionId, this.serviceExecutionId, this.serviceId,
+			ServiceCallRecord e = new ServiceCallRecord(this.sessionId, this.serviceExecutionId, null, this.serviceId,
 					this.serviceParameters.toString(), this.callerServiceExecutionId, this.callerId, null,
 					this.serviceStartTime, stopTime);
 			MONITORING_CONTROLLER.newMonitoringRecord(e);

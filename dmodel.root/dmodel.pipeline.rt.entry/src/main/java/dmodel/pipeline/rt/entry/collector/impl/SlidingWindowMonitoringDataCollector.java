@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.config.MonitoringDataEntryConfiguration;
+import dmodel.pipeline.rt.entry.contracts.core.IterativeRuntimePipeline;
 import kieker.common.record.IMonitoringRecord;
 
 @Service
@@ -21,6 +22,9 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 
 	@Autowired
 	private MonitoringDataEntryConfiguration config;
+
+	@Autowired
+	private IterativeRuntimePipeline pipeline;
 
 	private ScheduledExecutorService execService;
 
@@ -47,9 +51,11 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 		long currentTime = System.currentTimeMillis();
 		// get subset
 		List<IMonitoringRecord> collected = this.recordMap
-				.subMap(currentTime - config.getSlidingWindowSize() * 1000, currentTime).values().stream()
-				.collect(Collectors.toList());
-		// TODO pass that to the processing part
+				.subMap(currentTime - config.getSlidingWindowSize() * 1000, currentTime).entrySet().stream()
+				.map(e -> e.getValue()).collect(Collectors.toList());
+
+		// pass it to the processing part
+		pipeline.triggerPipeline(collected);
 
 		// cut old
 		cutRecordMap(currentTime);
