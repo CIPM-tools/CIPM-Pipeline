@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.entry.collector.impl;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -28,11 +29,18 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 
 	private ScheduledExecutorService execService;
 
-	private SortedMap<Long, IMonitoringRecord> recordMap;
+	private SortedMap<Long, List<IMonitoringRecord>> recordMap;
 
 	@Override
 	public void collect(IMonitoringRecord record) {
-		recordMap.put(System.currentTimeMillis(), record);
+		long time = System.currentTimeMillis();
+		if (recordMap.containsKey(time)) {
+			recordMap.get(time).add(record);
+		} else {
+			List<IMonitoringRecord> nList = new LinkedList<>();
+			nList.add(record);
+			recordMap.put(time, nList);
+		}
 	}
 
 	@Override
@@ -52,7 +60,7 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 		// get subset
 		List<IMonitoringRecord> collected = this.recordMap
 				.subMap(currentTime - config.getSlidingWindowSize() * 1000, currentTime).entrySet().stream()
-				.map(e -> e.getValue()).collect(Collectors.toList());
+				.map(e -> e.getValue()).flatMap(List::stream).collect(Collectors.toList());
 
 		// pass it to the processing part
 		pipeline.triggerPipeline(collected);

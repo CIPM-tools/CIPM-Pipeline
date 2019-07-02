@@ -30,7 +30,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	protected void onIterationFinished() {
-		System.out.println("Iteration finished.");
+		// TODO
 	}
 
 }

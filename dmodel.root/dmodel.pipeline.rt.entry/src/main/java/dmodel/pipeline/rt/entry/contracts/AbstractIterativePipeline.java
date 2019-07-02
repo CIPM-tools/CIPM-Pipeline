@@ -56,6 +56,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 			// reset pipeline states
 			running = true;
 			reachedEndpoints.set(0);
+			this.reset();
 
 			// trigger entries
 			for (NodeInformation entry : entryPoints) {
@@ -111,6 +112,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 						buildSubTree(nodeInfo, method.getAnnotation(OutputPort.class));
 
 						// add entry point
+						nodeInformationMapping.put(method, nodeInfo);
 						this.entryPoints.add(nodeInfo);
 					}
 				}
@@ -185,9 +187,16 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 	protected void passOutput(Object result, NodeInformation nodeInformation) {
 		if (this.successorMapping.containsKey(nodeInformation)) {
-			this.successorMapping.get(nodeInformation).forEach(ni -> {
-				ni.getLeft().setInput(result, ni.getRight());
-			});
+			List<Pair<NodeInformation, Integer>> successors = this.successorMapping.get(nodeInformation);
+			if (successors.size() > 0) {
+				successors.forEach(ni -> {
+					ni.getLeft().setInput(result, ni.getRight());
+				});
+			} else {
+				this.triggerEndpoint();
+			}
+		} else {
+			this.triggerEndpoint();
 		}
 	}
 
