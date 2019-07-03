@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.entry.contracts;
+package dmodel.pipeline.rt.pipeline;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,9 +16,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dmodel.pipeline.rt.entry.contracts.annotation.InputPort;
-import dmodel.pipeline.rt.entry.contracts.annotation.OutputPort;
-import dmodel.pipeline.rt.entry.contracts.annotation.PipelineEntryPoint;
+import dmodel.pipeline.rt.pipeline.annotation.EntryInputPort;
+import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
+import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
+import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
+import dmodel.pipeline.rt.pipeline.annotation.PipelineEntryPoint;
 
 // TODO refactor
 public abstract class AbstractIterativePipeline<S, B> {
@@ -100,7 +102,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 			// search start ports
 			for (Method method : entryPointClass.getMethods()) {
-				if (method.isAnnotationPresent(OutputPort.class)) {
+				if (method.isAnnotationPresent(EntryInputPort.class)) {
 					if (method.getParameterCount() == 1) {
 						// add object entry
 						instanceMapping.put(method.getDeclaringClass(), entry);
@@ -109,7 +111,11 @@ public abstract class AbstractIterativePipeline<S, B> {
 								new PartInputProxy(1));
 
 						// build tree
-						buildSubTree(nodeInfo, method.getAnnotation(OutputPort.class));
+						if (method.isAnnotationPresent(OutputPorts.class)) {
+							buildSubTree(nodeInfo, method.getAnnotation(OutputPorts.class));
+						} else {
+							this.endPoints++;
+						}
 
 						// add entry point
 						nodeInformationMapping.put(method, nodeInfo);
@@ -132,36 +138,36 @@ public abstract class AbstractIterativePipeline<S, B> {
 	}
 
 	@SuppressWarnings("unchecked") // maybe improve this later
-	private void buildSubTree(NodeInformation parent, OutputPort outputPort)
+	private void buildSubTree(NodeInformation parent, OutputPorts outputPorts)
 			throws InstantiationException, IllegalAccessException {
 
 		List<Pair<NodeInformation, Integer>> successors = new ArrayList<>();
-		Class<?> enclosingPart = parent.method.getDeclaringClass();
 
-		for (Class<? extends AbstractIterativePipelinePart<?>> sub : outputPort.to()) {
-			for (Method method : sub.getMethods()) {
-				if (method.isAnnotationPresent(InputPort.class)) {
+		for (OutputPort sub : outputPorts.ports()) {
+			Class<? extends AbstractIterativePipelinePart<?>> subClass = sub.to();
+			for (Method method : subClass.getMethods()) {
+				if (method.isAnnotationPresent(InputPorts.class)) {
 					// resolve subpart
 					AbstractIterativePipelinePart<?> subPartInstance;
 					if (instanceMapping.containsKey(method.getDeclaringClass())) {
 						subPartInstance = instanceMapping.get(method.getDeclaringClass());
 					} else {
-						subPartInstance = sub.newInstance();
+						subPartInstance = subClass.newInstance();
 						instanceMapping.put(method.getDeclaringClass(), subPartInstance);
 						((AbstractIterativePipelinePart<B>) subPartInstance).setBlackboard(blackboard);
 					}
 
 					// get inputport
-					InputPort inputPort = method.getAnnotation(InputPort.class);
-					int inputIndex = containsClass(inputPort, enclosingPart);
+					InputPorts inputPorts = method.getAnnotation(InputPorts.class);
+					int inputIndex = containsClass(inputPorts, sub.id());
 
 					if (inputIndex >= 0) {
 						NodeInformation currentInfo;
 						if (nodeInformationMapping.containsKey(method)) {
 							currentInfo = nodeInformationMapping.get(method);
 						} else {
-							PartInputProxy proxy = new PartInputProxy(inputPort.from().length);
-							ExecutorService executor = outputPort.async() ? Executors.newSingleThreadExecutor()
+							PartInputProxy proxy = new PartInputProxy(inputPorts.ports().length);
+							ExecutorService executor = sub.async() ? Executors.newSingleThreadExecutor()
 									: parent.executor;
 							currentInfo = new NodeInformation(method, executor, proxy);
 							nodeInformationMapping.put(method, currentInfo);
@@ -171,8 +177,8 @@ public abstract class AbstractIterativePipeline<S, B> {
 						successors.add(Pair.of(currentInfo, inputIndex));
 
 						// recursion
-						if (method.isAnnotationPresent(OutputPort.class)) {
-							buildSubTree(currentInfo, method.getAnnotation(OutputPort.class));
+						if (method.isAnnotationPresent(OutputPorts.class)) {
+							buildSubTree(currentInfo, method.getAnnotation(OutputPorts.class));
 						} else {
 							// this is an end point
 							this.endPoints++;
@@ -200,9 +206,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 		}
 	}
 
-	private int containsClass(InputPort port, Class<?> clz) {
-		for (int i = 0; i < port.from().length; i++) {
-			if (port.from()[i].equals(clz)) {
+	private int containsClass(InputPorts port, String id) {
+		for (int i = 0; i < port.ports().length; i++) {
+			if (port.ports()[i].id().equals(id)) {
 				return i;
 			}
 		}

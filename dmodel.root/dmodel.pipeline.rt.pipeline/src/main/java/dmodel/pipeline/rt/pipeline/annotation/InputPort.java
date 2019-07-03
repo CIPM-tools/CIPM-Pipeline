@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.entry.contracts.annotation;
+package dmodel.pipeline.rt.pipeline.annotation;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -7,7 +7,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PipelineEntryPoint {
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface InputPort {
+
+	public String id();
 
 }

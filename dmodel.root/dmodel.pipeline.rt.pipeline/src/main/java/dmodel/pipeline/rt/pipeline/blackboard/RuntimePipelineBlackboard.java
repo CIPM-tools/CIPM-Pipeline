@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.entry.contracts.blackboard;
+package dmodel.pipeline.rt.pipeline.blackboard;
 
 import dmodel.pipeline.dt.mmmodel.MeasurementModel;
 import dmodel.pipeline.dt.mmmodel.MmmodelFactory;

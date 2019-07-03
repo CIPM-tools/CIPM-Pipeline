@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.config.MonitoringDataEntryConfiguration;
-import dmodel.pipeline.rt.entry.contracts.core.IterativeRuntimePipeline;
+import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
 import kieker.common.record.IMonitoringRecord;
 
 @Service

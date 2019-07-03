@@ -1,12 +1,12 @@
-package dmodel.pipeline.rt.entry.contracts.core;
+package dmodel.pipeline.rt.entry.core;
 
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import dmodel.pipeline.rt.entry.contracts.AbstractIterativePipeline;
-import dmodel.pipeline.rt.entry.contracts.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import kieker.common.record.IMonitoringRecord;
 
 @Component

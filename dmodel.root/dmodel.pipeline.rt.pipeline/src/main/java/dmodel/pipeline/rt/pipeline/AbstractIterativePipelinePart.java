@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.entry.contracts;
+package dmodel.pipeline.rt.pipeline;
 
 public abstract class AbstractIterativePipelinePart<B> {
 	private B blackboard;
