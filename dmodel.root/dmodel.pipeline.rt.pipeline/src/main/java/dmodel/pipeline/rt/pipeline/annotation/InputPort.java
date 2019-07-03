@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface InputPort {
 
-	public String id();
+	public String value();
 
 }

@@ -9,11 +9,14 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.shared.pipeline.PortIDs;
 
 public class ServiceCallEntryPoint extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
-	@InputPorts(ports = { @InputPort(id = "toentry") })
-	@OutputPorts(ports = { @OutputPort(to = MeasurementModelFinalize.class, async = false, id = "finalize") })
+	@InputPorts({ @InputPort(PortIDs.TO_SERVICE_ENTRY) })
+	@OutputPorts({
+			@OutputPort(to = MeasurementModelFinalize.class, async = false, id = PortIDs.TO_MM_FINALIZE)
+	})
 	public void processServiceCalls(List<ServiceCallRecord> record) {
 	}
 

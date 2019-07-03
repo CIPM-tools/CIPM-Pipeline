@@ -11,6 +11,11 @@ public class Tree<T> {
 		root.setData(rootData);
 	}
 
+	public Tree(TreeNode<T> root) {
+		this.root = root;
+		this.root.setParent(null);
+	}
+
 	public TreeNode<T> getRoot() {
 		return root;
 	}

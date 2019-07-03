@@ -140,10 +140,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 	@SuppressWarnings("unchecked") // maybe improve this later
 	private void buildSubTree(NodeInformation parent, OutputPorts outputPorts)
 			throws InstantiationException, IllegalAccessException {
-
 		List<Pair<NodeInformation, Integer>> successors = new ArrayList<>();
 
-		for (OutputPort sub : outputPorts.ports()) {
+		for (OutputPort sub : outputPorts.value()) {
 			Class<? extends AbstractIterativePipelinePart<?>> subClass = sub.to();
 			for (Method method : subClass.getMethods()) {
 				if (method.isAnnotationPresent(InputPorts.class)) {
@@ -166,7 +165,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 						if (nodeInformationMapping.containsKey(method)) {
 							currentInfo = nodeInformationMapping.get(method);
 						} else {
-							PartInputProxy proxy = new PartInputProxy(inputPorts.ports().length);
+							PartInputProxy proxy = new PartInputProxy(inputPorts.value().length);
 							ExecutorService executor = sub.async() ? Executors.newSingleThreadExecutor()
 									: parent.executor;
 							currentInfo = new NodeInformation(method, executor, proxy);
@@ -207,8 +206,8 @@ public abstract class AbstractIterativePipeline<S, B> {
 	}
 
 	private int containsClass(InputPorts port, String id) {
-		for (int i = 0; i < port.ports().length; i++) {
-			if (port.ports()[i].id().equals(id)) {
+		for (int i = 0; i < port.value().length; i++) {
+			if (port.value()[i].value().equals(id)) {
 				return i;
 			}
 		}
