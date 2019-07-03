@@ -11,26 +11,24 @@ import dmodel.pipeline.dt.mmmodel.HostNamePair;
 import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
 import dmodel.pipeline.dt.mmmodel.ResourceEnvironmentData;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
+import dmodel.pipeline.shared.structure.Tree.TreeNode;
 
 public class ResourceEnvironmentDerivation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
-	@InputPorts({ @InputPort(PortIDs.TO_PCM_RESENV) })
-	public void deriveResourceEnvironmentData(List<ServiceCallRecord> records) {
+	@InputPorts({ @InputPort(PortIDs.T_PCM_RESENV) })
+	public void deriveResourceEnvironmentData(List<Tree<ServiceCallRecord>> entryCalls) {
 		Set<String> hostNames = new HashSet<>();
 		List<Pair<String, String>> hostConnections = new ArrayList<>();
 
-		List<Tree<ServiceCallRecord>> entryCalls = MonitoringDataUtil.buildServiceCallTree(records);
-
 		// traverse trees
 		for (Tree<ServiceCallRecord> trace : entryCalls) {
-			// TODO recursive parts
+			traverseNode(trace.getRoot(), hostNames, hostConnections);
 		}
 
 		// apply new data
@@ -43,6 +41,18 @@ public class ResourceEnvironmentDerivation extends AbstractIterativePipelinePart
 			data.getConnections().add(pair);
 		});
 		getBlackboard().getMeasurementModel().setEnvironmentData(data);
+	}
+
+	private void traverseNode(TreeNode<ServiceCallRecord> node, Set<String> hosts, List<Pair<String, String>> conns) {
+		hosts.add(node.getData().getHostId());
+		for (TreeNode<ServiceCallRecord> rec : node.getChildren()) {
+			if (!rec.getData().getHostId().equals(node.getData().getHostId())) {
+				// there is a transition
+				conns.add(Pair.of(node.getData().getHostId(), rec.getData().getHostId()));
+			}
+			// recursive traversion
+			traverseNode(rec, hosts, conns);
+		}
 	}
 
 }

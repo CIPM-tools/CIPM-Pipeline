@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
+import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 
 public class ResourceEnvironmentDerivationTest {
@@ -32,7 +33,7 @@ public class ResourceEnvironmentDerivationTest {
 		l.add(b);
 
 		// trigger it
-		transformation.deriveResourceEnvironmentData(l);
+		transformation.deriveResourceEnvironmentData(MonitoringDataUtil.buildServiceCallTree(l));
 
 		// check results
 		assertEquals(2,

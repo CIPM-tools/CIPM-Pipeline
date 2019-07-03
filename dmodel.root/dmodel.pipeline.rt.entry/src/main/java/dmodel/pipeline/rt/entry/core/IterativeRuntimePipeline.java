@@ -30,7 +30,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	protected void onIterationFinished() {
-		// TODO
+		System.out.println(this.blackboard.getMeasurementModel().getEnvironmentData().getHostNames().size());
 	}
 
 }

@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.entry.core;
+package dmodel.pipeline.rt.entry.core.transformations;
 
 import java.util.List;
 
@@ -13,9 +13,9 @@ import dmodel.pipeline.shared.pipeline.PortIDs;
 
 public class ServiceCallEntryPoint extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
-	@InputPorts({ @InputPort(PortIDs.TO_SERVICE_ENTRY) })
+	@InputPorts({ @InputPort(PortIDs.T_DEFAULT) })
 	@OutputPorts({
-			@OutputPort(to = MeasurementModelFinalize.class, async = false, id = PortIDs.TO_MM_FINALIZE)
+			@OutputPort(to = MeasurementModelFinalize.class, async = false, id = PortIDs.T_MM_FINALIZE)
 	})
 	public void processServiceCalls(List<ServiceCallRecord> record) {
 	}

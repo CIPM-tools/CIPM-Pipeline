@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.rt.pcm.resourceenv.ResourceEnvironmentDerivation;
+import dmodel.pipeline.rt.entry.core.transformations.ServiceCallEntryPoint;
+import dmodel.pipeline.rt.entry.core.transformations.ServiceCallTreeBuilder;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.EntryInputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
@@ -22,8 +23,10 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 	private static final Logger LOG = LoggerFactory.getLogger(IterativePipelineEntryPoint.class);
 
 	@EntryInputPort
-	@OutputPorts({ @OutputPort(id = PortIDs.TO_SERVICE_ENTRY, to = ServiceCallEntryPoint.class, async = true),
-			@OutputPort(id = PortIDs.TO_PCM_RESENV, to = ResourceEnvironmentDerivation.class, async = true) })
+	@OutputPorts({
+		@OutputPort(id = PortIDs.T_DEFAULT, to = ServiceCallEntryPoint.class, async = true),
+		@OutputPort(id = PortIDs.T_BUILD_SERVICECALL_TREE, to = ServiceCallTreeBuilder.class, async = true)
+	})
 	public List<ServiceCallRecord> filterServiceCalls(List<IMonitoringRecord> records) {
 		LOG.info("Reached entry (size = " + records.size() + ").");
 		return records.stream().filter(r -> r instanceof ServiceCallRecord).map(ServiceCallRecord.class::cast)

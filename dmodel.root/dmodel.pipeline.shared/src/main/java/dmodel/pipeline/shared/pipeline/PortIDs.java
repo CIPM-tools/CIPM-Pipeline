@@ -1,9 +1,11 @@
 package dmodel.pipeline.shared.pipeline;
 
 public interface PortIDs {
-	String TO_MM_FINALIZE = "finalize";
+	String T_MM_FINALIZE = "finalize";
 
-	String TO_PCM_RESENV = "pcm-resenv";
+	String T_PCM_RESENV = "pcm-resenv";
 
-	String TO_SERVICE_ENTRY = "toentry";
+	String T_DEFAULT = "toentry";
+
+	String T_BUILD_SERVICECALL_TREE = "scall-tree";
 }
