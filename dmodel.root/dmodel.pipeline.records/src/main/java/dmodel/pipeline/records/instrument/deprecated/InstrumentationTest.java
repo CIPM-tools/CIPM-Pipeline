@@ -1,4 +1,4 @@
-package dmodel.pipeline.records.instrument;
+package dmodel.pipeline.records.instrument.deprecated;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,16 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.emftext.language.java.JavaClasspath;
 import org.emftext.language.java.JavaPackage;
+import org.emftext.language.java.classifiers.Class;
 import org.emftext.language.java.classifiers.impl.ClassImpl;
+import org.emftext.language.java.containers.Package;
+import org.emftext.language.java.containers.impl.PackageImpl;
 import org.emftext.language.java.resource.JavaSourceOrClassFileResourceFactoryImpl;
 import org.emftext.language.java.resource.java.IJavaOptions;
+
+import dmodel.pipeline.records.instrument.ApplicationProject;
+import dmodel.pipeline.records.instrument.bridge.SpoonEMFBridge;
+import dmodel.pipeline.records.instrument.spoon.SpoonApplicationTransformer;
 
 public class InstrumentationTest {
 
@@ -37,14 +44,30 @@ public class InstrumentationTest {
 
 		resolveAllProxies(0);
 
+		// try spoon bridge
+		ApplicationProject project = new ApplicationProject();
+		project.setRootPath(
+				"/Users/david/Desktop/Dynamic Approach/Implementation/git/dModel/dmodel.root/dmodel.pipeline.rexample/");
+		project.getSourceFolders().add("src/main/java");
+
+		SpoonApplicationTransformer transformer = new SpoonApplicationTransformer();
+
+		// get bridge
+		SpoonEMFBridge bridge = new SpoonEMFBridge(transformer.createModel(project), rs);
+
+		// get a simple class
 		Iterator<Notifier> it = rs.getAllContents();
+		Class clazz = null;
+		Package pack = null;
 		while (it.hasNext()) {
 			Notifier next = it.next();
-			if (next instanceof EObject) {
-				EObject o = (EObject) next;
-				if (o instanceof ClassImpl) {
-					System.out.println(((ClassImpl) o).getName());
+			if (next instanceof ClassImpl) {
+				ClassImpl impl = (ClassImpl) next;
+				if (impl.getName().contains("DumbGenerator")) {
+					clazz = impl;
 				}
+			} else if (next instanceof PackageImpl) {
+				System.out.println(((Package) next).getName());
 			}
 		}
 	}

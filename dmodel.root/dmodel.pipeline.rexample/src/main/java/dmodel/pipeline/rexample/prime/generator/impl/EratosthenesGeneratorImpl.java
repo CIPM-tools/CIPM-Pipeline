@@ -2,8 +2,7 @@ package dmodel.pipeline.rexample.prime.generator.impl;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
 
 import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 
@@ -19,9 +18,18 @@ public class EratosthenesGeneratorImpl implements IPrimeGenerator {
 		}
 
 		boolean[] fres = res;
+		List<Integer> results = new ArrayList<Integer>();
+		for (int k = 0; k < res.length; k++) {
+			if (results.size() == amount) {
+				break;
+			} else {
+				if (fres[k]) {
+					results.add(k);
+				}
+			}
+		}
 
-		return IntStream.range(0, res.length).filter(i -> fres[i]).limit(amount).mapToObj(i -> i)
-				.collect(Collectors.toList());
+		return results;
 	}
 
 	private boolean[] berechnePrimzahlen(int obergrenze) {

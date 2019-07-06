@@ -24,8 +24,8 @@ public class ResourceEnvironmentDerivationTest {
 
 	@Test
 	public void test() {
-		ServiceCallRecord a = new ServiceCallRecord("", "0", "host1", "", "", "<not set>", "", "", 0, 0);
-		ServiceCallRecord b = new ServiceCallRecord("", "1", "host2", "", "", "0", "", "", 0, 0);
+		ServiceCallRecord a = new ServiceCallRecord("", "0", "host1", "A", "<not set>", "", "", 0, 0);
+		ServiceCallRecord b = new ServiceCallRecord("", "1", "host2", "B", "<not set>", "0", "", 0, 0);
 
 		// create list
 		List<ServiceCallRecord> l = new ArrayList<>();

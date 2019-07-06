@@ -9,7 +9,7 @@ public class DumbGeneratorImpl implements IPrimeGenerator {
 
 	@Override
 	public List<Integer> generatePrimes(int amount) {
-		List<Integer> result = new ArrayList<>();
+		List<Integer> result = new ArrayList<Integer>();
 		int k = 2;
 		while (result.size() < amount) {
 			boolean is = true;
