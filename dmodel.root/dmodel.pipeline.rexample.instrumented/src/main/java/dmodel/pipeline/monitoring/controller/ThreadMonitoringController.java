@@ -16,6 +16,7 @@ import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 
 public class ThreadMonitoringController {
 	private static final IMonitoringController MONITORING_CONTROLLER;
+
 	private static final ThreadMonitoringController instance;
 
 	static {
@@ -27,18 +28,17 @@ public class ThreadMonitoringController {
 		configuration.setProperty(AsciiFileWriter.CONFIG_FLUSH, "true");
 		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
 		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
-
 		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);
 		instance = new ThreadMonitoringController();
 	}
 
-	private static final ITimeSource TIME_SOURCE = MONITORING_CONTROLLER.getTimeSource();
+	private static final ITimeSource TIME_SOURCE = ThreadMonitoringController.MONITORING_CONTROLLER.getTimeSource();
 
 	private static volatile String sessionId;
 
 	private final IDFactory idFactory;
 
-	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
+	private ThreadLocal<Stack<ThreadMonitoringController.ServiceCallTrack>> serviceCallStack;
 
 	private ThreadMonitoringController() {
 		this.idFactory = new IDFactory();
@@ -68,15 +68,15 @@ public class ThreadMonitoringController {
 	 */
 	public synchronized void enterService(final String serviceId, final ServiceParameters serviceParameters) {
 		// value of threadlocal always exists
-		Stack<ServiceCallTrack> trace = serviceCallStack.get();
-
-		ServiceCallTrack nTrack;
+		Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+		ThreadMonitoringController.ServiceCallTrack nTrack;
 		if (trace.empty()) {
-			nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters, null);
+			nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId,
+					serviceParameters, null);
 		} else {
-			nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters, trace.peek().serviceExecutionId);
+			nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId,
+					serviceParameters, trace.peek().serviceExecutionId);
 		}
-
 		// push it
 		trace.push(nTrack);
 	}
@@ -86,19 +86,17 @@ public class ThreadMonitoringController {
 	 * {@link ThreadMonitoringController#enterService(String)} must be called first.
 	 */
 	public synchronized void exitService() {
-		long end = TIME_SOURCE.getTime();
+		long end = ThreadMonitoringController.TIME_SOURCE.getTime();
 		// value of threadlocal always exists
-		Stack<ServiceCallTrack> trace = serviceCallStack.get();
-
+		Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
 		if (trace.empty()) {
 			throw new RuntimeException("The trace stack should never be empty when 'exitService' is called.");
 		}
-
 		// exit current trace
-		ServiceCallTrack track = trace.pop();
-		MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId,
-				HostNameFactory.generateHostname(), track.serviceId, track.serviceParameters.toString(),
-				track.callerServiceExecutionId, null, track.serviceStartTime, end));
+		ThreadMonitoringController.ServiceCallTrack track = trace.pop();
+		ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId,
+				track.serviceExecutionId, HostNameFactory.generateHostname(), track.serviceId,
+				track.serviceParameters.toString(), track.callerServiceExecutionId, null, track.serviceStartTime, end));
 	}
 
 	/**
@@ -108,7 +106,7 @@ public class ThreadMonitoringController {
 	 * @return The current time.
 	 */
 	public long getTime() {
-		return TIME_SOURCE.getTime();
+		return ThreadMonitoringController.TIME_SOURCE.getTime();
 	}
 
 	/**
@@ -119,16 +117,14 @@ public class ThreadMonitoringController {
 	 *                         transition.
 	 */
 	public void logBranchExecution(final String branchId, final String executedBranchId) {
-		Stack<ServiceCallTrack> trace = serviceCallStack.get();
-
+		Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
 		if (trace.empty()) {
 			throw new RuntimeException("The trace stack should never be empty when 'logBranchExecution' is called.");
 		}
-
-		ServiceCallTrack currentTrack = trace.peek();
-		BranchRecord record = new BranchRecord(sessionId, currentTrack.serviceExecutionId, branchId, executedBranchId);
-
-		MONITORING_CONTROLLER.newMonitoringRecord(record);
+		ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+		BranchRecord record = new BranchRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId,
+				branchId, executedBranchId);
+		ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
 	}
 
 	/**
@@ -138,15 +134,14 @@ public class ThreadMonitoringController {
 	 * @param loopIterationCount The executed iterations of the loop.
 	 */
 	public void logLoopIterationCount(final String loopId, final long loopIterationCount) {
-		Stack<ServiceCallTrack> trace = serviceCallStack.get();
-
+		Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
 		if (trace.empty()) {
 			throw new RuntimeException("The trace stack should never be empty when 'logLoopIterationCount' is called.");
 		}
-
-		ServiceCallTrack currentTrack = trace.peek();
-		LoopRecord record = new LoopRecord(sessionId, currentTrack.serviceExecutionId, loopId, loopIterationCount);
-		MONITORING_CONTROLLER.newMonitoringRecord(record);
+		ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+		LoopRecord record = new LoopRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId,
+				loopId, loopIterationCount);
+		ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
 	}
 
 	/**
@@ -158,21 +153,19 @@ public class ThreadMonitoringController {
 	 * @param startTime        The start time of the response time.
 	 */
 	public void logResponseTime(final String internalActionId, final String resourceId, final long startTime) {
-		long end = TIME_SOURCE.getTime();
-		Stack<ServiceCallTrack> trace = serviceCallStack.get();
-
+		long end = ThreadMonitoringController.TIME_SOURCE.getTime();
+		Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
 		if (trace.empty()) {
 			throw new RuntimeException("The trace stack should never be empty when 'logResponseTime' is called.");
 		}
-
-		ServiceCallTrack currentTrack = trace.peek();
-		ResponseTimeRecord record = new ResponseTimeRecord(sessionId, currentTrack.serviceExecutionId, internalActionId,
-				resourceId, startTime, end);
-		MONITORING_CONTROLLER.newMonitoringRecord(record);
+		ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+		ResponseTimeRecord record = new ResponseTimeRecord(ThreadMonitoringController.sessionId,
+				currentTrack.serviceExecutionId, internalActionId, resourceId, startTime, end);
+		ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
 	}
 
 	public static ThreadMonitoringController getInstance() {
-		return instance;
+		return ThreadMonitoringController.instance;
 	}
 
 	/**
@@ -181,7 +174,7 @@ public class ThreadMonitoringController {
 	 * @return The current session ids.
 	 */
 	public static String getSessionId() {
-		return sessionId;
+		return ThreadMonitoringController.sessionId;
 	}
 
 	/**
@@ -190,15 +183,20 @@ public class ThreadMonitoringController {
 	 * @param id The new session id.
 	 */
 	public static void setSessionId(final String id) {
-		sessionId = id;
+		ThreadMonitoringController.sessionId = id;
 	}
 
 	private class ServiceCallTrack {
 		private long serviceStartTime;
+
 		private String serviceId;
+
 		private ServiceParameters serviceParameters;
+
 		private String serviceExecutionId;
+
 		private String sessionId;
+
 		private String callerServiceExecutionId;
 
 		public ServiceCallTrack(String serviceId, String sessionId, ServiceParameters serviceParameters,
@@ -206,11 +204,9 @@ public class ThreadMonitoringController {
 			this.serviceId = serviceId;
 			this.sessionId = sessionId;
 			this.serviceParameters = serviceParameters;
-			this.serviceStartTime = TIME_SOURCE.getTime();
+			this.serviceStartTime = ThreadMonitoringController.TIME_SOURCE.getTime();
 			this.callerServiceExecutionId = parentId;
 			this.serviceExecutionId = ThreadMonitoringController.this.idFactory.createId();
 		}
-
 	}
-
 }

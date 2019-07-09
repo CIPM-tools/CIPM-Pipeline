@@ -53,7 +53,7 @@ public class InstrumentationTest {
 		SpoonApplicationTransformer transformer = new SpoonApplicationTransformer();
 
 		// get bridge
-		SpoonEMFBridge bridge = new SpoonEMFBridge(transformer.createModel(project), rs);
+		SpoonEMFBridge bridge = new SpoonEMFBridge(transformer.createModel(project).getModel(), rs);
 
 		// get a simple class
 		Iterator<Notifier> it = rs.getAllContents();

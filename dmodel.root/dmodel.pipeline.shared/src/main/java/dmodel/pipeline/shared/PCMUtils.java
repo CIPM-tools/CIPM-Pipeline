@@ -2,14 +2,19 @@ package dmodel.pipeline.shared;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
 
+import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.pcm.PcmPackage;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcm.resourcetype.ResourcetypePackage;
+
+import de.uka.ipd.sdq.identifier.Identifier;
 
 public class PCMUtils {
 
@@ -22,6 +27,33 @@ public class PCMUtils {
 		ResourcetypePackage.eINSTANCE.eClass();
 
 		initPathmaps();
+	}
+
+	@SuppressWarnings("unchecked") // it IS a type safe cast
+	public static <T> T getElementById(EObject parent, Class<T> type, String id) {
+		Optional<Identifier> result = getElementById(parent, id);
+		if (!result.isPresent()) {
+			return null;
+		}
+		if (!type.isInstance(result.get())) {
+			return null;
+		} else {
+			return (T) result.get();
+		}
+	}
+
+	public static Optional<Identifier> getElementById(EObject parent, String id) {
+		TreeIterator<EObject> it = parent.eAllContents();
+		while (it.hasNext()) {
+			EObject eo = it.next();
+			if (Identifier.class.isInstance(eo)) {
+				Identifier ident = (Identifier) eo;
+				if (ident.getId().equals(id)) {
+					return Optional.of(ident);
+				}
+			}
+		}
+		return Optional.empty();
 	}
 
 	private static void initPathmaps() {

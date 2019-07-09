@@ -6,11 +6,17 @@
 )
 package tools.vitruv.models.im
 
-class AppProbes {
-	contains Probe[] probes
+class InstrumentationModel {
+	contains InstrumentationPoint[] probes
 }
 
-class Probe {
+class InstrumentationPoint {
 	String abstractActionID = ""
+	String serviceID = ""
 	boolean isActive = "true"
+	InstrumentationType itype = "SERVICE"
+}
+
+enum InstrumentationType {
+	SERVICE, LOOP, INTERNAL
 }
