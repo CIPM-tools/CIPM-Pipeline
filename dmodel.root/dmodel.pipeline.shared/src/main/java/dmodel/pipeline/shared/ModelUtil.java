@@ -1,8 +1,11 @@
 package dmodel.pipeline.shared;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -53,6 +56,19 @@ public class ModelUtil {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends EObject> List<T> getObjects(final EObject pcmModel, final Class<T> type) {
+		List<T> results = new ArrayList<>();
+		TreeIterator<EObject> it = pcmModel.eAllContents();
+		while (it.hasNext()) {
+			EObject eo = it.next();
+			if (type.isInstance(eo)) {
+				results.add((T) eo);
+			}
+		}
+		return results;
 	}
 
 }

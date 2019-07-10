@@ -23,6 +23,7 @@ import tools.vitruv.models.im.InstrumentationModel;
 import tools.vitruv.models.im.InstrumentationPoint;
 import tools.vitruv.models.im.InstrumentationType;
 
+// TODO please refactor this soon, otherwise i need to puke
 public class SpoonApplicationTransformerTest {
 
 	@Test
@@ -60,8 +61,13 @@ public class SpoonApplicationTransformerTest {
 		// build the correspondence manually
 		SpoonCorrespondence corr = new SpoonCorrespondence(model.getModel(), meta.getRepository());
 		ResourceDemandingSEFF seffDumb = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
+				"_2nvWUKKQEem6I6QlOar_-g");
+		ResourceDemandingSEFF seffEras = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
 				"_PlFlUJYHEempGaXtj6ezAw");
-		CtMethod<?> meth = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
+		ResourceDemandingSEFF seffGenerate = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
+				"_2RDcwKMhEemdKJpkeqfUZw");
+
+		CtMethod<?> methDumb = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
 				.filterChildren(new Filter<CtMethod<?>>() {
 					@Override
 					public boolean matches(CtMethod<?> element) {
@@ -74,15 +80,57 @@ public class SpoonApplicationTransformerTest {
 						return false;
 					}
 				}).first();
-		corr.linkService(meth, seffDumb);
+		CtMethod<?> methEras = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
+				.filterChildren(new Filter<CtMethod<?>>() {
+					@Override
+					public boolean matches(CtMethod<?> element) {
+						if (element.getParent() instanceof CtClass) {
+							CtClass<?> parent = (CtClass<?>) element.getParent();
+							if (parent.getQualifiedName().contains("EratosthenesGeneratorImpl")) {
+								return element.getSimpleName().equals("generatePrimes");
+							}
+						}
+						return false;
+					}
+				}).first();
+
+		CtMethod<?> methGenerate = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
+				.filterChildren(new Filter<CtMethod<?>>() {
+					@Override
+					public boolean matches(CtMethod<?> element) {
+						if (element.getParent() instanceof CtClass) {
+							CtClass<?> parent = (CtClass<?>) element.getParent();
+							if (parent.getQualifiedName().contains("PrimeManagerImpl")) {
+								return element.getSimpleName().equals("generatePrimes");
+							}
+						}
+						return false;
+					}
+				}).first();
+
+		corr.linkService(methDumb, seffDumb);
+		corr.linkService(methEras, seffEras);
+		corr.linkService(methGenerate, seffGenerate);
 
 		// build instrumentation model
 		InstrumentationModel iModel = ImFactory.eINSTANCE.createInstrumentationModel();
 		InstrumentationPoint point = ImFactory.eINSTANCE.createInstrumentationPoint();
 		point.setIsActive(true);
 		point.setItype(InstrumentationType.SERVICE);
-		point.setServiceID("_PlFlUJYHEempGaXtj6ezAw");
+		point.setServiceID("_2nvWUKKQEem6I6QlOar_-g");
 		iModel.getProbes().add(point);
+
+		InstrumentationPoint point2 = ImFactory.eINSTANCE.createInstrumentationPoint();
+		point2.setIsActive(true);
+		point2.setItype(InstrumentationType.SERVICE);
+		point2.setServiceID("_PlFlUJYHEempGaXtj6ezAw");
+		iModel.getProbes().add(point2);
+
+		InstrumentationPoint point3 = ImFactory.eINSTANCE.createInstrumentationPoint();
+		point3.setIsActive(true);
+		point3.setItype(InstrumentationType.SERVICE);
+		point3.setServiceID("_2RDcwKMhEemdKJpkeqfUZw");
+		iModel.getProbes().add(point3);
 
 		meta.setProbes(iModel);
 

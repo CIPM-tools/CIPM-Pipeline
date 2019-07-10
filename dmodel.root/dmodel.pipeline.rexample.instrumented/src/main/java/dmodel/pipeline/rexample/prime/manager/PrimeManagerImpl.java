@@ -1,6 +1,8 @@
 package dmodel.pipeline.rexample.prime.manager;
 
 
+import dmodel.pipeline.monitoring.controller.ServiceParameters;
+import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
 import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 import java.util.List;
 
@@ -18,7 +20,15 @@ public class PrimeManagerImpl implements IPrimeManager {
 
     @Override
     public List<Integer> generatePrimes(int amount) {
-        return generator.generatePrimes(amount);
+        ThreadMonitoringController threadMonitoringController = dmodel.pipeline.monitoring.controller.ThreadMonitoringController.getInstance();
+        try  {
+            ServiceParameters serviceParametersMonitoring = new ServiceParameters();
+            serviceParametersMonitoring.addValue("amount", amount);
+            threadMonitoringController.enterService("_2RDcwKMhEemdKJpkeqfUZw", serviceParametersMonitoring);
+            return generator.generatePrimes(amount);
+        } finally {
+            threadMonitoringController.exitService();
+        }
     }
 }
 

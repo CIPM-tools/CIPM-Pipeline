@@ -10,6 +10,8 @@ class MeasurementModel {
 	contains ResourceEnvironmentData environmentData
 }
 
+// RESOURCE ENVIRONMENT //
+// ____________________ //
 class ResourceEnvironmentData {
 	String[] hostNames
 	contains HostNamePair[] connections
@@ -19,3 +21,85 @@ class HostNamePair {
 	String left
 	String right
 }
+
+// USAGEMODEL			//
+// ____________________ //
+class UsageData {
+	contains UsageGroup[] groups
+}
+
+class UsageGroup {
+	long interarrivalTime
+	contains IAbstractUsageDescriptor[] descriptors
+}
+
+interface IAbstractUsageDescriptor {
+	op boolean matches(IAbstractUsageDescriptor other)
+	op void merge(IAbstractUsageDescriptor other)
+}
+
+class UsageLoopDescriptor extends IAbstractUsageDescriptor {
+	int[] iterations
+	contains IAbstractUsageDescriptor[] childs
+	
+	op boolean matches(IAbstractUsageDescriptor other) {
+		if (other instanceof UsageLoopDescriptor) {
+			if (other.childs.length == childs.length) {
+				for (var i = 0; i < childs.length; i++) {
+					if (!childs.get(i).matches(other.childs.get(i))) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		return false
+	}
+	
+	op void merge(IAbstractUsageDescriptor other) {
+		if (other instanceof UsageLoopDescriptor) {
+			iterations.addAll(other.iterations)
+			
+			for (var i = 0; i < childs.size(); i++) {
+				childs.get(i).merge(other.childs.get(i))
+			}
+		}
+	}
+}
+
+class UsageServiceCallDescriptor extends IAbstractUsageDescriptor {
+	String serviceId
+	contains ParameterValuePair[] parameterValues
+	
+	op boolean matches(IAbstractUsageDescriptor other) {
+		if (other instanceof UsageServiceCallDescriptor) {
+			return other.serviceId.equals(serviceId)
+		}
+		return false
+	}
+	
+	op void merge(IAbstractUsageDescriptor other) {
+		if (other instanceof UsageServiceCallDescriptor) {
+			if (serviceId.equals(other.serviceId)) {
+				// merge the parameters
+				other.parameterValues.entrySet.forEach[para |
+					if (parameterValues.containsKey(para.key)) {
+						// add all values
+						parameterValues.get(para.key).addAll(para.value)
+					} else {
+						// easy -> just put it in the map
+						parameterValues.put(para.key, para.value)
+					}
+				]
+			}
+		}
+	}
+}
+
+class ParameterValuePair wraps java.util.Map$Entry {
+    String key
+    Object[] value
+}
+
+// SHARED				//	
+// ____________________ //	

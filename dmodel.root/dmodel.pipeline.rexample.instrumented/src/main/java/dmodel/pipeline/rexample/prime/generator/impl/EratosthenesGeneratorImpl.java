@@ -1,6 +1,8 @@
 package dmodel.pipeline.rexample.prime.generator.impl;
 
 
+import dmodel.pipeline.monitoring.controller.ServiceParameters;
+import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
 import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,24 +12,32 @@ import java.util.List;
 public class EratosthenesGeneratorImpl implements IPrimeGenerator {
     @Override
     public List<Integer> generatePrimes(int amount) {
-        int currentUpperlimit = amount * 10;
-        boolean[] res = new boolean[0];
-        while ((res.length) < amount) {
-            res = berechnePrimzahlen(currentUpperlimit);
-            currentUpperlimit *= 10;
-        } 
-        boolean[] fres = res;
-        List<Integer> results = new ArrayList<Integer>();
-        for (int k = 0; k < (res.length); k++) {
-            if ((results.size()) == amount) {
-                break;
-            } else {
-                if (fres[k]) {
-                    results.add(k);
+        ThreadMonitoringController threadMonitoringController = dmodel.pipeline.monitoring.controller.ThreadMonitoringController.getInstance();
+        try  {
+            ServiceParameters serviceParametersMonitoring = new ServiceParameters();
+            serviceParametersMonitoring.addValue("amount", amount);
+            threadMonitoringController.enterService("_PlFlUJYHEempGaXtj6ezAw", serviceParametersMonitoring);
+            int currentUpperlimit = amount * 10;
+            boolean[] res = new boolean[0];
+            while ((res.length) < amount) {
+                res = berechnePrimzahlen(currentUpperlimit);
+                currentUpperlimit *= 10;
+            } 
+            boolean[] fres = res;
+            List<Integer> results = new ArrayList<Integer>();
+            for (int k = 0; k < (res.length); k++) {
+                if ((results.size()) == amount) {
+                    break;
+                } else {
+                    if (fres[k]) {
+                        results.add(k);
+                    }
                 }
             }
+            return results;
+        } finally {
+            threadMonitoringController.exitService();
         }
-        return results;
     }
 
     private boolean[] berechnePrimzahlen(int obergrenze) {
