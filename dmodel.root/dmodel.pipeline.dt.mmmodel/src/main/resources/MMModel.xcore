@@ -8,6 +8,7 @@ package dmodel.pipeline.dt.mmmodel
 
 class MeasurementModel {
 	contains ResourceEnvironmentData environmentData
+	contains UsageData usageData
 }
 
 // RESOURCE ENVIRONMENT //
@@ -38,6 +39,29 @@ interface IAbstractUsageDescriptor {
 	op void merge(IAbstractUsageDescriptor other)
 }
 
+class UsageBranchDescriptor extends IAbstractUsageDescriptor {
+	contains UsageBranchTransition[] childs
+	
+	op boolean matches(IAbstractUsageDescriptor other) {
+		if (other instanceof UsageBranchDescriptor) {
+			if (childs.size == other.childs.size) {
+				// TODO
+			}
+		}
+		return false
+	}
+	
+	op void merge(IAbstractUsageDescriptor other) {
+		// THIS SHOULDNT BE DONE
+		throw new UnsupportedOperationException
+	}
+}
+
+class UsageBranchTransition {
+	contains IAbstractUsageDescriptor[] childs
+	float probability
+}
+
 class UsageLoopDescriptor extends IAbstractUsageDescriptor {
 	int[] iterations
 	contains IAbstractUsageDescriptor[] childs
@@ -53,6 +77,7 @@ class UsageLoopDescriptor extends IAbstractUsageDescriptor {
 				return true;
 			}
 		}
+		
 		return false
 	}
 	
@@ -73,7 +98,18 @@ class UsageServiceCallDescriptor extends IAbstractUsageDescriptor {
 	
 	op boolean matches(IAbstractUsageDescriptor other) {
 		if (other instanceof UsageServiceCallDescriptor) {
-			return other.serviceId.equals(serviceId)
+			if (other.serviceId.equals(serviceId)) {
+				if (other.parameterValues.size == parameterValues.size) {
+					// check the parameter values
+					var equal = true
+					for (para : other.parameterValues.entrySet) {
+						if (!para.value.equals(parameterValues.get(para.key))) {
+							equal = false
+						}
+					}
+					return equal
+				}
+			}
 		}
 		return false
 	}

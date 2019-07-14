@@ -4,6 +4,7 @@ public interface PortIDs {
 	String T_MM_FINALIZE = "finalize";
 
 	String T_PCM_RESENV = "pcm-resenv";
+	String T_PCM_USAGE = "pcm-usage";
 
 	String T_DEFAULT = "toentry";
 
