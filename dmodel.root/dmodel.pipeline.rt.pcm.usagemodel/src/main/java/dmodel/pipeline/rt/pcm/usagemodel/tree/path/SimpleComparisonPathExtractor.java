@@ -28,7 +28,7 @@ public class SimpleComparisonPathExtractor implements IPathExtractor {
 		Tree<DescriptorTransition<IAbstractUsageDescriptor>> nTree = new Tree<>(tree.getRoot().getData());
 		recursiveExtractPaths(tree.getRoot(), nTree.getRoot(), nTree, results, subSimilarityThres);
 
-		return null;
+		return results;
 	}
 
 	private void recursiveExtractPaths(TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> currentNode,

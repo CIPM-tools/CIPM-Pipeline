@@ -45,21 +45,36 @@ class UsageBranchDescriptor extends IAbstractUsageDescriptor {
 	op boolean matches(IAbstractUsageDescriptor other) {
 		if (other instanceof UsageBranchDescriptor) {
 			if (childs.size == other.childs.size) {
-				// TODO
+				for (var i = 0; i < childs.size; i++) {
+					if (!childs.get(i).matches(other.childs.get(i))) {
+						return false
+					}
+				}
 			}
 		}
 		return false
 	}
 	
 	op void merge(IAbstractUsageDescriptor other) {
-		// THIS SHOULDNT BE DONE
+		// THIS SHOULD NOT BE DONE
 		throw new UnsupportedOperationException
 	}
 }
 
 class UsageBranchTransition {
 	contains IAbstractUsageDescriptor[] childs
-	float probability
+	double probability
+	
+	op boolean matches(UsageBranchTransition other) {
+		if (childs.size == other.childs.size) {
+			for (var i = 0; i < childs.size; i++) {
+				if (!childs.get(i).matches(other.childs.get(i))) {
+					return false
+				}
+			}
+		}
+		return false
+	}
 }
 
 class UsageLoopDescriptor extends IAbstractUsageDescriptor {
@@ -100,14 +115,8 @@ class UsageServiceCallDescriptor extends IAbstractUsageDescriptor {
 		if (other instanceof UsageServiceCallDescriptor) {
 			if (other.serviceId.equals(serviceId)) {
 				if (other.parameterValues.size == parameterValues.size) {
-					// check the parameter values
-					var equal = true
-					for (para : other.parameterValues.entrySet) {
-						if (!para.value.equals(parameterValues.get(para.key))) {
-							equal = false
-						}
-					}
-					return equal
+					// do not check the parameter values
+					return true
 				}
 			}
 		}
