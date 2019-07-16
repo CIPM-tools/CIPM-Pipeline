@@ -24,8 +24,8 @@ public class ResourceEnvironmentDerivationTest {
 
 	@Test
 	public void test() {
-		ServiceCallRecord a = new ServiceCallRecord("", "0", "host1", "A", "<not set>", "", "", 0, 0);
-		ServiceCallRecord b = new ServiceCallRecord("", "1", "host2", "B", "<not set>", "0", "", 0, 0);
+		ServiceCallRecord a = new ServiceCallRecord("", "0", "host1", "MBOOK1", "A", "<not set>", "", "", 0, 0);
+		ServiceCallRecord b = new ServiceCallRecord("", "1", "host2", "MBOOK2", "B", "<not set>", "0", "", 0, 0);
 
 		// create list
 		List<ServiceCallRecord> l = new ArrayList<>();
@@ -36,8 +36,7 @@ public class ResourceEnvironmentDerivationTest {
 		transformation.deriveResourceEnvironmentData(MonitoringDataUtil.buildServiceCallTree(l));
 
 		// check results
-		assertEquals(2,
-				transformation.getBlackboard().getMeasurementModel().getEnvironmentData().getHostNames().size());
+		assertEquals(2, transformation.getBlackboard().getMeasurementModel().getEnvironmentData().getHosts().size());
 		assertEquals(1,
 				transformation.getBlackboard().getMeasurementModel().getEnvironmentData().getConnections().size());
 	}

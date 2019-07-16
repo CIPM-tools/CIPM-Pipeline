@@ -22,6 +22,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	/** Descriptive definition of the serialization size of the record. */
 	public static final int SIZE = TYPE_SIZE_STRING // RecordWithSession.sessionId
 			 + TYPE_SIZE_STRING // HostContextRecord.hostId
+			 + TYPE_SIZE_STRING // HostContextRecord.hostName
 			 + TYPE_SIZE_STRING // ResourceUtilizationRecord.resourceId
 			 + TYPE_SIZE_DOUBLE // ResourceUtilizationRecord.utilization
 			 + TYPE_SIZE_LONG; // ResourceUtilizationRecord.timestamp
@@ -29,6 +30,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public static final Class<?>[] TYPES = {
 		String.class, // RecordWithSession.sessionId
 		String.class, // HostContextRecord.hostId
+		String.class, // HostContextRecord.hostName
 		String.class, // ResourceUtilizationRecord.resourceId
 		double.class, // ResourceUtilizationRecord.utilization
 		long.class, // ResourceUtilizationRecord.timestamp
@@ -37,13 +39,15 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	/** default constants. */
 	public static final String SESSION_ID = "<not set>";
 	public static final String HOST_ID = "<not set>";
+	public static final String HOST_NAME = "<not set>";
 	public static final String RESOURCE_ID = "<not set>";
-	private static final long serialVersionUID = 3576097541026322157L;
+	private static final long serialVersionUID = -6213242176725875588L;
 	
 	/** property name array. */
 	private static final String[] PROPERTY_NAMES = {
 		"sessionId",
 		"hostId",
+		"hostName",
 		"resourceId",
 		"utilization",
 		"timestamp",
@@ -52,6 +56,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	/** property declarations. */
 	private final String sessionId;
 	private final String hostId;
+	private final String hostName;
 	private final String resourceId;
 	private final double utilization;
 	private final long timestamp;
@@ -63,6 +68,8 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	 *            sessionId
 	 * @param hostId
 	 *            hostId
+	 * @param hostName
+	 *            hostName
 	 * @param resourceId
 	 *            resourceId
 	 * @param utilization
@@ -70,9 +77,10 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	 * @param timestamp
 	 *            timestamp
 	 */
-	public ResourceUtilizationRecord(final String sessionId, final String hostId, final String resourceId, final double utilization, final long timestamp) {
+	public ResourceUtilizationRecord(final String sessionId, final String hostId, final String hostName, final String resourceId, final double utilization, final long timestamp) {
 		this.sessionId = sessionId == null?SESSION_ID:sessionId;
 		this.hostId = hostId == null?HOST_ID:hostId;
+		this.hostName = hostName == null?HOST_NAME:hostName;
 		this.resourceId = resourceId == null?RESOURCE_ID:resourceId;
 		this.utilization = utilization;
 		this.timestamp = timestamp;
@@ -92,9 +100,10 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		AbstractMonitoringRecord.checkArray(values, TYPES);
 		this.sessionId = (String) values[0];
 		this.hostId = (String) values[1];
-		this.resourceId = (String) values[2];
-		this.utilization = (Double) values[3];
-		this.timestamp = (Long) values[4];
+		this.hostName = (String) values[2];
+		this.resourceId = (String) values[3];
+		this.utilization = (Double) values[4];
+		this.timestamp = (Long) values[5];
 	}
 
 	/**
@@ -112,9 +121,10 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		AbstractMonitoringRecord.checkArray(values, valueTypes);
 		this.sessionId = (String) values[0];
 		this.hostId = (String) values[1];
-		this.resourceId = (String) values[2];
-		this.utilization = (Double) values[3];
-		this.timestamp = (Long) values[4];
+		this.hostName = (String) values[2];
+		this.resourceId = (String) values[3];
+		this.utilization = (Double) values[4];
+		this.timestamp = (Long) values[5];
 	}
 
 	
@@ -127,6 +137,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public ResourceUtilizationRecord(final IValueDeserializer deserializer) throws RecordInstantiationException {
 		this.sessionId = deserializer.getString();
 		this.hostId = deserializer.getString();
+		this.hostName = deserializer.getString();
 		this.resourceId = deserializer.getString();
 		this.utilization = deserializer.getDouble();
 		this.timestamp = deserializer.getLong();
@@ -143,6 +154,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		return new Object[] {
 			this.getSessionId(),
 			this.getHostId(),
+			this.getHostName(),
 			this.getResourceId(),
 			this.getUtilization(),
 			this.getTimestamp(),
@@ -155,6 +167,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	public void registerStrings(final IRegistry<String> stringRegistry) {	// NOPMD (generated code)
 		stringRegistry.get(this.getSessionId());
 		stringRegistry.get(this.getHostId());
+		stringRegistry.get(this.getHostName());
 		stringRegistry.get(this.getResourceId());
 	}
 	
@@ -166,6 +179,7 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		//super.serialize(serializer);
 		serializer.putString(this.getSessionId());
 		serializer.putString(this.getHostId());
+		serializer.putString(this.getHostName());
 		serializer.putString(this.getResourceId());
 		serializer.putDouble(this.getUtilization());
 		serializer.putLong(this.getTimestamp());
@@ -231,6 +245,9 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 		if (!this.getHostId().equals(castedRecord.getHostId())) {
 			return false;
 		}
+		if (!this.getHostName().equals(castedRecord.getHostName())) {
+			return false;
+		}
 		if (!this.getResourceId().equals(castedRecord.getResourceId())) {
 			return false;
 		}
@@ -251,6 +268,11 @@ public class ResourceUtilizationRecord extends AbstractMonitoringRecord implemen
 	
 	public final String getHostId() {
 		return this.hostId;
+	}
+	
+	
+	public final String getHostName() {
+		return this.hostName;
 	}
 	
 	

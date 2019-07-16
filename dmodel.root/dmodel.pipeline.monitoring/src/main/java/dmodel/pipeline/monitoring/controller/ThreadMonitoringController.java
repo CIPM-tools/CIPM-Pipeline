@@ -97,8 +97,8 @@ public class ThreadMonitoringController {
 		// exit current trace
 		ServiceCallTrack track = trace.pop();
 		MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId,
-				HostNameFactory.generateHostname(), track.serviceId, track.serviceParameters.toString(),
-				track.callerServiceExecutionId, null, track.serviceStartTime, end));
+				HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId,
+				track.serviceParameters.toString(), track.callerServiceExecutionId, null, track.serviceStartTime, end));
 	}
 
 	/**

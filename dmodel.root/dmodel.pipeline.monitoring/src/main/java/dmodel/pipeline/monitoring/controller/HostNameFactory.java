@@ -1,5 +1,7 @@
 package dmodel.pipeline.monitoring.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Optional;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -10,9 +12,10 @@ import oshi.hardware.NetworkIF;
 
 public class HostNameFactory {
 
+	private static Optional<String> CURRENT_HOSTID = Optional.empty();
 	private static Optional<String> CURRENT_HOSTNAME = Optional.empty();
 
-	public static synchronized final String generateHostname() {
+	public static synchronized final String generateHostName() {
 		if (!CURRENT_HOSTNAME.isPresent()) {
 			// build it
 			buildHostname();
@@ -21,6 +24,22 @@ public class HostNameFactory {
 	}
 
 	private static void buildHostname() {
+		try {
+			CURRENT_HOSTNAME = Optional.of(InetAddress.getLocalHost().getHostName());
+		} catch (UnknownHostException e) {
+			CURRENT_HOSTNAME = Optional.of("<not set>");
+		}
+	}
+
+	public static synchronized final String generateHostId() {
+		if (!CURRENT_HOSTID.isPresent()) {
+			// build it
+			buildHostId();
+		}
+		return CURRENT_HOSTID.get();
+	}
+
+	private static void buildHostId() {
 		SystemInfo si = new SystemInfo();
 		HardwareAbstractionLayer hw = si.getHardware();
 
@@ -30,7 +49,7 @@ public class HostNameFactory {
 		for (NetworkIF nif : nifs) {
 			macAddrConcat += nif.getMacaddr();
 		}
-		CURRENT_HOSTNAME = Optional.of(DigestUtils.md5Hex(macAddrConcat));
+		CURRENT_HOSTID = Optional.of(DigestUtils.md5Hex(macAddrConcat));
 	}
 
 }
