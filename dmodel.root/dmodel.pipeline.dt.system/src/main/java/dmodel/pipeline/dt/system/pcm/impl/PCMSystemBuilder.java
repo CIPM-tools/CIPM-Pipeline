@@ -30,9 +30,10 @@ public class PCMSystemBuilder implements ISystemExtractor {
 	public System buildSystemFromCallGraph(Repository repository, System initial,
 			DirectedGraph<String, Integer> serviceCallGraph, IConflictResolver conflictResolver,
 			IAssemblySelectionStrategy assemblySelection) {
+		LOG.info("Starting system derivation process (DT).");
 		// 0. create output system
 		System enclosingSystem = SystemFactory.eINSTANCE.createSystem();
-
+		
 		// 1.1. find entry points to the call graph
 		Set<String> entryPoints = serviceCallGraph.getNodes().stream()
 				.filter(n -> serviceCallGraph.incomingEdges(n) == 0).collect(Collectors.toSet());
