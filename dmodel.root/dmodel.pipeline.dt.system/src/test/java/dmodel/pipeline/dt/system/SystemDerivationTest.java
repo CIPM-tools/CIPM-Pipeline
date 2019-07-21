@@ -7,15 +7,14 @@ import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
-import dmodel.pipeline.dt.system.pcm.ISystemExtractor;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
 import dmodel.pipeline.records.instrument.spoon.SpoonApplicationTransformer;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.PCMUtils;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
+import dmodel.pipeline.shared.pcm.PCMUtils;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 import spoon.Launcher;
 import spoon.reflect.declaration.CtClass;
@@ -143,8 +142,8 @@ public class SystemDerivationTest {
 		DirectedGraph<String, Integer> callGraph = systemExtractor.deriveSystemComposition(model, corr);
 
 		// derive system
-		ISystemExtractor extractor = new PCMSystemBuilder();
-		extractor.buildSystemFromCallGraph(meta.getRepository(), null, callGraph, null, null);
+		PCMSystemBuilder extractor = new PCMSystemBuilder(meta.getRepository(), null);
+		extractor.startBuildingSystem(callGraph);
 	}
 
 }

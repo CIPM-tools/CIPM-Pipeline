@@ -26,6 +26,14 @@ public class DirectedGraph<N, E> {
 		return nodes;
 	}
 
+	public List<Pair<N, E>> getOutgoingEdges(String node) {
+		return outgoingEdges.get(node);
+	}
+
+	public List<Pair<N, E>> getIncomingEdges(String node) {
+		return incomingEdges.get(node);
+	}
+
 	public int incomingEdges(N node) {
 		return this.incomingEdges.containsKey(node) ? this.incomingEdges.get(node).size() : 0;
 	}

@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.palladiosimulator.pcm.repository.Repository;
 
 import de.uka.ipd.sdq.identifier.Identifier;
-import dmodel.pipeline.shared.PCMUtils;
+import dmodel.pipeline.shared.pcm.PCMUtils;
 import spoon.reflect.CtModel;
 import tools.vitruv.framework.correspondence.Correspondence;
 import tools.vitruv.framework.correspondence.Correspondences;
