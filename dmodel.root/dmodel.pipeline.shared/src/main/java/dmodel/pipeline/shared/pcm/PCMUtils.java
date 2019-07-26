@@ -1,6 +1,8 @@
 package dmodel.pipeline.shared.pcm;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -49,7 +51,7 @@ public class PCMUtils {
 	public static Optional<ProvidedRole> getProvidedRoleBySignature(BasicComponent comp, Signature toSig) {
 		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> {
 			if (r instanceof OperationProvidedRole) {
-				return ((OperationRequiredRole) r).getRequiredInterface__OperationRequiredRole()
+				return ((OperationProvidedRole) r).getProvidedInterface__OperationProvidedRole()
 						.getSignatures__OperationInterface().parallelStream()
 						.anyMatch(sig -> sig.getId().equals(toSig.getId()));
 			}
@@ -68,6 +70,19 @@ public class PCMUtils {
 		} else {
 			return (T) result.get();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> List<T> getElementsByType(EObject parent, Class<T> class1) {
+		List<T> ret = new ArrayList<>();
+		TreeIterator<EObject> it = parent.eAllContents();
+		while (it.hasNext()) {
+			EObject eo = it.next();
+			if (class1.isInstance(eo)) {
+				ret.add((T) eo);
+			}
+		}
+		return ret;
 	}
 
 	public static Optional<Identifier> getElementById(EObject parent, String id) {

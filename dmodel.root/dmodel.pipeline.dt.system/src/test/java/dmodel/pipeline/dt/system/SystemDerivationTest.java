@@ -1,5 +1,9 @@
 package dmodel.pipeline.dt.system;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 
 import org.junit.Test;
@@ -7,6 +11,7 @@ import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
+import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
@@ -143,7 +148,18 @@ public class SystemDerivationTest {
 
 		// derive system
 		PCMSystemBuilder extractor = new PCMSystemBuilder(meta.getRepository(), null);
-		extractor.startBuildingSystem(callGraph);
+		boolean finished = extractor.startBuildingSystem(callGraph);
+		assertFalse(finished);
+		assertEquals(extractor.getCurrentConflict().getClass(), ConnectionConflict.class);
+
+		ConnectionConflict conf = (ConnectionConflict) extractor.getCurrentConflict();
+		conf.setSolved(true);
+		conf.setSolution(conf.getProvided().get(0));
+
+		finished = extractor.continueBuilding();
+		assertTrue(finished);
+
+		ModelUtil.saveToFile(extractor.getCurrentSystem(), "output/test1.system");
 	}
 
 }

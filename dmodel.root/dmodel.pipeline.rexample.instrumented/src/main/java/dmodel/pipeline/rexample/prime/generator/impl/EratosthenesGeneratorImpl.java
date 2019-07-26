@@ -16,7 +16,7 @@ public class EratosthenesGeneratorImpl implements IPrimeGenerator {
         try  {
             ServiceParameters serviceParametersMonitoring = new ServiceParameters();
             serviceParametersMonitoring.addValue("amount", amount);
-            threadMonitoringController.enterService("_PlFlUJYHEempGaXtj6ezAw", serviceParametersMonitoring);
+            threadMonitoringController.enterService("_PlFlUJYHEempGaXtj6ezAw", this, serviceParametersMonitoring);
             int currentUpperlimit = amount * 10;
             boolean[] res = new boolean[0];
             while ((res.length) < amount) {

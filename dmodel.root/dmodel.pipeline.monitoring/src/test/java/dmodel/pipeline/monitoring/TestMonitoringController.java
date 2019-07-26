@@ -10,7 +10,7 @@ public class TestMonitoringController {
 		for (int i = 0; i < 1000000; i++) {
 			Math.sqrt(i);
 		}
-		controller.enterService("1234");
+		controller.enterService("1234", "ABCD");
 		controller.logResponseTime("abc", "cdf", start);
 		controller.logResponseTime("abc", "cdf", start);
 		controller.exitService();

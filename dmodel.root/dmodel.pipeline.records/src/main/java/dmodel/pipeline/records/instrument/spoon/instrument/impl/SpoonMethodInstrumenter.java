@@ -28,8 +28,6 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 	public void instrument(Launcher parent, CtMethod<?> target, InstrumentationPoint probe) {
 		Factory factory = parent.getFactory();
 
-		debugMethod(target);
-
 		if (probe.isIsActive() && probe.getItype() == InstrumentationType.SERVICE) {
 			// instrument the method
 
@@ -64,6 +62,7 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 			CtInvocation<?> invocEnterService = factory.createInvocation(
 					factory.createVariableRead(threadMonitoringVariable.getReference(), false), enterService,
 					factory.createLiteral(probe.getServiceID()),
+					factory.createThisAccess(target.getDeclaringType().getReference()),
 					factory.createVariableRead(nVariable.getReference(), false));
 			lastParameterSt.insertAfter(invocEnterService);
 
@@ -105,17 +104,6 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 		position.insertAfter(invoc);
 
 		return invoc;
-	}
-
-	private void debugMethod(CtMethod<?> target) {
-		target.getBody().getStatements().forEach(e -> {
-			if (e instanceof CtLocalVariable<?>) {
-				if (((CtLocalVariable) e).getDefaultExpression() instanceof CtConstructorCall<?>) {
-					CtConstructorCall<?> call = (CtConstructorCall<?>) ((CtLocalVariable<?>) e).getDefaultExpression();
-					System.out.println(call);
-				}
-			}
-		});
 	}
 
 }

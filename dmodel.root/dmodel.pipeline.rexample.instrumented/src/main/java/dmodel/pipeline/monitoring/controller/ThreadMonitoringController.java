@@ -56,8 +56,8 @@ public class ThreadMonitoringController {
      * @param serviceId
      * 		The SEFF Id for the service.
      */
-    public void enterService(final String serviceId) {
-        this.enterService(serviceId, ServiceParameters.EMPTY);
+    public void enterService(final String serviceId, final Object exId) {
+        this.enterService(serviceId, exId, ServiceParameters.EMPTY);
     }
 
     /**
@@ -71,14 +71,14 @@ public class ThreadMonitoringController {
      * @param serviceParameters
      * 		The service parameter values.
      */
-    public synchronized void enterService(final String serviceId, final ServiceParameters serviceParameters) {
+    public synchronized void enterService(final String serviceId, final Object exId, final ServiceParameters serviceParameters) {
         // value of threadlocal always exists
         Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
         ThreadMonitoringController.ServiceCallTrack nTrack;
         if (trace.empty()) {
-            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, null);
+            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), null);
         } else {
-            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, trace.peek().serviceExecutionId);
+            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
         }
         // push it
         trace.push(nTrack);
@@ -97,7 +97,7 @@ public class ThreadMonitoringController {
         }
         // exit current trace
         ThreadMonitoringController.ServiceCallTrack track = trace.pop();
-        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId, HostNameFactory.generateHostname(), track.serviceId, track.serviceParameters.toString(), track.callerServiceExecutionId, null, track.serviceStartTime, end));
+        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId, HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId, track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext, track.serviceStartTime, end));
     }
 
     /**
@@ -205,12 +205,15 @@ public class ThreadMonitoringController {
 
         private String callerServiceExecutionId;
 
-        public ServiceCallTrack(String serviceId, String sessionId, ServiceParameters serviceParameters, String parentId) {
+        private String executionContext;
+
+        public ServiceCallTrack(String serviceId, String sessionId, ServiceParameters serviceParameters, String executionContext, String parentId) {
             this.serviceId = serviceId;
             this.sessionId = sessionId;
             this.serviceParameters = serviceParameters;
             this.serviceStartTime = ThreadMonitoringController.TIME_SOURCE.getTime();
             this.callerServiceExecutionId = parentId;
+            this.executionContext = executionContext;
             this.serviceExecutionId = ThreadMonitoringController.this.idFactory.createId();
         }
     }

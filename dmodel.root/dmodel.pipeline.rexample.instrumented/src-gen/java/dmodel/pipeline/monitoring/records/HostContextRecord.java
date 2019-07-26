@@ -10,4 +10,6 @@ import kieker.common.record.IMonitoringRecord;
 public interface HostContextRecord extends IMonitoringRecord {
 	public String getHostId();
 	
+	public String getHostName();
+	
 }

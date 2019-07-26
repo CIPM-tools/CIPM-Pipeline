@@ -15,7 +15,7 @@ public class DumbGeneratorImpl implements IPrimeGenerator {
         try  {
             ServiceParameters serviceParametersMonitoring = new ServiceParameters();
             serviceParametersMonitoring.addValue("amount", amount);
-            threadMonitoringController.enterService("_2nvWUKKQEem6I6QlOar_-g", serviceParametersMonitoring);
+            threadMonitoringController.enterService("_2nvWUKKQEem6I6QlOar_-g", this, serviceParametersMonitoring);
             List<Integer> result = new ArrayList<Integer>();
             int k = 2;
             while ((result.size()) < amount) {

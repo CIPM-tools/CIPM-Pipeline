@@ -24,7 +24,7 @@ public class PrimeManagerImpl implements IPrimeManager {
         try  {
             ServiceParameters serviceParametersMonitoring = new ServiceParameters();
             serviceParametersMonitoring.addValue("amount", amount);
-            threadMonitoringController.enterService("_2RDcwKMhEemdKJpkeqfUZw", serviceParametersMonitoring);
+            threadMonitoringController.enterService("_2RDcwKMhEemdKJpkeqfUZw", this, serviceParametersMonitoring);
             return generator.generatePrimes(amount);
         } finally {
             threadMonitoringController.exitService();
