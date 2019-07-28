@@ -117,13 +117,40 @@ public class PCMSystemBuilder {
 			if (currentConflict instanceof ConnectionConflict) {
 				return resolveConnectionConflict((ConnectionConflict) currentConflict);
 			} else if (currentConflict instanceof AssemblyConflict) {
-				// TODO
-				return false;
+				return resolveAssemblyConflict((AssemblyConflict) currentConflict);
 			}
 		} else {
 			throw new IllegalStateException("Cannot continue if there is no resolved conflict.");
 		}
 		return false;
+	}
+
+	private boolean resolveAssemblyConflict(AssemblyConflict currentConflict) {
+		if (currentConflict.getReqRole() == null) {
+			clusterAndAddOutgoingEdges(currentConflict.getServiceTo(), currentConflict.getSolution());
+		} else {
+			AssemblyContext currentCtx = currentEdge.get(0).assemblyFrom;
+			OperationRequiredRole reqRole = (OperationRequiredRole) currentConflict.getReqRole();
+			ProvidedRole provRole = currentConflict.getSolution().getEncapsulatedComponent__AssemblyContext()
+					.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
+						if (pr instanceof OperationProvidedRole) {
+							OperationProvidedRole opr = (OperationProvidedRole) pr;
+							return opr.getProvidedInterface__OperationProvidedRole().getId()
+									.equals(reqRole.getRequiredInterface__OperationRequiredRole().getId());
+						}
+						return false;
+					}).findFirst().get();
+
+			// link the assembly
+			linkAssemblys(currentCtx, reqRole, currentConflict.getSolution(), provRole);
+
+			// add outgoing edges
+			clusterAndAddOutgoingEdges(currentConflict.getServiceTo(), currentConflict.getSolution());
+		}
+		// we solved the conflict
+		currentConflict = null;
+
+		return buildingStep();
 	}
 
 	private boolean resolveConnectionConflict(ConnectionConflict conf) {
@@ -292,7 +319,7 @@ public class PCMSystemBuilder {
 
 	private AssemblyContext processSingleEdge(AssemblyEdge edge, RequiredRole reqRole, ProvidedRole provRole) {
 		// resolve assembly for service
-		AssemblyContext resolvedContext = resolveAssemblyFor(reqRole, provRole);
+		AssemblyContext resolvedContext = resolveAssemblyFor(edge, reqRole, provRole);
 		if (resolvedContext == null) {
 			return null;
 		}
@@ -334,7 +361,7 @@ public class PCMSystemBuilder {
 				seff.getBasicComponent_ServiceEffectSpecification());
 		if (possAssemblys.size() > 0) {
 			// conflict
-			createAssemblyConflict(possAssemblys);
+			createAssemblyConflict(possAssemblys, seff.getId());
 			return null;
 		}
 
@@ -342,12 +369,12 @@ public class PCMSystemBuilder {
 		return instantiateAssembly(seff.getBasicComponent_ServiceEffectSpecification());
 	}
 
-	private AssemblyContext resolveAssemblyFor(RequiredRole reqRole, ProvidedRole provRole) {
+	private AssemblyContext resolveAssemblyFor(AssemblyEdge edge, RequiredRole reqRole, ProvidedRole provRole) {
 		// search for matching assemblies
 		List<AssemblyProvidedRole> possAssemblys = getMatchingAssemblys(provRole);
 		if (possAssemblys.size() > 0) {
 			// conflict
-			createAssemblyConflict(possAssemblys, reqRole);
+			createAssemblyConflict(possAssemblys, reqRole, edge);
 			return null;
 		}
 
@@ -376,20 +403,23 @@ public class PCMSystemBuilder {
 		return nAssembly;
 	}
 
-	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, RequiredRole reqRole) {
+	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, RequiredRole reqRole,
+			AssemblyEdge selEdge) {
 		AssemblyConflict conflict = new AssemblyConflict(conflictCounter++);
 		conflict.setPoss(possAssemblys.stream().map(a -> a.ctx).collect(Collectors.toList()));
 		conflict.setReqRole(reqRole);
+		conflict.setServiceTo(selEdge.serviceTo);
 
 		this.currentConflict = conflict;
 
 		assemblySelectionListener.forEach(l -> l.conflict(conflict));
 	}
 
-	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys) {
+	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, String epId) {
 		AssemblyConflict conflict = new AssemblyConflict(conflictCounter++);
 		conflict.setPoss(possAssemblys.stream().map(a -> a.ctx).collect(Collectors.toList()));
 		conflict.setReqRole(null);
+		conflict.setServiceTo(epId);
 
 		this.currentConflict = conflict;
 

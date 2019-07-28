@@ -7,10 +7,10 @@ import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 
 public class AssemblyConflict extends AbstractConflict<AssemblyContext> {
-
 	private List<AssemblyContext> poss;
 	private RequiredRole reqRole;
 	private long id;
+	private String serviceTo;
 
 	public AssemblyConflict(long id) {
 		super();
@@ -36,6 +36,14 @@ public class AssemblyConflict extends AbstractConflict<AssemblyContext> {
 
 	public long getId() {
 		return id;
+	}
+
+	public String getServiceTo() {
+		return serviceTo;
+	}
+
+	public void setServiceTo(String serviceTo) {
+		this.serviceTo = serviceTo;
 	}
 
 }
