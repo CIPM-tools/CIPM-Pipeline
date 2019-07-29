@@ -1,14 +1,22 @@
 package dmodel.pipeline.rt.rest.core;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/core")
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RestController
 public class CoreRestController {
 
-	@GetMapping("/ping")
+	@GetMapping("/core/ping")
 	public String ping() {
 		return "true";
+	}
+
+	@Bean
+	public ObjectMapper jsonMapper() {
+		return new ObjectMapper();
 	}
 
 }
