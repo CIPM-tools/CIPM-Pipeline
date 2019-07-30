@@ -5,13 +5,16 @@ var validation = {
 	paths : false
 }
 
+var configuration = {}
+
 $(document).ready(function() {
 	configurePathAjax();
 	configureModelAjax();
+	configureSaveAjax();
 
 	preconfigureSourceTree();
 	configureSourceTree();
-	
+
 	getCurrentConfig();
 });
 
@@ -19,9 +22,36 @@ $.postJSON = function(url, data, func) {
 	$.post(url, data, func, 'json');
 }
 
+function configureSaveAjax() {
+	$("#save").click(function() {
+		var nConfig = {
+			"projectPath" : $("#path").val(),
+			"instrumentedPath" : $("#instr_path").val()
+		};
+		$.postJSON("/config/save", {
+			"config" : JSON.stringify(nConfig)
+		}, function(data) {
+			console.log(data);
+			if (data.success) {
+				toastr.success('Saved configuration successfully.', 'Success');
+			} else {
+				toastr.error('Failed to save configuration.', 'Error');
+			}
+		});
+	});
+}
+
 function getCurrentConfig() {
 	$.getJSON("/config/get", function(data) {
-		console.log(data);
+		configuration = data;
+
+		$("#path").val(data.projectPath == null ? "" : data.projectPath);
+		$("#instr_path").val(
+				data.instrumentedPath == null ? "" : data.instrumentedPath);
+		
+		// refresh
+		modelValueChanged();
+		pathValueChanged();
 	});
 }
 
@@ -62,24 +92,25 @@ function applyTick(image_id, value) {
 }
 
 function configurePathAjax() {
-	$("#path").change(
-			function() {
-				$.postJSON("/config/validate-path", {
-					"path" : this.value
-				}, function(data) {
-					if (data.valid) {
-						$("#path-text").text(data.typeAsText);
-						$("#path-image").attr("src",
-								"img/iconfinder_Tick_Mark_1398911.png");
-						updateFolderTree(data.possibleFolders);
-					} else {
-						$("#path-text").text("Invalid");
-						$("#path-image").attr("src",
-								"img/iconfinder_Close_Icon_1398919.png");
-						$("#sourcetree").jstree().delete_node("0");
-					}
-				});
-			});
+	$("#path").change(pathValueChanged);
+}
+
+function pathValueChanged() {
+	$.postJSON("/config/validate-path", {
+		"path" : $("#path").val()
+	}, function(data) {
+		if (data.valid) {
+			$("#path-text").text(data.typeAsText);
+			$("#path-image").attr("src",
+					"img/iconfinder_Tick_Mark_1398911.png");
+			updateFolderTree(data.possibleFolders);
+		} else {
+			$("#path-text").text("Invalid");
+			$("#path-image").attr("src",
+					"img/iconfinder_Close_Icon_1398919.png");
+			$("#sourcetree").jstree().delete_node("0");
+		}
+	});
 }
 
 function updateFolderTree(data) {

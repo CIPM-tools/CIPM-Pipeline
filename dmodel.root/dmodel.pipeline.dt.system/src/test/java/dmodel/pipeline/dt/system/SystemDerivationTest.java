@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
@@ -35,7 +34,6 @@ import tools.vitruv.models.im.InstrumentationType;
 // TODO please refactor this soon, otherwise i need to puke
 public class SystemDerivationTest {
 
-	@Test
 	public void test() {
 		CorrespondenceUtil.initVitruv();
 		PCMUtils.loadPCMModels();

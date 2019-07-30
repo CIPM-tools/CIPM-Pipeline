@@ -44,6 +44,17 @@ public class ConfigRestController {
 		}
 	}
 
+	@PostMapping("/config/save")
+	public String saveConfig(@RequestParam String config) {
+		try {
+			JsonConfiguration json = objectMapper.readValue(config, JsonConfiguration.class);
+			json.flush(this.config);
+			return "{\"success\" : true}";
+		} catch (IOException e) {
+			return "{\"success\" : false}";
+		}
+	}
+
 	@PostMapping("/config/validate-models")
 	public String validateModels(@RequestParam String models) {
 		ModelPathResponse resp = new ModelPathResponse();

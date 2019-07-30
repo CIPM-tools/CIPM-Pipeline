@@ -18,6 +18,7 @@ public class JsonConfiguration {
 		out.setProjectPath(pconf.getRootPath());
 		out.setSourceFolders(pconf.getSourceFolders());
 		out.setInstrumentedPath(pconf.getInstrumentedPath());
+
 		return out;
 	}
 

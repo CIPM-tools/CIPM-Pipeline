@@ -2,7 +2,6 @@ package dmodel.pipeline.records.instrument.spoon;
 
 import java.io.File;
 
-import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
@@ -26,7 +25,6 @@ import tools.vitruv.models.im.InstrumentationType;
 // TODO please refactor this soon, otherwise i need to puke
 public class SpoonApplicationTransformerTest {
 
-	@Test
 	public void test() {
 		CorrespondenceUtil.initVitruv();
 		PCMUtils.loadPCMModels();
