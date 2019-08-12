@@ -52,7 +52,21 @@ function getCurrentConfig() {
 		// refresh
 		modelValueChanged();
 		pathValueChanged();
+		
+		sourceFoldersChanged("/");
 	});
+}
+
+function sourceFoldersChanged(delemiter) {
+	configuration.sourceFolders.forEach(function(srcFolder) {
+		spSrcFolder = srcFolder.split("/");
+		markFolder(spSrcFolder);
+	});
+}
+
+function markFolder(srcFolderArr) {
+	var currNode = $('#sourcetree').jstree("get_node", "#");
+	console.log(currNode);
 }
 
 function configureModelAjax() {
