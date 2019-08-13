@@ -44,7 +44,7 @@ public class ConfigRestController {
 		}
 	}
 
-	@PostMapping("/config/save")
+	@PostMapping("/config/save/project")
 	public String saveConfig(@RequestParam String config) {
 		try {
 			JsonConfiguration json = objectMapper.readValue(config, JsonConfiguration.class);
@@ -123,9 +123,13 @@ public class ConfigRestController {
 			return true;
 		File file = new File(path);
 		if (file.exists()) {
-			EObject res = ModelUtil.readFromFile(path, type);
-			if (res != null && type.isInstance(res)) {
-				return true;
+			try {
+				EObject res = ModelUtil.readFromFile(path, type);
+				if (res != null && type.isInstance(res)) {
+					return true;
+				}
+			} catch (Exception e) {
+				return false;
 			}
 		}
 		return false;
