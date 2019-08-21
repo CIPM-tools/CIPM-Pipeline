@@ -10,9 +10,14 @@ import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
+import de.uka.ipd.sdq.identifier.Identifier;
+import dmodel.pipeline.models.mapping.MappingFactory;
+import dmodel.pipeline.models.mapping.PathMapping;
+import dmodel.pipeline.models.mapping.RepositoryMapping;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.CtMethod;
+import spoon.reflect.path.CtPath;
 
 public class SpoonCorrespondence {
 
@@ -70,6 +75,27 @@ public class SpoonCorrespondence {
 
 	public ResourceDemandingSEFF resolveService(CtMethod<?> method) {
 		return serviceToPCM.get(method);
+	}
+
+	public RepositoryMapping toMappingModel() {
+		RepositoryMapping mapping = MappingFactory.eINSTANCE.createRepositoryMapping();
+
+		this.serviceToPCM.entrySet().forEach(entry -> {
+			mapping.getSpoonToPCM().add(buildPathMapping(entry.getKey().getPath(), entry.getValue()));
+		});
+
+		this.actionToPCM.entrySet().forEach(entry -> {
+			mapping.getSpoonToPCM().add(buildPathMapping(entry.getKey().getPath(), entry.getValue()));
+		});
+
+		return mapping;
+	}
+
+	private PathMapping buildPathMapping(CtPath path, Identifier id) {
+		PathMapping mp = MappingFactory.eINSTANCE.createPathMapping();
+		mp.setPcmElementId(id.getId());
+		mp.setSpoonPath(path.toString());
+		return mp;
 	}
 
 }

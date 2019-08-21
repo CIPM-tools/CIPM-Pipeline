@@ -33,4 +33,12 @@ public class TemplateController {
 		return "index";
 	}
 
+	@RequestMapping(value = { "/design/index", "/design/" }, method = RequestMethod.GET)
+	public String designTime(Model model) {
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_FRAGMENT_JS);
+
+		return "index";
+	}
+
 }

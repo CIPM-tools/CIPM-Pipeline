@@ -4,11 +4,11 @@ import dmodel.pipeline.rt.validation.contracts.IValidationListener;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationState;
 import dmodel.pipeline.shared.monitoring.MonitoringDataContainer;
-import dmodel.pipeline.shared.pcm.PCMInstance;
+import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 public interface IValidationProcessor {
 
-	void input(PCMInstance instance, MonitoringDataContainer monitoringData);
+	void input(InMemoryPCM instance, MonitoringDataContainer monitoringData);
 
 	ValidationState getState();
 

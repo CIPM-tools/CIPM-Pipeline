@@ -1,0 +1,46 @@
+plugins {
+    id "java"
+    id "org.xtext.builder" version "2.0.4"
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation "org.eclipse.xtext:org.eclipse.xtext.xbase:${xtextVersion}"
+    implementation "org.eclipse.emf:org.eclipse.emf.ecore.xcore.lib:${ecoreXcoreLibVersion}"
+    implementation "org.eclipse.emf:org.eclipse.emf.ecore:${emfVersion}"
+    implementation "org.eclipse.emf:org.eclipse.emf.common:${emfCommonVersion}"
+
+    xtextLanguages "org.antlr:antlr-runtime:3.2"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.mwe2.runtime:${mwe2Version}"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.common:${emfCommonVersion}"
+    xtextLanguages("org.eclipse.emf:org.eclipse.emf.ecore.xcore:${ecoreXcoreVersion}") {
+        exclude group: "org.antlr", module: "antlr-runtime"
+        exclude group: "org.eclipse.xtext", module: "org.eclipse.xtext"
+        exclude group: "org.eclipse.xtext", module: "org.eclipse.xtext.xbase"
+    }
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.ecore.xcore.lib:${ecoreXcoreLibVersion}"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.codegen:${emfCodegenVersion}"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.ecore:${emfVersion}"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.codegen.ecore:${emfCodegenEcoreVersion}"
+    xtextLanguages "org.eclipse.emf:org.eclipse.emf.codegen.ecore.xtext:${ecoreXtextVersion}"
+    xtextLanguages "org.eclipse.xtext:org.eclipse.xtext.ecore:${xtextVersion}"
+}
+
+xtext {
+    languages {
+        ecore {
+            setup = "org.eclipse.xtext.ecore.EcoreSupport"
+        }
+        codegen {
+            setup = "org.eclipse.emf.codegen.ecore.xtext.GenModelSupport"
+        }
+        xcore {
+            setup = "org.eclipse.emf.ecore.xcore.XcoreStandaloneSetup"
+            generator.outlet.producesJava = true
+            generator.outlet.cleanAutomatically = true
+        }
+    }
+}

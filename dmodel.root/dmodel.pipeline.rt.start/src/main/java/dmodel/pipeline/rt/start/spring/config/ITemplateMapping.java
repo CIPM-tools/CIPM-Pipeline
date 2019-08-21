@@ -10,4 +10,7 @@ public interface ITemplateMapping {
 	String CONFIG_MODELS_FRAGMENT = "fragments/config/modelprops";
 	String CONFIG_MODELS_FRAGMENT_JS = "fragments/config/js/modelprops";
 
+	String CONFIG_DESIGNTIME_FRAGMENT = "fragments/design/index";
+	String CONFIG_DESIGNTIME_FRAGMENT_JS = "fragments/design/js/index";
+
 }

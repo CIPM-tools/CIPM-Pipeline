@@ -1,5 +1,6 @@
 package dmodel.pipeline.shared;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,23 @@ public class ModelUtil {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static boolean validateModelPath(String path, Class<? extends EObject> type) {
+		if (path == null || path.isEmpty())
+			return true;
+		File file = new File(path);
+		if (file.exists()) {
+			try {
+				EObject res = ModelUtil.readFromFile(path, type);
+				if (res != null && type.isInstance(res)) {
+					return true;
+				}
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")

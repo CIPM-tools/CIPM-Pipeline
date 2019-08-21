@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
@@ -25,7 +23,6 @@ import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.visitor.Filter;
 import spoon.reflect.visitor.filter.TypeFilter;
-import tools.vitruv.framework.correspondence.Correspondences;
 import tools.vitruv.models.im.ImFactory;
 import tools.vitruv.models.im.InstrumentationModel;
 import tools.vitruv.models.im.InstrumentationPoint;
@@ -38,9 +35,6 @@ public class SystemDerivationTest {
 		CorrespondenceUtil.initVitruv();
 		PCMUtils.loadPCMModels();
 
-		Correspondences tempCorrs = CorrespondenceUtil
-				.loadCorrespondenceModel(new File("correspondence/Correspondences.correspondence"));
-
 		ApplicationProject project = new ApplicationProject();
 		project.setRootPath(
 				"/Users/david/Desktop/Dynamic Approach/Implementation/git/dModel/dmodel.root/dmodel.pipeline.rexample/");
@@ -49,7 +43,6 @@ public class SystemDerivationTest {
 		SpoonApplicationTransformer transformer = new SpoonApplicationTransformer();
 
 		InstrumentationMetadata meta = new InstrumentationMetadata();
-		meta.setCorrespondence(tempCorrs);
 		meta.setRepository(ModelUtil.readFromFile(
 				"/Users/david/Desktop/Dynamic Approach/Implementation/git/dModel/dmodel.root/dmodel.pipeline.rexample/models/prime_generator.repository",
 				Repository.class));

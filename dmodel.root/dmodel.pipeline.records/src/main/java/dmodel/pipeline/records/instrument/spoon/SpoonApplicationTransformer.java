@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
@@ -19,6 +20,7 @@ import tools.vitruv.models.im.InstrumentationModel;
 import tools.vitruv.models.im.InstrumentationPoint;
 import tools.vitruv.models.im.InstrumentationType;
 
+@Service
 public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 	private final SpoonMethodInstrumenter methodTransformer;
 
@@ -27,10 +29,6 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 	}
 
 	@Override
-	public void instrumentApplication(ApplicationProject project, InstrumentationMetadata metadata, String outputPath) {
-		// TODO
-	}
-
 	public boolean instrumentApplication(Launcher model, InstrumentationMetadata metadata,
 			SpoonCorrespondence spoonCorr) {
 
@@ -47,6 +45,7 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 		return true;
 	}
 
+	@Override
 	public Launcher prepareModifiableModel(ApplicationProject project, ApplicationProject agentConfig,
 			String outputPath) {
 		// prepare the project
@@ -60,12 +59,12 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 
 		// load the model
 		ApplicationProject copyProject = new ApplicationProject();
-		copyProject.setRootPath(nProject.getAbsolutePath() + "/");
+		copyProject.setRootPath(nProject.getAbsolutePath() + File.separator);
 		copyProject.setSourceFolders(new ArrayList<String>(project.getSourceFolders()));
 		return this.createModel(copyProject);
 	}
 
-	public Launcher createModel(ApplicationProject project) {
+	private Launcher createModel(ApplicationProject project) {
 		Launcher spoon = new Launcher();
 
 		// load all sources

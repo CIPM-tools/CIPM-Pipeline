@@ -1,22 +1,12 @@
 var treeItemId = 0;
 var configuration = {};
 
-var configRestPath = "/config/save/project";
-
 // ids
 var treeId = "#sourcetree";
 var saveId = "#save";
 var pathId = "#path";
 var instrPathId = "#instr_path";
-
-// images
-var tickMarkImage = "img/iconfinder_Tick_Mark_1398911.png";
-var tickCloseImage = "img/iconfinder_Close_Icon_1398919.png";
-
-// helper function
-$.postJSON = function(url, data, func) {
-	$.post(url, data, func, 'json');
-}
+var corrPath = "#corr_path";
 
 $(document).ready(function() {
 	configurePathAjax();
@@ -33,9 +23,10 @@ function configureSaveAjax() {
 		var nConfig = {
 			"projectPath" : $(pathId).val(),
 			"instrumentedPath" : $(instrPathId).val(),
-			"sourceFolders" : getCurrentSourceFolders()
+			"sourceFolders" : getCurrentSourceFolders(),
+			"correspondencePath" : $(corrPath).val()
 		};
-		$.postJSON(configRestPath, {
+		$.postJSON(rest.config.project.save, {
 			"config" : JSON.stringify(nConfig)
 		}, function(data) {
 			if (data.success) {
@@ -67,15 +58,17 @@ function getFullFolderString(item) {
 }
 
 function getCurrentConfig() {
-	$.getJSON("/config/get", function(data) {
+	$.getJSON(rest.config.project.get, function(data) {
 		configuration = data;
 
 		$(pathId).val(data.projectPath == null ? "" : data.projectPath);
 		$(instrPathId).val(
 				data.instrumentedPath == null ? "" : data.instrumentedPath);
+		$(corrPath).val(data.correspondencePath == null ? "" : data.correspondencePath);
 
 		// refresh
 		pathValueChanged();
+		corrPathChanged();
 
 		setTimeout(function() {
 			sourceFoldersChanged("/");
@@ -113,20 +106,21 @@ function markFolder(srcFolderArr) {
 	$(treeId).jstree('select_node', currNode);
 }
 
-function applyTick(image_id, value) {
-	if (value) {
-		$(image_id).attr("src", tickMarkImage);
-	} else {
-		$(image_id).attr("src", tickCloseImage);
-	}
-}
-
 function configurePathAjax() {
 	$(pathId).change(pathValueChanged);
+	$(corrPath).change(corrPathChanged);
+}
+
+function corrPathChanged() {
+	$.postJSON(rest.config.project.validateCorr, {
+		"path" : $(corrPath).val()
+	}, function(data) {
+		applyTick("#corr_image", data.success);
+	});
 }
 
 function pathValueChanged() {
-	$.postJSON("/config/validate-path", {
+	$.postJSON(rest.config.project.validatePath, {
 		"path" : $(pathId).val()
 	}, function(data) {
 		applyTick(pathId + "-image", data.valid);

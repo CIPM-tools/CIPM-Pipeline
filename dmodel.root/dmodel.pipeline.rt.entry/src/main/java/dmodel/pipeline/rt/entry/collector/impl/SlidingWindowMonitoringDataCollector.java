@@ -14,15 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
-import dmodel.pipeline.rt.entry.config.MonitoringDataEntryConfiguration;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
+import dmodel.pipeline.shared.config.DModelConfigurationContainer;
+import dmodel.pipeline.shared.config.MonitoringDataEntryConfiguration;
 import kieker.common.record.IMonitoringRecord;
 
 @Service
 public class SlidingWindowMonitoringDataCollector implements IMonitoringDataCollector, InitializingBean {
 
-	@Autowired
 	private MonitoringDataEntryConfiguration config;
+
+	@Autowired
+	private DModelConfigurationContainer parentConfig;
 
 	@Autowired
 	private IterativeRuntimePipeline pipeline;
@@ -45,6 +48,10 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		// extract config
+		this.config = this.parentConfig.getEntry();
+
+		// record map
 		this.recordMap = new TreeMap<>();
 
 		// we need 2 threads at max

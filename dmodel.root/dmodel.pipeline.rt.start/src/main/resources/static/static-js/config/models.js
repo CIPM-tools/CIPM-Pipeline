@@ -1,14 +1,8 @@
 var treeItemId = 0;
 var configuration = {};
 
-var configRestPath = "/config/save/models";
-
 // ids
-// TODO
-
-// images
-var tickMarkImage = "img/iconfinder_Tick_Mark_1398911.png";
-var tickCloseImage = "img/iconfinder_Close_Icon_1398919.png";
+var saveId = "#save";
 
 // helper function
 $.postJSON = function(url, data, func) {
@@ -17,16 +11,16 @@ $.postJSON = function(url, data, func) {
 
 $(document).ready(function() {
 	configureModelAjax();
+	configureSaveAjax();
 
 	getCurrentConfig();
 });
 
 function configureSaveAjax() {
 	$(saveId).click(function() {
-		var nConfig = {
-		};
-		$.postJSON(configRestPath, {
-			"config" : JSON.stringify(nConfig)
+		var nConfig = getModelPaths();
+		$.postJSON(rest.config.models.save, {
+			"models" : JSON.stringify(nConfig)
 		}, function(data) {
 			if (data.success) {
 				toastr.success('Saved configuration successfully.', 'Success');
@@ -38,7 +32,7 @@ function configureSaveAjax() {
 }
 
 function getCurrentSourceFolders() {
-	var checkedItems = $(treeId).jstree("get_checked",null,true);
+	var checkedItems = $(treeId).jstree("get_checked", null, true);
 	var res = [];
 	for (var i = 0; i < checkedItems.length; i++) {
 		res.push(getFullFolderString(checkedItems[i]));
@@ -47,12 +41,21 @@ function getCurrentSourceFolders() {
 }
 
 function getCurrentConfig() {
-	$.getJSON("/config/get", function(data) {
+	$.getJSON(rest.config.models.get, function(data) {
 		configuration = data;
-		
+
 		// refresh
+		applyModelValues();
 		modelValueChanged();
 	});
+}
+
+function applyModelValues() {
+	$("#repo_path").val(configuration.repo == null ? "" : configuration.repo);
+	$("#sys_path").val(configuration.sys == null ? "" : configuration.sys);
+	$("#res_path").val(configuration.res == null ? "" : configuration.res);
+	$("#alloc_path").val(configuration.alloc == null ? "" : configuration.alloc);
+	$("#usage_path").val(configuration.usage == null ? "" : configuration.usage);
 }
 
 function configureModelAjax() {
@@ -60,19 +63,13 @@ function configureModelAjax() {
 	$("#sys_path").change(modelValueChanged);
 	$("#res_path").change(modelValueChanged);
 	$("#alloc_path").change(modelValueChanged);
-	$("#usage_model").change(modelValueChanged);
+	$("#usage_path").change(modelValueChanged);
 }
 
 function modelValueChanged() {
-	var modelPaths = {
-		repo : $("#repo_path").val(),
-		sys : $("#sys_path").val(),
-		res : $("#res_path").val(),
-		alloc : $("#alloc_path").val(),
-		usage : $("#usage_model").val()
-	};
+	var modelPaths = getModelPaths();
 
-	$.postJSON("/config/validate-models", {
+	$.postJSON(rest.config.models.validate, {
 		"models" : JSON.stringify(modelPaths)
 	}, function(data) {
 		applyTick("#repo_image", data.repo);
@@ -83,10 +80,12 @@ function modelValueChanged() {
 	});
 }
 
-function applyTick(image_id, value) {
-	if (value) {
-		$(image_id).attr("src", tickMarkImage);
-	} else {
-		$(image_id).attr("src", tickCloseImage);
-	}
+function getModelPaths() {
+	return {
+		repo : $("#repo_path").val(),
+		sys : $("#sys_path").val(),
+		res : $("#res_path").val(),
+		alloc : $("#alloc_path").val(),
+		usage : $("#usage_path").val()
+	};
 }

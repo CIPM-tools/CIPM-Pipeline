@@ -1,7 +1,14 @@
 package dmodel.pipeline.records.instrument;
 
+import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
+import spoon.Launcher;
+
 public interface IApplicationInstrumenter {
 
-	public void instrumentApplication(ApplicationProject project, InstrumentationMetadata metadata, String outputPath);
+	public boolean instrumentApplication(Launcher model, InstrumentationMetadata metadata,
+			SpoonCorrespondence spoonCorr);
+
+	public Launcher prepareModifiableModel(ApplicationProject project, ApplicationProject agentConfig,
+			String outputPath);
 
 }
