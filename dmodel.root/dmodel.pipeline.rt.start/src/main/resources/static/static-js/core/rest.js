@@ -33,6 +33,11 @@ var rest = {
 			get : "/config/models/get",
 			validate : "/config/models/validate"
 		}
+	},
+	
+	design : {
+		instrument : "/design/instrument",
+		instrumentStatus : "/design/instrument/status"
 	}
 		
 };

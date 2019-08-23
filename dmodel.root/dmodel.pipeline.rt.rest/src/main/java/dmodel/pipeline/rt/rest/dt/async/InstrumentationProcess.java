@@ -8,8 +8,11 @@ import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.rest.dt.data.InstrumentationStatus;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.ProjectConfiguration;
+import dmodel.pipeline.shared.util.AbstractObservable;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import tools.vitruv.models.im.ImFactory;
@@ -17,21 +20,25 @@ import tools.vitruv.models.im.InstrumentationModel;
 import tools.vitruv.models.im.InstrumentationPoint;
 import tools.vitruv.models.im.InstrumentationType;
 
-public class InstrumentationProcess implements Runnable {
+public class InstrumentationProcess extends AbstractObservable<InstrumentationStatus> implements Runnable {
 
 	private ProjectConfiguration config;
 	private IApplicationInstrumenter transformer;
+	private RuntimePipelineBlackboard blackboard;
 
-	public InstrumentationProcess(ProjectConfiguration config, IApplicationInstrumenter transformer) {
+	public InstrumentationProcess(ProjectConfiguration config, RuntimePipelineBlackboard blackboard,
+			IApplicationInstrumenter transformer) {
 		this.config = config;
 		this.transformer = transformer;
+		this.blackboard = blackboard;
 	}
 
 	@Override
 	public void run() {
+		this.flood(InstrumentationStatus.STARTED);
 		// metadata
 		InstrumentationMetadata meta = new InstrumentationMetadata();
-		// TODO back repository with config
+		meta.setRepository(blackboard.getArchitectureModel().getRepository());
 
 		// load the project
 		ApplicationProject project = new ApplicationProject();
@@ -48,6 +55,8 @@ public class InstrumentationProcess implements Runnable {
 
 		// copy and parse
 		Launcher model = transformer.prepareModifiableModel(project, configAgent, config.getInstrumentedPath());
+
+		this.flood(InstrumentationStatus.PREPARED);
 
 		// load correspondence
 		RepositoryMapping fileBackedMapping = ModelUtil.readFromFile(config.getCorrespondencePath(),
@@ -71,11 +80,20 @@ public class InstrumentationProcess implements Runnable {
 		environment.setCommentEnabled(true);
 		environment.setAutoImports(true);
 
+		this.flood(InstrumentationStatus.INSTRUMENTATION);
+
+		// instrument it
+		transformer.instrumentApplication(model, meta, spoonMapping);
+
+		this.flood(InstrumentationStatus.SAVING);
+
 		// save back
 		// TODO multiple projects and source folders?
 		File sourceOutputFolder = new File(new File(config.getInstrumentedPath()), config.getSourceFolders().get(0));
 		model.setSourceOutputDirectory(sourceOutputFolder);
 		model.prettyprint();
+
+		this.flood(InstrumentationStatus.FINISHED);
 	}
 
 }

@@ -13,6 +13,8 @@ import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.rest.core.processes.ReloadModelsProcess;
 import dmodel.pipeline.rt.rest.dt.async.InstrumentationProcess;
+import dmodel.pipeline.rt.rest.dt.data.InstrumentationStatus;
+import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.util.StackedRunnable;
 
@@ -34,24 +36,34 @@ public class DesignTimeRestController {
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;
 
+	// current holders
+	private InstrumentationStatus instrumentationStatus = InstrumentationStatus.NOT_AVAILABLE;
+
 	@PostMapping("/design/instrument")
-	// TODO refactor
-	public void instrumentApplication() {
+	public String instrumentApplication() {
 		if (config.getProject().getCorrespondencePath().equals("")) {
-			return;
+			return JsonUtil.emptyObject();
 		}
 
 		// create processes
 		ReloadModelsProcess process1 = new ReloadModelsProcess(blackboard, config.getModels());
-		InstrumentationProcess process2 = new InstrumentationProcess(config.getProject(), transformer);
+		InstrumentationProcess process2 = new InstrumentationProcess(config.getProject(), blackboard, transformer);
+
+		// add progress listener
+		process2.addListener(status -> {
+			instrumentationStatus = status;
+		});
 
 		// execute them
-		executorService.submit(new StackedRunnable(process1, process2));
+		executorService.submit(new StackedRunnable(true, process1, process2));
+
+		// no return
+		return JsonUtil.emptyObject();
 	}
 
-	@GetMapping("/design/instrument")
+	@GetMapping("/design/instrument/status")
 	public String instrumentationStatus() {
-		return null;
+		return JsonUtil.wrapAsObject("status", instrumentationStatus.getProgress(), false);
 	}
 
 }

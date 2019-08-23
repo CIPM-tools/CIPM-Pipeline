@@ -86,7 +86,7 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 	private File prepareOutputProject(ApplicationProject project, String outputPath, boolean deletePre) {
 		File outputFolder = new File(outputPath);
 		for (String sourceFolder : project.getSourceFolders()) {
-			File fullSourceFolder = new File(project.getRootPath() + sourceFolder);
+			File fullSourceFolder = new File(project.getRootPath(), sourceFolder);
 			File fullTargetFolder = new File(outputFolder, sourceFolder);
 
 			if (deletePre && fullTargetFolder.exists()) {
