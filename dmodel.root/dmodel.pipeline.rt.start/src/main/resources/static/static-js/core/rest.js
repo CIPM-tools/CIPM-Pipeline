@@ -37,7 +37,13 @@ var rest = {
 	
 	design : {
 		instrument : "/design/instrument",
-		instrumentStatus : "/design/instrument/status"
+		instrumentStatus : "/design/instrument/status",
+		
+		callgraph : {
+			build : "/design/system/graph",
+			finished : "/design/system/graph/finished",
+			get : "/design/system/graph/get"
+		}
 	}
 		
 };

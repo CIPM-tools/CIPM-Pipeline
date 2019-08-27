@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -80,6 +81,11 @@ public class DirectedGraph<N, E> {
 
 	public E getEdge(N n1, N n2) {
 		return this.edgeProjection.get(Pair.of(n1, n2));
+	}
+
+	public List<Pair<N, N>> getEdges() {
+		return this.edgeProjection.entrySet().stream().map(e -> Pair.of(e.getKey().getLeft(), e.getKey().getRight()))
+				.collect(Collectors.toList());
 	}
 
 }

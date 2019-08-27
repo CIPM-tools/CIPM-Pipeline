@@ -34,6 +34,7 @@ import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.system.SystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Maps;
@@ -52,11 +53,11 @@ import dmodel.pipeline.shared.structure.DirectedGraph;
 // TODO add logging
 // TODO outsource in other helping classes
 // TODO finish merging composites
+@Component
 public class PCMSystemBuilder {
 	private static final Logger LOG = LoggerFactory.getLogger(PCMSystemBuilder.class);
 
 	private Repository repository;
-	private System initial;
 
 	private long conflictCounter = 0;
 	private List<IConnectionConflictListener> connectionConflictListener;
@@ -78,10 +79,7 @@ public class PCMSystemBuilder {
 	// helper classes
 	private ComposedStructureConverter structConverter;
 
-	public PCMSystemBuilder(Repository repository, System initial) {
-		this.repository = repository;
-		this.initial = initial;
-
+	public PCMSystemBuilder() {
 		this.assemblySelectionListener = new ArrayList<>();
 		this.connectionConflictListener = new ArrayList<>();
 		this.structConverter = new ComposedStructureConverter();
@@ -486,6 +484,10 @@ public class PCMSystemBuilder {
 
 	public System getCurrentSystem() {
 		return currentSystem;
+	}
+
+	public void setRepository(Repository repository) {
+		this.repository = repository;
 	}
 
 	public AbstractConflict<?> getCurrentConflict() {

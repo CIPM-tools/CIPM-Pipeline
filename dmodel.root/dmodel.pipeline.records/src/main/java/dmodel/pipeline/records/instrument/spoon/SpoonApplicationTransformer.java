@@ -64,7 +64,7 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 		return this.createModel(copyProject);
 	}
 
-	private Launcher createModel(ApplicationProject project) {
+	public Launcher createModel(ApplicationProject project) {
 		Launcher spoon = new Launcher();
 
 		// load all sources

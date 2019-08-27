@@ -4,36 +4,35 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
+import dmodel.pipeline.models.mapping.MappingPackage;
+import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
 import dmodel.pipeline.records.instrument.spoon.SpoonApplicationTransformer;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
+import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.PCMUtils;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 import spoon.Launcher;
-import spoon.reflect.declaration.CtClass;
-import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.visitor.Filter;
-import spoon.reflect.visitor.filter.TypeFilter;
 import tools.vitruv.models.im.ImFactory;
 import tools.vitruv.models.im.InstrumentationModel;
-import tools.vitruv.models.im.InstrumentationPoint;
-import tools.vitruv.models.im.InstrumentationType;
 
 // TODO please refactor this soon, otherwise i need to puke
 public class SystemDerivationTest {
 
+	@Test
 	public void test() {
 		CorrespondenceUtil.initVitruv();
 		PCMUtils.loadPCMModels();
+		MappingPackage.eINSTANCE.eClass();
 
 		ApplicationProject project = new ApplicationProject();
 		project.setRootPath(
@@ -57,88 +56,23 @@ public class SystemDerivationTest {
 		// copy and parse
 		Launcher model = transformer.createModel(project);
 
-		// build the correspondence manually
-		SpoonCorrespondence corr = new SpoonCorrespondence(model.getModel(), meta.getRepository());
-		ResourceDemandingSEFF seffDumb = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
-				"_2nvWUKKQEem6I6QlOar_-g");
-		ResourceDemandingSEFF seffEras = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
-				"_PlFlUJYHEempGaXtj6ezAw");
-		ResourceDemandingSEFF seffGenerate = PCMUtils.getElementById(meta.getRepository(), ResourceDemandingSEFF.class,
-				"_2RDcwKMhEemdKJpkeqfUZw");
-
-		CtMethod<?> methDumb = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
-				.filterChildren(new Filter<CtMethod<?>>() {
-					@Override
-					public boolean matches(CtMethod<?> element) {
-						if (element.getParent() instanceof CtClass) {
-							CtClass<?> parent = (CtClass<?>) element.getParent();
-							if (parent.getQualifiedName().contains("DumbGeneratorImpl")) {
-								return element.getSimpleName().equals("generatePrimes");
-							}
-						}
-						return false;
-					}
-				}).first();
-		CtMethod<?> methEras = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
-				.filterChildren(new Filter<CtMethod<?>>() {
-					@Override
-					public boolean matches(CtMethod<?> element) {
-						if (element.getParent() instanceof CtClass) {
-							CtClass<?> parent = (CtClass<?>) element.getParent();
-							if (parent.getQualifiedName().contains("EratosthenesGeneratorImpl")) {
-								return element.getSimpleName().equals("generatePrimes");
-							}
-						}
-						return false;
-					}
-				}).first();
-
-		CtMethod<?> methGenerate = model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class))
-				.filterChildren(new Filter<CtMethod<?>>() {
-					@Override
-					public boolean matches(CtMethod<?> element) {
-						if (element.getParent() instanceof CtClass) {
-							CtClass<?> parent = (CtClass<?>) element.getParent();
-							if (parent.getQualifiedName().contains("PrimeManagerImpl")) {
-								return element.getSimpleName().equals("generatePrimes");
-							}
-						}
-						return false;
-					}
-				}).first();
-
-		corr.linkService(methDumb, seffDumb);
-		corr.linkService(methEras, seffEras);
-		corr.linkService(methGenerate, seffGenerate);
+		// load correspondence
+		RepositoryMapping fileBackedMapping = ModelUtil.readFromFile("correspondence/spoon.corr",
+				RepositoryMapping.class);
+		SpoonCorrespondence spoonMapping = SpoonCorrespondenceUtil.buildFromMapping(fileBackedMapping, model.getModel(),
+				meta.getRepository());
 
 		// build instrumentation model
 		InstrumentationModel iModel = ImFactory.eINSTANCE.createInstrumentationModel();
-		InstrumentationPoint point = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point.setIsActive(true);
-		point.setItype(InstrumentationType.SERVICE);
-		point.setServiceID("_2nvWUKKQEem6I6QlOar_-g");
-		iModel.getProbes().add(point);
-
-		InstrumentationPoint point2 = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point2.setIsActive(true);
-		point2.setItype(InstrumentationType.SERVICE);
-		point2.setServiceID("_PlFlUJYHEempGaXtj6ezAw");
-		iModel.getProbes().add(point2);
-
-		InstrumentationPoint point3 = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point3.setIsActive(true);
-		point3.setItype(InstrumentationType.SERVICE);
-		point3.setServiceID("_2RDcwKMhEemdKJpkeqfUZw");
-		iModel.getProbes().add(point3);
-
 		meta.setProbes(iModel);
 
 		// analyze it
 		ISystemCompositionAnalyzer systemExtractor = new StaticCodeReferenceAnalyzer();
-		DirectedGraph<String, Integer> callGraph = systemExtractor.deriveSystemComposition(model, corr);
+		DirectedGraph<String, Integer> callGraph = systemExtractor.deriveSystemComposition(model, spoonMapping);
 
 		// derive system
-		PCMSystemBuilder extractor = new PCMSystemBuilder(meta.getRepository(), null);
+		PCMSystemBuilder extractor = new PCMSystemBuilder();
+		extractor.setRepository(meta.getRepository());
 		boolean finished = extractor.startBuildingSystem(callGraph);
 		assertFalse(finished);
 		assertEquals(extractor.getCurrentConflict().getClass(), ConnectionConflict.class);

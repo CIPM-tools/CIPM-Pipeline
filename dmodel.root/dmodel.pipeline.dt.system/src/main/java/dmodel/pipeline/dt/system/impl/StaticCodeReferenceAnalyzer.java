@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
@@ -25,6 +26,7 @@ import spoon.reflect.declaration.CtType;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.visitor.filter.TypeFilter;
 
+@Component
 public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 	private static final Logger LOG = LoggerFactory.getLogger(StaticCodeReferenceAnalyzer.class);
 

@@ -1,6 +1,6 @@
 var configuration = {};
 
-var pathId = "#path";
+var pathId = ".path";
 var instrPathId = "#instr_path";
 var instrButton = "#instrument";
 var corrPath = "#corr_path";

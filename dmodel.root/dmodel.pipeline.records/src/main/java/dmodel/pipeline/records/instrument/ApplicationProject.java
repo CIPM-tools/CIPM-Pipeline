@@ -1,5 +1,6 @@
 package dmodel.pipeline.records.instrument;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,9 @@ public class ApplicationProject {
 	}
 
 	public void setRootPath(String rootPath) {
+		if (!rootPath.substring(rootPath.length() - 1).equals(File.separator)) {
+			rootPath += File.separator;
+		}
 		this.rootPath = rootPath;
 	}
 

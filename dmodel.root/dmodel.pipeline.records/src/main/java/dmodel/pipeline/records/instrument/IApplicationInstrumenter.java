@@ -11,4 +11,6 @@ public interface IApplicationInstrumenter {
 	public Launcher prepareModifiableModel(ApplicationProject project, ApplicationProject agentConfig,
 			String outputPath);
 
+	public Launcher createModel(ApplicationProject project);
+
 }
