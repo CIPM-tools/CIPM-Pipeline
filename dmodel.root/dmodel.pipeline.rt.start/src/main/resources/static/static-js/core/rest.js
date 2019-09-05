@@ -43,6 +43,14 @@ var rest = {
 			build : "/design/system/graph",
 			finished : "/design/system/graph/finished",
 			get : "/design/system/graph/get"
+		},
+		
+		build : {
+			start : "/design/system/build/start",
+			getConflict : "/design/system/build/conflict/get",
+			solveConflict : "/design/system/build/conflict/solve",
+			status : "/design/system/build/status",
+			get : "/design/system/build/get"
 		}
 	}
 		

@@ -14,11 +14,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
-import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.rest.core.processes.ReloadModelsProcess;
 import dmodel.pipeline.rt.rest.dt.async.BuildServiceCallGraphProcess;
+import dmodel.pipeline.rt.rest.dt.container.DesignTimeSystemDataContainer;
 import dmodel.pipeline.rt.rest.dt.data.JsonCallGraph;
 import dmodel.pipeline.rt.rest.dt.data.JsonCallGraphEdge;
 import dmodel.pipeline.rt.rest.dt.data.JsonCallGraphNode;
@@ -29,13 +29,10 @@ import dmodel.pipeline.shared.structure.DirectedGraph;
 import dmodel.pipeline.shared.util.StackedRunnable;
 
 @RestController
-public class SystemRestController {
+public class SystemCallGraphRestController {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
-	@Autowired
-	private PCMSystemBuilder systemBuilder;
 
 	@Autowired
 	private StaticCodeReferenceAnalyzer systemAnalyzer;
@@ -52,9 +49,11 @@ public class SystemRestController {
 	@Autowired
 	private ScheduledExecutorService executorService;
 
+	@Autowired
+	private DesignTimeSystemDataContainer dataContainer;
+
 	// DATA
 	private boolean callGraphBuilded = false;
-	private DirectedGraph<String, Integer> callGraph;
 
 	@GetMapping("/design/system/graph/finished")
 	public String finishedGraph() {
@@ -65,7 +64,7 @@ public class SystemRestController {
 	public String getGraph() {
 		if (callGraphBuilded) {
 			try {
-				return objectMapper.writeValueAsString(convertCallGraphToJson(callGraph));
+				return objectMapper.writeValueAsString(convertCallGraphToJson(dataContainer.getCallGraph()));
 			} catch (JsonProcessingException e) {
 				return JsonUtil.emptyObject();
 			}
@@ -90,7 +89,7 @@ public class SystemRestController {
 		// add progress listener
 		process2.addListener(status -> {
 			callGraphBuilded = true;
-			callGraph = status;
+			dataContainer.setCallGraph(status);
 		});
 
 		// execute them

@@ -58,6 +58,10 @@ function registerEvents() {
 							window.location.href = "/design/";
 						}, 5000);
 					});
+	
+	$("#build-system").click(function() {
+		startBuildingProcedure($("#system-view").get(0));
+	});
 }
 
 function triggerCallgraphBuild() {
@@ -82,33 +86,39 @@ function updateCallGraphStatus() {
 function buildCallGraph(graph) {
 	console.log(graph);
 	// build nodes & edges
-	
+
 	// 1. build nodes
 	var nodes = [];
 	var components = new Set();
 	graph.nodes.forEach(function(node) {
-		nodes.push({ data : {
-			parent : node.componentId,
-			text : node.serviceName,
-			id : node.serviceId
-		}});
-		
+		nodes.push({
+			data : {
+				parent : node.componentId,
+				text : node.serviceName,
+				id : node.serviceId
+			}
+		});
+
 		if (!components.has(node.componentId)) {
-			nodes.push({data : {
-				id : node.componentId,
-				text : node.componentName
-			}});
+			nodes.push({
+				data : {
+					id : node.componentId,
+					text : node.componentName
+				}
+			});
 		}
 	});
-	
+
 	// 2. build edges
 	var edges = [];
 	graph.edges.forEach(function(edge) {
-		edges.push({data : {
-			source : edge.serviceFrom,
-			target : edge.serviceTo,
-			id : edge.serviceFrom + "#" + edge.serviceTo
-		}});
+		edges.push({
+			data : {
+				source : edge.serviceFrom,
+				target : edge.serviceTo,
+				id : edge.serviceFrom + "#" + edge.serviceTo
+			}
+		});
 	});
 
 	// build graph
@@ -120,7 +130,7 @@ function buildCallGraph(graph) {
 		style : [ {
 			selector : 'node',
 			css : {
-				'background-color': '#61bffc',
+				'background-color' : '#61bffc',
 				'content' : 'data(text)',
 				'text-valign' : 'bottom'
 			}
@@ -129,12 +139,14 @@ function buildCallGraph(graph) {
 			css : {
 				'text-valign' : 'top',
 				'text-halign' : 'center',
-				'background-color': '#D3D3D3'
+				'background-color' : '#D3D3D3'
 			}
 		}, {
 			selector : 'edge',
 			css : {
 				'curve-style' : 'bezier',
+				'line-color' : '#61bffc',
+				'target-arrow-color': '#61bffc',
 				'target-arrow-shape' : 'triangle'
 			}
 		} ],
