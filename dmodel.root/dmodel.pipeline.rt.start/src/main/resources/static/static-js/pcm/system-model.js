@@ -1,16 +1,3 @@
-var BASE64_SYSTEM_COMPOSITE = "R0lGODlhEAAQANUxAFJSUrOv/y8vLxwcHGlpadPk/8vV/0lJSSsrK8XJ/0xMTMza/9Dd/8XN/9Pl/zw8PFFRUV1dXREREby+/9Hh/woKCkZGRr++/9Lh/87b/83Y/8nU/9Lj/8PG/7i4/7q7/768/8rS/8HA/7Wz/726/87d/9Df/8LJ/7Sx/77C/8jP/9Hg/8vX/7e1/0FBQb25/wAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAADEALAAAAAAQABAAAAZ/wJhwSCwaj0gCbMkkIGGv6OvSgQkhhwjAFYO+SKJEyKoQbgUDKGhpYMAsD6EL3b3AVBpYwYowwhIwGRgOHFYxEhVEMG1LFAuGfisFBSYwDYZYWlwwDjAlGzATZGZzaY5LHyNvcTGlXSwNKR4oAXx+JxMtAbuGiERKTEtOSMRCQQA7";
-var BASE64_ROLE_REQUIRED = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGUAAACNCAYAAACua7QgAAADUXRFWHRteGZpbGUAJTNDbXhmaWxlJTIwbW9kaWZpZWQlM0QlMjIyMDE5LTA5LTA0VDEyJTNBMDIlM0E0MS44MDVaJTIyJTIwaG9zdCUzRCUyMnd3dy5kcmF3LmlvJTIyJTIwYWdlbnQlM0QlMjJNb3ppbGxhJTJGNS4wJTIwKE1hY2ludG9zaCUzQiUyMEludGVsJTIwTWFjJTIwT1MlMjBYJTIwMTBfMTRfNiklMjBBcHBsZVdlYktpdCUyRjUzNy4zNiUyMChLSFRNTCUyQyUyMGxpa2UlMjBHZWNrbyklMjBDaHJvbWUlMkY3Ni4wLjM4MDkuMTMyJTIwU2FmYXJpJTJGNTM3LjM2JTIyJTIwdmVyc2lvbiUzRCUyMjExLjIuNSUyMiUyMGV0YWclM0QlMjJhNng3N3BmZE9LNWt0d0tzZXFNOSUyMiUyMHR5cGUlM0QlMjJkZXZpY2UlMjIlMjBwYWdlcyUzRCUyMjElMjIlM0UlM0NkaWFncmFtJTIwaWQlM0QlMjJCZVZXb0twOVpQdlFxbmJkMWJ1eCUyMiUzRWpaSk5iNE13RElaJTJGRFhkSXBxMjlqblVmMGlaTjZtSG5sTGdRS2NFc21BTDc5UXRMd29lcVNyc2c1JTJGRnI3THhPd25NenZGalJWQjhvUVNjc2xVUENueExHJTJCSDdudmhNWVBXQXM5YUMwU25xVUxlQ29maURBS091VWhIWWpKRVJOcXRuQ0F1c2FDdG93WVMzMlc5a1o5YlpySTBxNEFzZEM2R3Y2cFNSVm51N1l3OEpmUVpWVjdKemQ3MzNHaUNnT04ya3JJYkZmSVg1SWVHNFJ5VWRteUVGUDNrVmZmTjN6amV3OG1JV2ElMkZsUEFmTUZGNkM3Y0xjeEZZN3lzRzdHWlFndmZuYklnMzJvQ2V4YUZZNDhWR2UxU21Rc3ZZRWs1aTk3RkNmUW50b29VMWk1M1FpSTBUaEE2T1JrTU42Zk5aZyUyRmMyd0UwUUhaMGtsREFlTEF0dkp1N2NPeVhKV1JwWU5WNkFWRW93dUxMJTJCZGVMTnk0STlzVGpzb2ElMkYzT290ODhNdiUzQyUyRmRpYWdyYW0lM0UlM0MlMkZteGZpbGUlM0WYs7bxAAAJv0lE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";
-var BASE64_ASSEMBLY_CONTEXT = "data:image/gif;base64,R0lGODlhDgANANUxAO7u7vv7++bm5uvr69DQ0NnZ2ejo6OHh4dfX19PT0+Pj49zc3Pn5+fHx8fDw8M3NzeTk5Pj4+PX19dLS0uzs7NXV1dvb297e3uDg4Onp6djY2N3d3dbW1vPz8+rq6u/v78/Pz8zMzPz8/Ofn5+Xl5fT09Pb29u3t7f7+/tHR0c7OztTU1Nra2vr6+vf39729vWxsbP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAADEALAAAAAAOAA0AAAZwwJjw9YLBikfjSxiDoUQBhkvScQCWw0ArYio1PhSPcnx0nAYGgTEaoTZglMwIciCSiwaSArOBMV8AAxkCdBcLBXdKfBYaHEWBaQoHMIcIFQlJmUWNCRMEfkMXFgUIK54gD1hNLJYJKQQqDyGqdppKQQA7";
-
-var SystemGraphConsts = {
-	COMPOSITE_LINE_SPACING_TOP : 50,
-	COMPOSITE_TEXT_Y : 22,
-	COMPOSITE_IMAGE_SIZE : 16,
-	
-	REQ_ROLE_RELATION : 62 / 45,
-	
-	ASSEMBLY_IMAGE_SIZE : 16
-};
 
 class PCMSystemGraph {
 	constructor(container) {
@@ -23,8 +10,9 @@ class PCMSystemGraph {
 		// Lists
 		this.providedRoles = [];
 		this.requiredRoles = [];
-		this.providedParents = {};
-		this.requiredParents = {};
+		this.parents = {};
+		this.roleLine = {};
+		this.delegates = [];
 		
 		// Enables crisp rendering of rectangles in SVG
 		mxRectangleShape.prototype.crisp = true;
@@ -61,6 +49,9 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_DELETABLE] = false;
 		style[mxConstants.STYLE_EDITABLE] = false;
 		style[mxConstants.STYLE_FOLDABLE] = false;
+		style[mxConstants.STYLE_RESIZE_WIDTH] = false;
+		style[mxConstants.STYLE_RESIZE_HEIGHT] = false;
+		style[mxConstants.STYLE_AUTOSIZE] = false;
 		style[mxConstants.STYLE_SPACING_TOP] = 5;
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
 		this.graph.getStylesheet().putDefaultVertexStyle(style);
@@ -85,6 +76,18 @@ class PCMSystemGraph {
 		this.graph.getStylesheet().putCellStyle('comp_image', style);
 		
 		style = mxUtils.clone(org_style);
+		style[mxConstants.STYLE_IMAGE] = BASE64_PROVIDED_DELEGATION;
+		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_IMAGE;
+		style[mxConstants.STYLE_MOVABLE] = false;
+		style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_CENTER;
+		style[mxConstants.STYLE_PERIMETER] = undefined;
+		this.graph.getStylesheet().putCellStyle('provided_delegate', style);
+		
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_IMAGE] = BASE64_REQUIRED_DELEGATION;
+		this.graph.getStylesheet().putCellStyle('required_delegate', style);
+		
+		style = mxUtils.clone(org_style);
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_LABEL;
 		style[mxConstants.STYLE_FONTCOLOR] = 'black';
 		style[mxConstants.STYLE_MOVABLE] = false;
@@ -102,6 +105,7 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
 		style[mxConstants.STYLE_FONTCOLOR] = 'black';
 		style[mxConstants.STYLE_FILLCOLOR] = 'white';
+		style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_BOTTOM;
 		this.graph.getStylesheet().putCellStyle('provided', style);
 		
 		style = mxUtils.clone(org_style);
@@ -110,7 +114,9 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
 		style[mxConstants.STYLE_ENTRY_PERIMETER] = false;
 		style[mxConstants.STYLE_EXIT_PERIMETER] = false;
+		style[mxConstants.STYLE_FONTCOLOR] = 'black';
 		style[mxConstants.STYLE_ROTATION] = 0;
+		style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_BOTTOM;
 		this.graph.getStylesheet().putCellStyle('req_left', style);
 		
 		style = mxUtils.clone(style);
@@ -153,23 +159,53 @@ class PCMSystemGraph {
 		var _this = this;
 		this.graph.addListener(mxEvent.CELLS_MOVED, function (sender, evt) {
 			_this.realignRoles();
+			_this.realignDelegates();
 			
 			evt.consume();
         });
 	}
 	
+	apply(system) {
+		if (typeof system === "string") {
+			this.model = JSON.parse(system);
+		} else {
+			this.model = system;
+		}
+	}
+	
+	layout(obj) {
+		this.layouter = obj;
+	}
+	
 	draw() {
+		if (this.model !== undefined && this.layouter !== undefined) {
+			
+			var compositeRoot = this.layouter.layoutRoot(this.model.root);
+			
+		}
+	}
+	
+	example() {
 		// Adds cells to the model in a single step
-		var v2 = this.drawComposite("WholeSystem", 20, 150, 500, 200);
+		var v2 = this.drawComposite("WholeSystem", 150, 150, 500, 200);
 		
-		var p1 = this.drawProvidedRole(v2, 200, 20, 35);
-		var r1 = this.drawRequiredRole(v2, 600, 150, 35);
+		var p1 = this.drawProvidedRole(v2, 50, 220, 35);
+		var r1 = this.drawRequiredRole(v2, 700, 220, 35);
 		
-		this.connectRoles(r1, p1);
+		// this.connectRoles(r1, p1);
 		
-		var a1 = this.drawAssembly(v2, "assembly", 40, 70, 150, 50);
+		var a1 = this.drawAssembly(v2, "assembly", 170, 70, 150, 50);
+		var p2 = this.drawProvidedRole(a1, 120, 90, 20);
 		
+		this.delegateRoles(p1, p2, true);
+		
+		// this creates mappings and relations
+		this.finalizeDrawing();
+	}
+	
+	finalizeDrawing() {
 		this.realignRoles();
+		this.realignDelegates();
 	}
 	
 	// private methods (not supported by all browsers - therefore we omit it -
@@ -196,11 +232,38 @@ class PCMSystemGraph {
 		};
 	}
 	
+	absoluteToRelative(point) {
+		var offset = this.graph.getView().translate;
+		return new mxPoint(point.x - offset.x, point.y - offset.y);
+	}
+	
+	realignDelegates() {
+		var _this = this;
+		setTimeout(function() {
+			_this.update(function(graph) {
+				for (var i = 0; i < _this.delegates.length; i++) {
+					var delegate = _this.delegates[i];
+					var state = graph.getView().getState(delegate.line);
+					
+					// zero is the point on the parent because we draw the edge
+					// from parent
+					// to role
+					var pointOnRect = _this.absoluteToRelative(state.absolutePoints[0]);
+					
+					var nGeometry = new mxGeometry(pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16);
+					delegate.img.setGeometry(nGeometry);
+				}
+				
+				graph.refresh();
+			}, _this.graph);
+		}, 200);
+	}
+	
 	realignRoles() {
 		this.update(function() {
 			for (var i = 0; i < this.requiredRoles.length; i++) {
 				var r = this.requiredRoles[i];
-				var p = this.requiredParents[r];
+				var p = this.parents[r.id];
 				
 				if (r.geometry.y + r.geometry.height < p.geometry.y) {
 					this.graph.getModel().setStyle(r, 'req_top');
@@ -218,50 +281,79 @@ class PCMSystemGraph {
 	connectRoles(required, provided) {
 		var graph = this.graph;
 		
-		var p1 = this.providedParents[provided];
-		var p2 = this.requiredParents[required];
+		var p1 = this.parents[provided.id];
+		var p2 = this.parents[required.id];
 		
 		if (p1 == p2) {
 			// easy connection
 			this.update(function() {
 				graph.insertEdge(p1.getParent(), null, '', required, provided, 'connect_line');
 			});
-		} else {
-			// delegation
-			// TODO
 		}
 	}
 	
-	drawRequiredRole(parent, x, y, width) {
-		var _parent = parent.getParent();
+	delegateRoles(outer, inner, is_provided) {
 		var graph = this.graph;
-		var role;
+		var outer_line = this.roleLine[outer.id];
+		var container = this.parents[outer.id];
+		
+		var state = graph.getView().getState(outer_line);
+		
+		// zero is the point on the parent because we draw the edge from parent
+		// to role
+		var pointOnRect = this.absoluteToRelative(state.absolutePoints[0]);
+		
+		var img_style = is_provided ? 'provided_delegate' : 'required_delegate';
+		var image;
+		
+		var outer_cell = outer_line.source.parent;
 		
 		this.update(function() {
-			role = graph.insertVertex(_parent, null, '', x, y, width, SystemGraphConsts.REQ_ROLE_RELATION * width, 'req_left');
-			graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
+			image = graph.insertVertex(outer_cell, null, '', pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16, 'provided_delegate');
+			graph.insertEdge(outer_cell, null, '', image, inner, 'connect_line');
+		});
+		
+		this.delegates.push({
+			img : image,
+			line : outer_line,
+			container : container
+		});
+		
+		return image;
+	}
+	
+	drawRequiredRole(parent, x, y, width, name) {
+		var _parent = parent.getParent();
+		var graph = this.graph;
+		var role, edge;
+		
+		this.update(function() {
+			role = graph.insertVertex(_parent, null, name, x, y, width, SystemGraphConsts.REQ_ROLE_RELATION * width, 'req_left');
+			edge = graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
 		});
 		
 		// add it internally
 		this.requiredRoles.push(role);
-		this.requiredParents[role] = parent;
+		this.parents[role.id] = parent;
+		this.roleLine[role.id] = edge;
 		
 		return role;
 	}
 	
-	drawProvidedRole(parent, x, y, diameter) {
+	drawProvidedRole(parent, x, y, diameter, name) {
 		var _parent = parent.getParent();
 		var graph = this.graph;
-		var role;
+		var role, edge;
 		
 		this.update(function() {
-			role = graph.insertVertex(_parent, null, '', x, y, diameter, diameter, 'provided');
-			graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
+			role = graph.insertVertex(_parent, null, name, x, y, diameter, diameter, 'provided');
+			edge = graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
 		});
 		
 		// add it internally
 		this.providedRoles.push(role);
-		this.providedParents[role] = parent;
+		this.parents[role.id] = parent;
+		this.roleLine[role.id] = edge;
 		
 		return role;
 	}
