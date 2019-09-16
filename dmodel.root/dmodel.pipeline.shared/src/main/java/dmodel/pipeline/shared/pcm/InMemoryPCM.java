@@ -20,6 +20,20 @@ public class InMemoryPCM {
 	private Allocation allocationModel;
 	private ResourceEnvironment resourceEnvironmentModel;
 
+	private long lastUpdatedRepository;
+	private long lastUpdatedSystem;
+	private long lastUpdatedUsage;
+	private long lastUpdatedAllocation;
+	private long lastUpdatedResourceEnv;
+
+	public InMemoryPCM() {
+		this.updatedAllocation();
+		this.updatedRepository();
+		this.updatedResourceEnv();
+		this.updatedSystem();
+		this.updatedUsage();
+	}
+
 	/**
 	 * Loads the palladio models from the files. If a file does not exist, this
 	 * method initializes an empty model.
@@ -112,5 +126,45 @@ public class InMemoryPCM {
 
 	public void setResourceEnvironmentModel(ResourceEnvironment resourceEnvironmentModel) {
 		this.resourceEnvironmentModel = resourceEnvironmentModel;
+	}
+
+	public void updatedRepository() {
+		this.lastUpdatedRepository = java.lang.System.currentTimeMillis();
+	}
+
+	public void updatedSystem() {
+		this.lastUpdatedSystem = java.lang.System.currentTimeMillis();
+	}
+
+	public void updatedUsage() {
+		this.lastUpdatedUsage = java.lang.System.currentTimeMillis();
+	}
+
+	public void updatedAllocation() {
+		this.lastUpdatedAllocation = java.lang.System.currentTimeMillis();
+	}
+
+	public void updatedResourceEnv() {
+		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
+	}
+
+	public long getLastUpdatedRepository() {
+		return lastUpdatedRepository;
+	}
+
+	public long getLastUpdatedSystem() {
+		return lastUpdatedSystem;
+	}
+
+	public long getLastUpdatedUsage() {
+		return lastUpdatedUsage;
+	}
+
+	public long getLastUpdatedAllocation() {
+		return lastUpdatedAllocation;
+	}
+
+	public long getLastUpdatedResourceEnv() {
+		return lastUpdatedResourceEnv;
 	}
 }
