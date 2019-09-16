@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.start.spring.config.ITemplateMapping;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
@@ -13,6 +14,9 @@ import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 public class TemplateController {
 	@Autowired
 	private DModelConfigurationContainer configuration;
+
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
 
 	@RequestMapping(value = { "/", "/index" }, method = RequestMethod.GET)
 	public String index(Model model) {
@@ -67,7 +71,7 @@ public class TemplateController {
 	}
 
 	private void prepareModel(Model model) {
-		model.addAttribute("runtime_available", true);
+		model.addAttribute("runtime_available", blackboard.isApplicationRunning());
 	}
 
 }

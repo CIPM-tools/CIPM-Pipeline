@@ -2,6 +2,7 @@ package dmodel.pipeline.rt.pipeline.blackboard;
 
 import java.io.File;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.dt.mmmodel.MeasurementModel;
@@ -12,13 +13,26 @@ import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
 
 @Service
 public class RuntimePipelineBlackboard {
+	private static final long CONSIDER_APPLICATION_RUNNING_BUFFER = 60000;
 
 	private MeasurementModel measurementModel;
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
 
+	private boolean applicationRunning = false;
+	private long lastMonitoringDataReceivedTimestamp = 0;
+
 	public RuntimePipelineBlackboard() {
 		this.reset();
+	}
+
+	@Scheduled(initialDelay = 1000 * 60, fixedRate = 1000 * 60)
+	public void refreshApplicationRunning() {
+		if (System.currentTimeMillis() - lastMonitoringDataReceivedTimestamp < CONSIDER_APPLICATION_RUNNING_BUFFER) {
+			this.applicationRunning = true;
+		} else {
+			this.applicationRunning = false;
+		}
 	}
 
 	public MeasurementModel getMeasurementModel() {
@@ -58,6 +72,18 @@ public class RuntimePipelineBlackboard {
 
 	public void setFilesystemPCM(LocalFilesystemPCM filesystemPCM) {
 		this.filesystemPCM = filesystemPCM;
+	}
+
+	public void receivedMonitoringData() {
+		this.lastMonitoringDataReceivedTimestamp = System.currentTimeMillis();
+	}
+
+	public boolean isApplicationRunning() {
+		return applicationRunning;
+	}
+
+	public void setApplicationRunning(boolean is) {
+		this.applicationRunning = is;
 	}
 
 }
