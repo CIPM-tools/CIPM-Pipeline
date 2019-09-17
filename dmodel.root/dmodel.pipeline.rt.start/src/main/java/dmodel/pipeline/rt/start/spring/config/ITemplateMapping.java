@@ -17,4 +17,7 @@ public interface ITemplateMapping {
 	String CONFIG_DESIGNTIME_SYSTEM_FRAGMENT_JS = "fragments/design/js/system";
 	String CONFIG_DESIGNTIME_SYSTEM_FRAGMENT_FOOTER = "fragments/design/system_footer";
 
+	String CONFIG_MODELS_OVERVIEW_FRAGMENT = "fragments/models/overview";
+	String CONFIG_MODELS_OVERVIEW_FRAGMENT_JS = "fragments/models/js/overview";
+
 }
