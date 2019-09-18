@@ -13,6 +13,7 @@ class PCMSystemGraph {
 		this.parents = {};
 		this.roleLine = {};
 		this.delegates = [];
+		this.elementMapping = {};
 		
 		// Enables crisp rendering of rectangles in SVG
 		mxRectangleShape.prototype.crisp = true;
@@ -145,6 +146,8 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_STROKECOLOR] = 'black';
 		style[mxConstants.STYLE_ENDARROW] = undefined;
 		style[mxConstants.STYLE_EDGE] = mxEdgeStyle.TopToBottom;
+		style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_BOTTOM;
+		style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
 		this.graph.getStylesheet().putCellStyle('provided_line', style);
 		
 		style = mxUtils.clone(style);
@@ -182,7 +185,58 @@ class PCMSystemGraph {
 			
 			var compositeRoot = this.layouter.layoutRoot(this.model.root);
 			
+			var rootPosition = this.layouter.getPosition(this.model.root, this.model.root.id);
+			var rootObject = this.drawComposite(this.model.root.name, rootPosition.x, rootPosition.y, rootPosition.width, rootPosition.height);
+			this.drawRoles(rootObject, this.model.root);
+			this.elementMapping[this.model.root.id] = rootObject;
+			
+			// recursive subelements
+			this.drawRecursive(rootObject);
+			
+			// connections
+			this.drawConnectors();
+			
+			// this creates mappings and relations
+			this.finalizeDrawing();
 		}
+	}
+	
+	drawConnectors() {
+		this.model.root.connectors.forEach(function(connector) {
+			if (connector.delegation) {
+				var role1 = this.elementMapping[connector.role1];
+				var role2 = this.elementMapping[connector.role2];
+				this.delegateRoles(role2, role1, connector.delegationDirection);
+			} else {
+				var roleFrom = this.elementMapping[connector.role1];
+				var roleTo = this.elementMapping[connector.role2];
+				this.connectRoles(roleTo, roleFrom);
+			}
+		}, this);
+	}
+	
+	drawRoles(parent, obj) {
+		obj.provided.forEach(function(role) {
+			var pos = this.layouter.getPosition(this.model.root, role.id);
+			
+			this.elementMapping[role.id] = this.drawProvidedRole(parent, pos.x, pos.y, pos.width, role.name.substring(0, 5));
+		}, this);
+		
+		obj.required.forEach(function(role) {
+			var pos = this.layouter.getPosition(this.model.root, role.id);
+			
+			this.elementMapping[role.id] = this.drawRequiredRole(parent, pos.x, pos.y, pos.width, role.name.substring(0, 5));
+		}, this);
+	}
+	
+	drawRecursive(parent) {
+		this.model.root.assemblys.forEach(function(ass) {
+			var pos = this.layouter.getPosition(this.model.root, ass.id);
+			
+			var assembly = this.drawAssembly(parent, ass.name, ass.componentName, pos.x, pos.y, pos.width, pos.height);
+			this.drawRoles(assembly, ass);
+			this.elementMapping[ass.id] = assembly;
+		}, this);
 	}
 	
 	example() {
@@ -281,15 +335,12 @@ class PCMSystemGraph {
 	connectRoles(required, provided) {
 		var graph = this.graph;
 		
-		var p1 = this.parents[provided.id];
-		var p2 = this.parents[required.id];
+		var p1 = this.parents[required.id];
 		
-		if (p1 == p2) {
-			// easy connection
-			this.update(function() {
-				graph.insertEdge(p1.getParent(), null, '', required, provided, 'connect_line');
-			});
-		}
+		// easy connection
+		this.update(function() {
+			graph.insertEdge(p1.getParent(), null, '', required, provided, 'connect_line');
+		});
 	}
 	
 	delegateRoles(outer, inner, is_provided) {
@@ -328,8 +379,8 @@ class PCMSystemGraph {
 		var role, edge;
 		
 		this.update(function() {
-			role = graph.insertVertex(_parent, null, name, x, y, width, SystemGraphConsts.REQ_ROLE_RELATION * width, 'req_left');
-			edge = graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
+			role = graph.insertVertex(_parent, null, '', x, y, width, SystemGraphConsts.REQ_ROLE_RELATION * width, 'req_left');
+			edge = graph.insertEdge(_parent, null, name, parent, role, 'provided_line');
 		});
 		
 		// add it internally
@@ -346,8 +397,8 @@ class PCMSystemGraph {
 		var role, edge;
 		
 		this.update(function() {
-			role = graph.insertVertex(_parent, null, name, x, y, diameter, diameter, 'provided');
-			edge = graph.insertEdge(_parent, null, '', parent, role, 'provided_line');
+			role = graph.insertVertex(_parent, null, '', x, y, diameter, diameter, 'provided');
+			edge = graph.insertEdge(_parent, null, name, parent, role, 'provided_line');
 		});
 		
 		// add it internally
@@ -358,14 +409,15 @@ class PCMSystemGraph {
 		return role;
 	}
 	
-	drawAssembly(parent, name, x, y, width, height) {
-		var container, image, text;
+	drawAssembly(parent, name, comp_name, x, y, width, height) {
+		var container, image, text, text_comp;
 		
 		this.update(function(graph) {
 			container = graph.insertVertex(parent, null, '', x, y, width, height, 'assembly');
 			
 			image = graph.insertVertex(container, null, '', 7, 7, SystemGraphConsts.ASSEMBLY_IMAGE_SIZE, SystemGraphConsts.ASSEMBLY_IMAGE_SIZE, 'assembly_image');
 			text = graph.insertVertex(container, null, name, image.geometry.x + image.geometry.width + 3, 0, 0, 0, 'ass_text');
+			text_comp = graph.insertVertex(container, null, "(" + comp_name + ")", image.geometry.x + image.geometry.width + 3, 13, 0, 0, 'ass_text');
 		}, this.graph);
 		
 		return container;

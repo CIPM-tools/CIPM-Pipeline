@@ -32,11 +32,24 @@ public class TemplateHelper {
 		}
 
 		// system
+		model.addAttribute("system", JsonEObject.create(pcm.getSystem()));
 		model.addAttribute("system_updated", new Date(pcm.getLastUpdatedSystem()));
 
 		// repository
 		model.addAttribute("repository", JsonEObject.create(pcm.getRepository()));
 		model.addAttribute("repository_updated", new Date(pcm.getLastUpdatedRepository()));
+
+		// allocation
+		model.addAttribute("allocation", JsonEObject.create(pcm.getAllocationModel()));
+		model.addAttribute("allocation_updated", new Date(pcm.getLastUpdatedAllocation()));
+
+		// usage
+		model.addAttribute("usage", JsonEObject.create(pcm.getUsageModel()));
+		model.addAttribute("usage_updated", new Date(pcm.getLastUpdatedUsage()));
+
+		// resource environment
+		model.addAttribute("resenv", JsonEObject.create(pcm.getResourceEnvironmentModel()));
+		model.addAttribute("resenv_updated", new Date(pcm.getLastUpdatedResourceEnv()));
 	}
 
 }
