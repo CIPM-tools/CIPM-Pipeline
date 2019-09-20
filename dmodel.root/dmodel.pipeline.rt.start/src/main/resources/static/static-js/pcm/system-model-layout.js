@@ -1,9 +1,7 @@
 
 class HorizontalSystemModelLayouter {
 	
-	constructor(spacing) {
-		this.spacing = spacing;
-		
+	constructor() {
 		this.positions = {};
 		this.rowStartY = {};
 		this.grid = {};
@@ -24,8 +22,8 @@ class HorizontalSystemModelLayouter {
 		var height_min_base = SystemGraphConsts.COMPOSITE_LINE_SPACING_TOP;
 		
 		// alts
-		var height_min_0 = root.provided.length * SystemGraphConsts.SYSTEM_PROVIDED_SIZE + root.provided.length * this.spacing;
-		var height_min_1 = root.required.length * (SystemGraphConsts.SYSTEM_REQUIRED_SIZE * SystemGraphConsts.REQ_ROLE_RELATION) + root.required.length * this.spacing;
+		var height_min_0 = root.provided.length * SystemGraphConsts.SYSTEM_PROVIDED_SIZE + root.provided.length * SystemGraphConsts.SYSTEM_SPACING_ROLES;
+		var height_min_1 = root.required.length * (SystemGraphConsts.SYSTEM_REQUIRED_SIZE * SystemGraphConsts.REQ_ROLE_RELATION) + root.required.length * SystemGraphConsts.SYSTEM_SPACING_ROLES;
 		
 		// assemblys
 		this.layoutAsssemblys(root);
@@ -69,11 +67,13 @@ class HorizontalSystemModelLayouter {
 		calc_height += SystemGraphConsts.ASS_MARGIN_BOTTOM;
 		
 		// final values
-		var fHeight = calc_height + Math.max(height_min_0, height_min_1) + height_min_base;
+		var fHeight = calc_height + height_min_base;
+		var fHeight = Math.max(fHeight, Math.max(height_min_0, height_min_1));
+		
 		var fWidth = Math.max(SystemGraphConsts.COMPOSITE_MIN_WIDTH,
 				SystemGraphConsts.ASS_MARGIN_LEFT + SystemGraphConsts.ASS_MARGIN_RIGHT +
 				SystemGraphConsts.ASSEMBLY_WIDTH * (max_col + 1) +
-				((max_col + 1) * ((SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_PROVIDED_SIZE + SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_REQUIRED_SIZE)) * 2) +
+				((max_col + 1) * ((SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_PROVIDED_SIZE + SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_REQUIRED_SIZE))) +
 				SystemGraphConsts.ASS_SPACING * max_col);
 		var fX = SystemGraphConsts.SYSTEM_PROVIDED_SIZE + SystemGraphConsts.COMPOSITE_ROLE_LEN;
 		var fY = SystemGraphConsts.COMPOSITE_MARGIN_TOP;
@@ -111,8 +111,8 @@ class HorizontalSystemModelLayouter {
 			var fHeight = this.rowStartY[parent.id][grid_position[1] + 1] - this.rowStartY[parent.id][grid_position[1]];
 			
 			this.positions[parent.id][parent.assemblys[i].id] = {
-				x : fX + parent_position.x,
-				y : fY + parent_position.y + SystemGraphConsts.COMPOSITE_LINE_SPACING_TOP,
+				x : fX,
+				y : fY + SystemGraphConsts.COMPOSITE_LINE_SPACING_TOP,
 				width : fWidth,
 				height : fHeight
 			};

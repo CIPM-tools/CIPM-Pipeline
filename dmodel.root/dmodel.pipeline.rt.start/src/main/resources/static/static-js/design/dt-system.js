@@ -1,4 +1,5 @@
 var statusUpdateInterval = 250;
+var cy = null; // call graph
 
 $(document).ready(function() {
 	// make full sized
@@ -58,9 +59,9 @@ function registerEvents() {
 							window.location.href = "/design/";
 						}, 5000);
 					});
-	
+
 	$("#build-system").click(function() {
-		startBuildingProcedure($("#system-view").get(0));
+		startBuildingProcedure();
 	});
 }
 
@@ -86,7 +87,6 @@ function updateCallGraphStatus() {
 function buildCallGraph(graph) {
 	console.log(graph);
 	// build nodes & edges
-
 	// 1. build nodes
 	var nodes = [];
 	var components = new Set();
@@ -122,7 +122,7 @@ function buildCallGraph(graph) {
 	});
 
 	// build graph
-	var cy = window.cy = cytoscape({
+	cy = window.cy = cytoscape({
 		container : document.getElementById('callgraph-view'),
 
 		boxSelectionEnabled : false,
@@ -145,9 +145,24 @@ function buildCallGraph(graph) {
 			selector : 'edge',
 			css : {
 				'curve-style' : 'bezier',
-				'line-color' : '#61bffc',
-				'target-arrow-color': '#61bffc',
-				'target-arrow-shape' : 'triangle'
+				'line-color' : '#00468b',
+				'target-arrow-color' : '#00008b',
+				'target-arrow-shape' : 'triangle',
+				'width' : 5
+			}
+		}, {
+			selector : '.highlighted',
+			css : {
+				'line-color' : '#d80000',
+				'curve-style' : 'bezier',
+				'target-arrow-color' : '#8b0000',
+				'target-arrow-shape' : 'triangle',
+				'width' : 5
+			}
+		}, {
+			selector : '.highlighted2',
+			css : {
+				'background-color' : '#c2a90f'
 			}
 		} ],
 
@@ -160,8 +175,34 @@ function buildCallGraph(graph) {
 			name : 'grid'
 		}
 	});
+	
+	// events
+	registerDoubleTap(cy);
+	cy.on('doubleTap', 'node', function(event) {
+		console.log(event);
+	});
 
 	// set system enabled
 	$("#build-system").removeAttr("disabled");
 	$("#skip-system").removeAttr("disabled");
+}
+
+function registerDoubleTap(cy) {
+	var tappedBefore;
+	var tappedTimeout;
+	cy.on('tap', function(event) {
+		var tappedNow = event.cyTarget;
+		if (tappedTimeout && tappedBefore) {
+			clearTimeout(tappedTimeout);
+		}
+		if (tappedBefore === tappedNow) {
+			event.target.trigger('doubleTap');
+			tappedBefore = null;
+		} else {
+			tappedTimeout = setTimeout(function() {
+				tappedBefore = null;
+			}, 300);
+			tappedBefore = tappedNow;
+		}
+	});
 }

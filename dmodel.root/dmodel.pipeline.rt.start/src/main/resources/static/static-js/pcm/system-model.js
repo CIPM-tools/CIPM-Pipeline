@@ -14,7 +14,8 @@ class PCMSystemGraph {
 		this.roleLine = {};
 		this.delegates = [];
 		this.elementMapping = {};
-		
+		this.requiredRoleMarked = {};
+
 		// Enables crisp rendering of rectangles in SVG
 		mxRectangleShape.prototype.crisp = true;
 		
@@ -103,6 +104,15 @@ class PCMSystemGraph {
 		this.graph.getStylesheet().putCellStyle('ass_text', style);
 		
 		style = mxUtils.clone(org_style);
+		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_LABEL;
+		style[mxConstants.STYLE_FONTCOLOR] = 'black';
+		style[mxConstants.STYLE_MOVABLE] = false;
+		style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_LEFT;
+		style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_CENTER;
+		style[mxConstants.STYLE_EDITABLE] = true;
+		this.graph.getStylesheet().putCellStyle('ass_text_modifiable', style);
+		
+		style = mxUtils.clone(org_style);
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
 		style[mxConstants.STYLE_FONTCOLOR] = 'black';
 		style[mxConstants.STYLE_FILLCOLOR] = 'white';
@@ -132,6 +142,24 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_ROTATION] = 270;
 		this.graph.getStylesheet().putCellStyle('req_bottom', style);
 		
+		// marked ones
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_IMAGE] = BASE64_ROLE_REQUIRED_MARKED;
+		style[mxConstants.STYLE_ROTATION] = 0;
+		this.graph.getStylesheet().putCellStyle('req_left_marked', style);
+		
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_ROTATION] = 90;
+		this.graph.getStylesheet().putCellStyle('req_top_marked', style);
+		
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_ROTATION] = 180;
+		this.graph.getStylesheet().putCellStyle('req_right_marked', style);
+		
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_ROTATION] = 270;
+		this.graph.getStylesheet().putCellStyle('req_bottom_marked', style);
+		
 		style = [];
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_CONNECTOR;
 		style[mxConstants.STYLE_STROKECOLOR] = 'gray';
@@ -140,6 +168,7 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_EDGE] = mxEdgeStyle.ElbowConnector;
 		style[mxConstants.STYLE_ENDARROW] = mxConstants.ARROW_CLASSIC;
 		style[mxConstants.STYLE_FONTSIZE] = '10';
+		style[mxConstants.STYLE_EDITABLE] = false;
 		this.graph.getStylesheet().putDefaultEdgeStyle(style);
 		
 		style = mxUtils.clone(style);
@@ -149,6 +178,10 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_BOTTOM;
 		style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
 		this.graph.getStylesheet().putCellStyle('provided_line', style);
+		
+		style = mxUtils.clone(style);
+		style[mxConstants.STYLE_STROKECOLOR] = 'red';
+		this.graph.getStylesheet().putCellStyle('provided_line_marked', style);
 		
 		style = mxUtils.clone(style);
 		style[mxConstants.STYLE_ENDARROW] = mxConstants.ARROW_CLASSIC;
@@ -182,7 +215,6 @@ class PCMSystemGraph {
 	
 	draw() {
 		if (this.model !== undefined && this.layouter !== undefined) {
-			
 			var compositeRoot = this.layouter.layoutRoot(this.model.root);
 			
 			var rootPosition = this.layouter.getPosition(this.model.root, this.model.root.id);
@@ -213,6 +245,26 @@ class PCMSystemGraph {
 				this.connectRoles(roleTo, roleFrom);
 			}
 		}, this);
+	}
+	
+	markRequiredRole(roleId) {
+		var role = this.elementMapping[roleId];
+		var line = this.roleLine[role.id];
+		
+		line.setStyle('provided_line_marked');
+		this.requiredRoleMarked[role.id] = true;
+		
+		this.realignRoles();
+	}
+	
+	unmarkRequiredRole(roleId) {
+		var role = this.elementMapping[roleId];
+		var line = this.roleLine[role.id];
+		
+		line.setStyle('provided_line');
+		
+		this.requiredRoleMarked[role] = false;
+		this.realignRoles();
 	}
 	
 	drawRoles(parent, obj) {
@@ -319,14 +371,17 @@ class PCMSystemGraph {
 				var r = this.requiredRoles[i];
 				var p = this.parents[r.id];
 				
+				var marked = this.requiredRoleMarked[r.id];
+				var marked_ext = marked ? "_marked" : "";
+				
 				if (r.geometry.y + r.geometry.height < p.geometry.y) {
-					this.graph.getModel().setStyle(r, 'req_top');
+					this.graph.getModel().setStyle(r, 'req_top' + marked_ext);
 				} else if (r.geometry.y > p.geometry.y + p.geometry.height) {
-					this.graph.getModel().setStyle(r, 'req_bottom');
+					this.graph.getModel().setStyle(r, 'req_bottom' + marked_ext);
 				} else if (r.geometry.x > p.geometry.x + p.geometry.width) {
-					this.graph.getModel().setStyle(r, 'req_right');
+					this.graph.getModel().setStyle(r, 'req_right' + marked_ext);
 				} else {
-					this.graph.getModel().setStyle(r, 'req_left');
+					this.graph.getModel().setStyle(r, 'req_left' + marked_ext);
 				}
 			}
 		});
@@ -416,7 +471,7 @@ class PCMSystemGraph {
 			container = graph.insertVertex(parent, null, '', x, y, width, height, 'assembly');
 			
 			image = graph.insertVertex(container, null, '', 7, 7, SystemGraphConsts.ASSEMBLY_IMAGE_SIZE, SystemGraphConsts.ASSEMBLY_IMAGE_SIZE, 'assembly_image');
-			text = graph.insertVertex(container, null, name, image.geometry.x + image.geometry.width + 3, 0, 0, 0, 'ass_text');
+			text = graph.insertVertex(container, null, name, image.geometry.x + image.geometry.width + 3, 0, 0, 0, 'ass_text_modifiable');
 			text_comp = graph.insertVertex(container, null, "(" + comp_name + ")", image.geometry.x + image.geometry.width + 3, 13, 0, 0, 'ass_text');
 		}, this.graph);
 		

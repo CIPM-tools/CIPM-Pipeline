@@ -1,10 +1,80 @@
+var currentSystem = null;
+var currentSystemModel = null;
+var currentConflict = null;
+var currentSystemData = null;
+var currentLayouter = new HorizontalSystemModelLayouter();
 
-function startBuildingProcedure(container) {
+$(document).ready(function() {
+	currentSystemModel = new PCMSystemGraph($("#system-view").get(0));
+});
+
+function startBuildingProcedure() {
 	$("#build-system").attr("disabled", "true");
 	
-	var exSystem = '{"root":{"name":"aName","id":"_nToPMMhEEemC_dbpn1EUHw","assemblys":[{"name":"aName","componentName":"PrimeManagerImpl","componentId":"_m8iCUJYGEempGaXtj6ezAw","id":"_nVbmAMhEEemC_dbpn1EUHw","provided":[{"name":"Provided_PrimeManager_PrimeManagerImpl","id":"_q8ROUJYGEempGaXtj6ezAw"}],"required":[{"id":"_GvVFkJYHEempGaXtj6ezAw","name":"Required_PrimeGenerator_PrimeManagerImpl"}]},{"name":"aName","componentName":"DumbGeneratorImpl","componentId":"_EXcoMJYHEempGaXtj6ezAw","id":"_nWFGQMhEEemC_dbpn1EUHw","provided":[{"name":"Provided_PrimeGenerator_DumbGeneratorImpl","id":"_HCkxsJYHEempGaXtj6ezAw"}],"required":[]}],"connectors":[{"delegation":false,"delegationDirection":false,"assemblyFrom":"_nWFGQMhEEemC_dbpn1EUHw","assemblyTo":"_nVbmAMhEEemC_dbpn1EUHw","role1":"_HCkxsJYHEempGaXtj6ezAw","role2":"_GvVFkJYHEempGaXtj6ezAw","id":"_nWGUYMhEEemC_dbpn1EUHw","name":"aName"},{"delegation":true,"delegationDirection":true,"assemblyFrom":"_nVbmAMhEEemC_dbpn1EUHw","assemblyTo":"_nToPMMhEEemC_dbpn1EUHw","role1":"_q8ROUJYGEempGaXtj6ezAw","role2":"_nWHigMhEEemC_dbpn1EUHw","id":"_nWIwoMhEEemC_dbpn1EUHw","name":"aName"}],"provided":[{"name":"aName","id":"_nWHigMhEEemC_dbpn1EUHw"}],"required":[]}}';
-	var model = new PCMSystemGraph(container);
-	model.apply(exSystem);
-	model.layout(new HorizontalSystemModelLayouter(20));
-	model.draw();
+	$.postJSON(rest.design.build.start, {}, function() {
+		updateBuildingProcess();
+	});
+}
+
+function updateBuildingProcess() {
+	$.getJSON(rest.design.build.status, function(data) {
+		if (data.status === "idle") {
+			setTimeout(updateBuildingProcess, 250);
+		} else {
+			$.getJSON(rest.design.build.get, function(curr_system) {
+				updateSystemModel(curr_system);
+				if (data.status === "conflict") {
+					// show conflict
+					showConflict();
+				} else if (data.status === "finished") {
+					showFinishedBuilding();
+				} else {
+					console.error("Oops! This should'nt happen, the building process should never be idle.");
+				}
+			});
+		}
+	});
+}
+
+function showConflict() {
+	$.getJSON(rest.design.build.getConflict, function(conflict) {
+		$("#currSystemHeader").append('<span class="conflictLabel">(Open Conflict)</span>');
+		currentConflict = conflict;
+		
+		console.log(conflict);
+		if (conflict.type === "connection") {
+			showConnectionConflict(conflict);
+		}
+	});
+}
+
+function showConnectionConflict(conflict) {
+	currentSystemModel.markRequiredRole(conflict.targetId);
+	
+	conflict.possibleIds.forEach(function(id) {
+		cy.elements("#" + id).addClass("highlighted2");
+	});
+}
+
+function showFinishedBuilding() {
+	currentConflict = null;
+	$("#currSystemHeader .conflictLabel").remove();
+	
+	$("#system-view").addClass(
+	"progress-bar-striped progress-bar bg-dark");
+	$("#build-system").attr("disabled", "true");
+	$("#skip-system").attr("disabled", "true");
+	
+	// alert it
+	toastr.success('Finished system building process.\nReturning in 5 seconds.', 'Success');
+	setTimeout(function() {
+		window.location.href = "/design/";
+	}, 5000);
+}
+
+function updateSystemModel(sys) {
+	currentSystem = sys;
+	currentSystemModel.apply(sys);
+	currentSystemModel.layout(currentLayouter);
+	currentSystemModel.draw();
 }

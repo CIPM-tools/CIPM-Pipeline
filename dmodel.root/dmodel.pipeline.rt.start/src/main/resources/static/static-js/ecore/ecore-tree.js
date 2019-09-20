@@ -2,20 +2,27 @@
 var ecoreTree = {
 		
 	icons : {},
+	base_path : null,
+	ending : null,
+	
+	registerIconBasePath : function(path, ending) {
+		ecoreTree.base_path = path;
+		ecoreTree.ending = ending;
+	},
 	
 	registerIcon : function(type, icon) {
-		
+		ecoreTree.icons[type] = icon;
 	},
 		
 	build : function(parent, eobject) {
-		console.log(eobject);
 		$(parent).jstree({
 			'core' : {
 				"themes" : {
 				      "variant" : "medium"
 				    },
 				'check_callback' : true
-			}
+			},
+			'plugins' : ["types", "theme"]
 		});
 		
 		ecoreTree.buildRecursive(parent, eobject, null, {id : 0});
@@ -39,6 +46,8 @@ var ecoreTree = {
 	getIcon(data) {
 		if (ecoreTree.icons.hasOwnProperty(data.type)) {
 			return ecoreTree.icons[data.type];
+		} else if (ecoreTree.base_path !== null) {
+			return ecoreTree.base_path + data.type + ecoreTree.ending;
 		} else {
 			return "fa fa-question";
 		}

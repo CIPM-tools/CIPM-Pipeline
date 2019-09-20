@@ -112,7 +112,8 @@ public class SystemBuildRestController {
 					((AssemblyConflict) currentConflict).setSolution(ctx);
 				} else if (currentConflict instanceof ConnectionConflict) {
 					ProvidedRole opr = ((ConnectionConflict) currentConflict).getProvided().stream()
-							.filter(pr -> pr.getId().equals(jsolution.getSolution())).findFirst().orElse(null);
+							.filter(pr -> pr.getProvidingEntity_ProvidedRole().getId().equals(jsolution.getSolution()))
+							.findFirst().orElse(null);
 					((ConnectionConflict) currentConflict).setSolution(opr);
 				}
 			}
@@ -132,7 +133,7 @@ public class SystemBuildRestController {
 	@GetMapping("/design/system/build/get")
 	public String getCurrentSystem() {
 		try {
-			return objectMapper.writeValueAsString(dataContainer.getCurrentSystem());
+			return objectMapper.writeValueAsString(this.convertSystem(systemBuilder.getCurrentSystem()));
 		} catch (JsonProcessingException e) {
 			return JsonUtil.emptyObject();
 		}
@@ -167,7 +168,8 @@ public class SystemBuildRestController {
 			ConnectionConflict cconf = (ConnectionConflict) conf;
 			output.setId(cconf.getId());
 			output.setType("connection");
-			output.setPossibleIds(cconf.getProvided().stream().map(a -> a.getId()).toArray(String[]::new));
+			output.setPossibleIds(cconf.getProvided().stream().map(a -> a.getProvidingEntity_ProvidedRole().getId())
+					.toArray(String[]::new));
 			output.setTargetId(cconf.getRequired().getId());
 		}
 		return output;
