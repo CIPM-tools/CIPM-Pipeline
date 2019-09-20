@@ -14,7 +14,10 @@ class PCMSystemGraph {
 		this.roleLine = {};
 		this.delegates = [];
 		this.elementMapping = {};
+		this.elementMappingReversed = {};
 		this.requiredRoleMarked = {};
+		
+		this.renamings = {};
 
 		// Enables crisp rendering of rectangles in SVG
 		mxRectangleShape.prototype.crisp = true;
@@ -199,6 +202,16 @@ class PCMSystemGraph {
 			
 			evt.consume();
         });
+		
+		this.graph.addListener(mxEvent.LABEL_CHANGED, function (sender, evt) {
+			var cell = evt.getProperty("cell");
+			var parent = cell.parent;
+			
+			// add renaming
+			_this.renamings[_this.elementMappingReversed[parent.id]] = cell.value;
+			
+			evt.consume();
+		});
 	}
 	
 	apply(system) {
@@ -220,6 +233,7 @@ class PCMSystemGraph {
 			var rootPosition = this.layouter.getPosition(this.model.root, this.model.root.id);
 			var rootObject = this.drawComposite(this.model.root.name, rootPosition.x, rootPosition.y, rootPosition.width, rootPosition.height);
 			this.drawRoles(rootObject, this.model.root);
+			this.elementMappingReversed[rootObject.id] = this.model.root.id;
 			this.elementMapping[this.model.root.id] = rootObject;
 			
 			// recursive subelements
@@ -272,12 +286,14 @@ class PCMSystemGraph {
 			var pos = this.layouter.getPosition(this.model.root, role.id);
 			
 			this.elementMapping[role.id] = this.drawProvidedRole(parent, pos.x, pos.y, pos.width, role.name.substring(0, 5));
+			this.elementMappingReversed[this.elementMapping[role.id]] = role.id;
 		}, this);
 		
 		obj.required.forEach(function(role) {
 			var pos = this.layouter.getPosition(this.model.root, role.id);
 			
 			this.elementMapping[role.id] = this.drawRequiredRole(parent, pos.x, pos.y, pos.width, role.name.substring(0, 5));
+			this.elementMappingReversed[this.elementMapping[role.id]] = role.id;
 		}, this);
 	}
 	
@@ -288,6 +304,7 @@ class PCMSystemGraph {
 			var assembly = this.drawAssembly(parent, ass.name, ass.componentName, pos.x, pos.y, pos.width, pos.height);
 			this.drawRoles(assembly, ass);
 			this.elementMapping[ass.id] = assembly;
+			this.elementMappingReversed[assembly.id] = ass.id;
 		}, this);
 	}
 	
@@ -312,6 +329,10 @@ class PCMSystemGraph {
 	finalizeDrawing() {
 		this.realignRoles();
 		this.realignDelegates();
+	}
+	
+	getRenamings() {
+		return this.renamings;
 	}
 	
 	// private methods (not supported by all browsers - therefore we omit it -

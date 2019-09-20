@@ -63,6 +63,10 @@ function registerEvents() {
 	$("#build-system").click(function() {
 		startBuildingProcedure();
 	});
+	
+	$("#finish-procedure").click(function() {
+		finishBuildingProcedure();
+	});
 }
 
 function triggerCallgraphBuild() {
@@ -179,7 +183,7 @@ function buildCallGraph(graph) {
 	// events
 	registerDoubleTap(cy);
 	cy.on('doubleTap', 'node', function(event) {
-		console.log(event);
+		eventSelectedNode(event.target);
 	});
 
 	// set system enabled

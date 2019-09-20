@@ -1,9 +1,13 @@
 package dmodel.pipeline.rt.rest.dt.data.system;
 
+import java.util.Map;
+
 public class JsonConflictSolution {
 
 	private long id;
 	private String solution;
+
+	private Map<String, String> nameMapping;
 
 	public long getId() {
 		return id;
@@ -19,6 +23,14 @@ public class JsonConflictSolution {
 
 	public void setSolution(String solution) {
 		this.solution = solution;
+	}
+
+	public Map<String, String> getNameMapping() {
+		return nameMapping;
+	}
+
+	public void setNameMapping(Map<String, String> nameMapping) {
+		this.nameMapping = nameMapping;
 	}
 
 }

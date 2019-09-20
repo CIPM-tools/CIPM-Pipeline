@@ -1,6 +1,7 @@
 package dmodel.pipeline.rt.rest.dt;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
@@ -10,6 +11,7 @@ import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.core.composition.DelegationConnector;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
 import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
+import org.palladiosimulator.pcm.core.entity.NamedElement;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.system.System;
@@ -40,6 +42,7 @@ import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
 import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
+import dmodel.pipeline.shared.pcm.PCMUtils;
 import dmodel.pipeline.shared.util.StackedRunnable;
 
 @RestController
@@ -64,8 +67,7 @@ public class SystemBuildRestController {
 	private RuntimePipelineBlackboard blackboard;
 
 	// DATA
-	private boolean finishedBuilding = false;
-	private AbstractConflict<?> currentConflict;
+	private boolean finishedBuilding = true;
 
 	@PostMapping("/design/system/build/start")
 	public String buildSystem() {
@@ -77,8 +79,7 @@ public class SystemBuildRestController {
 		process2.addListener(conf -> {
 			if (conf == null) {
 				finishedBuilding = true;
-			} else {
-				currentConflict = conf;
+				flushResultingSystem(systemBuilder.getCurrentSystem());
 			}
 		});
 
@@ -89,8 +90,8 @@ public class SystemBuildRestController {
 
 	@GetMapping("/design/system/build/conflict/get")
 	public String getConflict() {
-		if (!finishedBuilding && currentConflict != null) {
-			JsonBuildingConflict conflict = convertConflict(currentConflict);
+		if (!finishedBuilding) {
+			JsonBuildingConflict conflict = convertConflict(systemBuilder.getCurrentConflict());
 			try {
 				return objectMapper.writeValueAsString(conflict);
 			} catch (JsonProcessingException e) {
@@ -105,6 +106,7 @@ public class SystemBuildRestController {
 	public String resolveConflict(@RequestParam String solution) {
 		try {
 			JsonConflictSolution jsolution = objectMapper.readValue(solution, JsonConflictSolution.class);
+			AbstractConflict<?> currentConflict = systemBuilder.getCurrentConflict();
 			if (currentConflict != null && !finishedBuilding) {
 				if (currentConflict instanceof AssemblyConflict) {
 					AssemblyContext ctx = ((AssemblyConflict) currentConflict).getPoss().stream()
@@ -115,6 +117,18 @@ public class SystemBuildRestController {
 							.filter(pr -> pr.getProvidingEntity_ProvidedRole().getId().equals(jsolution.getSolution()))
 							.findFirst().orElse(null);
 					((ConnectionConflict) currentConflict).setSolution(opr);
+				}
+
+				// mark as solved
+				currentConflict.setSolved(true);
+
+				inheritNameMapping(jsolution.getNameMapping());
+
+				// continue building
+				finishedBuilding = systemBuilder.continueBuilding();
+
+				if (finishedBuilding) {
+					flushResultingSystem(systemBuilder.getCurrentSystem());
 				}
 			}
 		} catch (IOException e) {
@@ -127,7 +141,8 @@ public class SystemBuildRestController {
 	@GetMapping("/design/system/build/status")
 	public String getStatus() {
 		return JsonUtil.wrapAsObject("status",
-				finishedBuilding ? "finished" : (currentConflict == null ? "idle" : "conflict"), true);
+				finishedBuilding ? "finished" : (systemBuilder.getCurrentConflict() == null ? "idle" : "conflict"),
+				true);
 	}
 
 	@GetMapping("/design/system/build/get")
@@ -139,7 +154,6 @@ public class SystemBuildRestController {
 		}
 	}
 
-	// TODO outsource this
 	public JsonPCMSystem convertSystem(System system) {
 		JsonPCMSystem output = new JsonPCMSystem();
 
@@ -154,6 +168,21 @@ public class SystemBuildRestController {
 		output.setRoot(root);
 
 		return output;
+	}
+
+	private void flushResultingSystem(System currentSystem) {
+		blackboard.getArchitectureModel().setSystem(currentSystem);
+		blackboard.getArchitectureModel().updatedSystem();
+	}
+
+	private void inheritNameMapping(Map<String, String> nameMapping) {
+		nameMapping.entrySet().forEach(e -> {
+			NamedElement ident = PCMUtils.getElementById(systemBuilder.getCurrentSystem(), NamedElement.class,
+					e.getKey());
+			if (ident != null) {
+				ident.setEntityName(e.getValue());
+			}
+		});
 	}
 
 	private JsonBuildingConflict convertConflict(AbstractConflict<?> conf) {

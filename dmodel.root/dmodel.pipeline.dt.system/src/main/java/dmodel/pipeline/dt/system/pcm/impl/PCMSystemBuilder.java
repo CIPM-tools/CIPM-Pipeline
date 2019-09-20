@@ -52,7 +52,7 @@ import dmodel.pipeline.shared.structure.DirectedGraph;
 // TODO simplify building method
 // TODO add logging
 // TODO outsource in other helping classes
-// TODO finish merging composites
+// TODO finish merging composites => we do not respect this here
 @Component
 public class PCMSystemBuilder {
 	private static final Logger LOG = LoggerFactory.getLogger(PCMSystemBuilder.class);
