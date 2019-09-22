@@ -17,6 +17,8 @@ class PCMSystemGraph {
 		this.elementMappingReversed = {};
 		this.requiredRoleMarked = {};
 		
+		this.eventListeners = [];
+		
 		this.renamings = {};
 
 		// Enables crisp rendering of rectangles in SVG
@@ -69,6 +71,11 @@ class PCMSystemGraph {
 		this.graph.getStylesheet().putCellStyle('assembly', style);
 		
 		style = mxUtils.clone(org_style);
+		style[mxConstants.STYLE_STROKECOLOR] = '#037d50';
+		style[mxConstants.STYLE_DASHED] = true;
+		this.graph.getStylesheet().putCellStyle('assembly_marked', style);
+		
+		style = mxUtils.clone(org_style);
 		style[mxConstants.STYLE_IMAGE] = BASE64_ASSEMBLY_CONTEXT;
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_IMAGE;
 		style[mxConstants.STYLE_MOVABLE] = false;
@@ -97,6 +104,15 @@ class PCMSystemGraph {
 		style[mxConstants.STYLE_FONTCOLOR] = 'black';
 		style[mxConstants.STYLE_MOVABLE] = false;
 		this.graph.getStylesheet().putCellStyle('norm_text', style);
+		
+		style = mxUtils.clone(org_style);
+		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_LABEL;
+		style[mxConstants.STYLE_FONTCOLOR] = 'black';
+		style[mxConstants.STYLE_MOVABLE] = false;
+		style[mxConstants.STYLE_EDITABLE] = true;
+		style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_CENTER;
+		style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_CENTER;
+		this.graph.getStylesheet().putCellStyle('norm_text_modifiable', style);
 		
 		style = mxUtils.clone(org_style);
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_LABEL;
@@ -193,6 +209,10 @@ class PCMSystemGraph {
 		this.graph.getStylesheet().putCellStyle('connect_line', style);
 	}
 	
+	addEventListener(listener) {
+		this.eventListeners.push(listener);
+	}
+	
 	registerEvents() {
 		// LISTENER FOR MOVEMENTS
 		var _this = this;
@@ -212,6 +232,22 @@ class PCMSystemGraph {
 			
 			evt.consume();
 		});
+		
+		
+		this.graph.addListener(mxEvent.DOUBLE_CLICK, function(sender, evt) {
+			var cell = evt.getProperty("cell");
+			if (cell !== undefined) {
+				// clicked on a cell
+				if (cell.style === "assembly_marked") {
+					// valid solution
+					_this.eventListeners.forEach(function(list) {
+						list.selectMarkedAssembly(_this.elementMappingReversed[cell.id]);
+					});
+				}
+			}
+			
+			evt.consume();
+		});
 	}
 	
 	apply(system) {
@@ -227,6 +263,9 @@ class PCMSystemGraph {
 	}
 	
 	draw() {
+		// remove old
+		this.graph.getModel().clear();
+		
 		if (this.model !== undefined && this.layouter !== undefined) {
 			var compositeRoot = this.layouter.layoutRoot(this.model.root);
 			
@@ -259,6 +298,14 @@ class PCMSystemGraph {
 				this.connectRoles(roleTo, roleFrom);
 			}
 		}, this);
+	}
+	
+	markAssemblyContext(ctxId) {
+		this.elementMapping[ctxId].setStyle("assembly_marked");
+	}
+	
+	unmarkAssemblyContext(ctxId) {
+		this.elementMapping[ctxId].setStyle("assembly");
 	}
 	
 	markRequiredRole(roleId) {
@@ -507,7 +554,7 @@ class PCMSystemGraph {
 		this.update(function() {
 			container = graph.insertVertex(null, null, '<<CompositeStructure>>', x, y, width, height);
 			line = graph.insertVertex(container, null, '', 0, SystemGraphConsts.COMPOSITE_LINE_SPACING_TOP, width, 1);
-			text = graph.insertVertex(container, null, name, width / 2, SystemGraphConsts.COMPOSITE_TEXT_Y, 0, 0, 'norm_text');
+			text = graph.insertVertex(container, null, name, width / 2, SystemGraphConsts.COMPOSITE_TEXT_Y, 0, 0, 'norm_text_modifiable');
 		});
 		
 		this.update(function() {

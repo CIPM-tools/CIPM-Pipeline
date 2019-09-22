@@ -55,8 +55,9 @@ public class TemplateController {
 		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_FRAGMENT_JS);
 
 		model.addAttribute("repo_path", configuration.getModels().getRepositoryPath());
-		model.addAttribute("system_present", configuration.getModels().getSystemPath() != null
-				&& configuration.getModels().getSystemPath().length() > 0);
+		model.addAttribute("system_present",
+				blackboard.getArchitectureModel() != null && blackboard.getArchitectureModel().getSystem() != null
+						&& blackboard.getArchitectureModel().getSystem().eContents().size() > 0);
 
 		return "index";
 	}

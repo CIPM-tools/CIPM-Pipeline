@@ -4,14 +4,39 @@ var currentConflict = null;
 var currentSystemData = null;
 var currentLayouter = new HorizontalSystemModelLayouter();
 
-$(document).ready(function() {
-	currentSystemModel = new PCMSystemGraph($("#system-view").get(0));
-});
+var loadingSpinner = null;
+var spinningTarget = null;
+
+$(document).ready(
+		function() {
+			currentSystemModel = new PCMSystemGraph($("#system-view").get(0));
+			currentSystemModel.addEventListener({
+				selectMarkedAssembly : function(assId) {
+					if (currentConflict != null
+							&& currentConflict.type === "assembly"
+							&& currentConflict.possibleIds.includes(assId)) {
+						$("#new-assembly").attr("disabled", "true");
+						resolveConflict(assId);
+					}
+				}
+			});
+
+			$("#new-assembly").click(
+					function() {
+						if (currentConflict != null
+								&& currentConflict.type === "assembly") {
+							$("#new-assembly").attr("disabled", "true");
+							resolveConflict(null);
+						}
+					});
+			
+			// loading spinner
+			spinningTarget = document.getElementById("system-view");
+			loadingSpinner = new Spinner();
+		});
 
 function finishBuildingProcedure() {
-	toastr.success(
-			'Returning in 3 seconds.',
-			'Success');
+	toastr.success('Returning in 3 seconds.', 'Success');
 
 	// finish
 	setTimeout(function() {
@@ -30,7 +55,7 @@ function eventSelectedNode(node) {
 	var selectedId = node.id();
 
 	// check if valid solution
-	if (currentConflict.type === "connection"
+	if (currentConflict != null && currentConflict.type === "connection"
 			&& currentConflict.possibleIds.includes(selectedId)) {
 		// => valid
 		resolveConflict(selectedId);
@@ -64,6 +89,7 @@ function startBuildingProcedure() {
 }
 
 function updateBuildingProcess() {
+	loadingSpinner.spin(spinningTarget);
 	$
 			.getJSON(
 					rest.design.build.status,
@@ -85,6 +111,8 @@ function updateBuildingProcess() {
 													console
 															.error("Oops! This should'nt happen, the building process should never be idle.");
 												}
+												
+												loadingSpinner.stop();
 											});
 						}
 					});
@@ -99,7 +127,16 @@ function showConflict() {
 		console.log(conflict);
 		if (conflict.type === "connection") {
 			showConnectionConflict(conflict);
+		} else if (conflict.type === "assembly") {
+			showAssemblyConflict(conflict);
 		}
+	});
+}
+
+function showAssemblyConflict(conflict) {
+	conflict.possibleIds.forEach(function(id) {
+		currentSystemModel.markAssemblyContext(id);
+		$("#new-assembly").removeAttr("disabled");
 	});
 }
 
@@ -120,7 +157,7 @@ function showFinishedBuilding() {
 
 	// alert it
 	toastr.success('Finished system building process.', 'Success');
-	
+
 	// make finish button accessible
 	$("#finish-procedure").removeAttr("disabled");
 }

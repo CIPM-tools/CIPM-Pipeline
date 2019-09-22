@@ -181,6 +181,10 @@ public class SystemBuildRestController {
 					e.getKey());
 			if (ident != null) {
 				ident.setEntityName(e.getValue());
+			} else {
+				if (systemBuilder.getCurrentSystem().getId().equals(e.getKey())) {
+					systemBuilder.getCurrentSystem().setEntityName(e.getValue());
+				}
 			}
 		});
 	}

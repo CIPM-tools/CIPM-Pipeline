@@ -195,7 +195,7 @@ function registerDoubleTap(cy) {
 	var tappedBefore;
 	var tappedTimeout;
 	cy.on('tap', function(event) {
-		var tappedNow = event.cyTarget;
+		var tappedNow = event.target;
 		if (tappedTimeout && tappedBefore) {
 			clearTimeout(tappedTimeout);
 		}
