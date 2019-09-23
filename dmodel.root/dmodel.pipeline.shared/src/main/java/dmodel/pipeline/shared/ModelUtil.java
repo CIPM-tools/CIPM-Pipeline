@@ -34,6 +34,13 @@ public class ModelUtil {
 		return clazz.cast(resource.getContents().get(0));
 	}
 
+	public static <T extends EObject> void saveToFile(T model, File path) {
+		if (path != null) {
+			path.getParentFile().mkdirs();
+			saveToFile(model, path.getAbsolutePath());
+		}
+	}
+
 	/**
 	 * Saves a model to file
 	 * 

@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.rest.core.config;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.palladiosimulator.pcm.allocation.Allocation;
@@ -24,6 +25,12 @@ import dmodel.pipeline.shared.config.ModelConfiguration;
 
 @RestController
 public class ConfigModelsRestController {
+	private static final String[] DEFAULT_PATH_ALLOCATION = new String[] { "models", "temp_allocation.allocation" };
+	private static final String[] DEFAULT_PATH_REPOSITORY = new String[] { "models", "temp_repository.repository" };
+	private static final String[] DEFAULT_PATH_RESENV = new String[] { "models", "temp_resenv.resourcenevironment" };
+	private static final String[] DEFAULT_PATH_USAGE = new String[] { "models", "temp_usage.usagemodel" };
+	private static final String[] DEFAULT_PATH_SYSTEM = new String[] { "models", "temp_system.system" };
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -46,6 +53,7 @@ public class ConfigModelsRestController {
 			ModelPathResponse val = validateModelPaths(req);
 
 			ModelConfiguration into = config.getModels();
+			enrichWithProjectConfig(req);
 			if (val.isAlloc()) {
 				into.setAllocationPath(req.getAlloc());
 			}
@@ -76,6 +84,32 @@ public class ConfigModelsRestController {
 		} catch (IOException e) {
 			return null;
 		}
+	}
+
+	private void enrichWithProjectConfig(ModelPathContainer req) {
+		if (config.getProject() != null && config.getProject().getRootPath() != null) {
+			File basePath = new File(config.getProject().getRootPath());
+
+			if (req.getAlloc().length() == 0) {
+				req.setAlloc(buildDefaultPath(basePath, DEFAULT_PATH_ALLOCATION));
+			}
+			if (req.getRepo().length() == 0) {
+				req.setRepo(buildDefaultPath(basePath, DEFAULT_PATH_REPOSITORY));
+			}
+			if (req.getRes().length() == 0) {
+				req.setRes(buildDefaultPath(basePath, DEFAULT_PATH_RESENV));
+			}
+			if (req.getSys().length() == 0) {
+				req.setSys(buildDefaultPath(basePath, DEFAULT_PATH_SYSTEM));
+			}
+			if (req.getUsage().length() == 0) {
+				req.setUsage(buildDefaultPath(basePath, DEFAULT_PATH_USAGE));
+			}
+		}
+	}
+
+	private String buildDefaultPath(File basePath, String[] exts) {
+		return new File(new File(basePath, exts[0]), exts[1]).getAbsolutePath();
 	}
 
 	private ModelPathResponse validateModelPaths(ModelPathContainer req) {

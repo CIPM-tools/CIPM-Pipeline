@@ -35,6 +35,11 @@ public class RuntimePipelineBlackboard {
 		}
 	}
 
+	@Scheduled(initialDelay = 1000 * 60 * 2, fixedRate = 1000 * 60 * 2)
+	public void syncModelsFS() {
+		architectureModel.saveToFilesystem(filesystemPCM);
+	}
+
 	public MeasurementModel getMeasurementModel() {
 		return measurementModel;
 	}
@@ -49,11 +54,14 @@ public class RuntimePipelineBlackboard {
 
 	public void loadArchitectureModel(ModelConfiguration config) {
 		filesystemPCM = new LocalFilesystemPCM();
-		filesystemPCM.setAllocationModelFile(new File(config.getAllocationPath()));
-		filesystemPCM.setRepositoryFile(new File(config.getRepositoryPath()));
-		filesystemPCM.setResourceEnvironmentFile(new File(config.getEnvPath()));
-		filesystemPCM.setSystemFile(new File(config.getSystemPath()));
-		filesystemPCM.setUsageModelFile(new File(config.getUsagePath()));
+		filesystemPCM.setAllocationModelFile(
+				config.getAllocationPath().length() > 0 ? new File(config.getAllocationPath()) : null);
+		filesystemPCM.setRepositoryFile(
+				config.getRepositoryPath().length() > 0 ? new File(config.getRepositoryPath()) : null);
+		filesystemPCM
+				.setResourceEnvironmentFile(config.getEnvPath().length() > 0 ? new File(config.getEnvPath()) : null);
+		filesystemPCM.setSystemFile(config.getSystemPath().length() > 0 ? new File(config.getSystemPath()) : null);
+		filesystemPCM.setUsageModelFile(config.getUsagePath().length() > 0 ? new File(config.getUsagePath()) : null);
 
 		architectureModel = InMemoryPCM.createFromFilesystem(filesystemPCM);
 	}

@@ -81,11 +81,11 @@ public class InMemoryPCM {
 	}
 
 	public void saveToFilesystem(LocalFilesystemPCM pcm) {
-		ModelUtil.saveToFile(this.getRepository(), pcm.getRepositoryFile().getAbsolutePath());
-		ModelUtil.saveToFile(this.getAllocationModel(), pcm.getAllocationModelFile().getAbsolutePath());
-		ModelUtil.saveToFile(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile().getAbsolutePath());
-		ModelUtil.saveToFile(this.getSystem(), pcm.getSystemFile().getAbsolutePath());
-		ModelUtil.saveToFile(this.getUsageModel(), pcm.getUsageModelFile().getAbsolutePath());
+		ModelUtil.saveToFile(this.getRepository(), pcm.getRepositoryFile());
+		ModelUtil.saveToFile(this.getAllocationModel(), pcm.getAllocationModelFile());
+		ModelUtil.saveToFile(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile());
+		ModelUtil.saveToFile(this.getSystem(), pcm.getSystemFile());
+		ModelUtil.saveToFile(this.getUsageModel(), pcm.getUsageModelFile());
 	}
 
 	public Repository getRepository() {
