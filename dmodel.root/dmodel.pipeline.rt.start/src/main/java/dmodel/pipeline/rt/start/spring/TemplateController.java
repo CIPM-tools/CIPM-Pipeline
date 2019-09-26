@@ -75,6 +75,16 @@ public class TemplateController {
 		return "index";
 	}
 
+	@RequestMapping(value = { "/runtime/", "/runtime/index", "/runtime/overview" }, method = RequestMethod.GET)
+	public String runtimeOverview(Model model) {
+		this.prepareModel(model, "runtime");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_RUNTIME_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_RUNTIME_FRAGMENT_JS);
+		model.addAttribute("fragment_footer", ITemplateMapping.CONFIG_RUNTIME_FRAGMENT_FOOTER);
+
+		return "index";
+	}
+
 	@RequestMapping(value = { "/models/summary", "/models/overview" }, method = RequestMethod.GET)
 	public String modelOverview(Model model) {
 		this.prepareModel(model, "models");

@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.rt.entry.core.transformations.ServiceCallEntryPoint;
 import dmodel.pipeline.rt.entry.core.transformations.ServiceCallTreeBuilder;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.EntryInputPort;
@@ -24,7 +23,6 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 
 	@EntryInputPort
 	@OutputPorts({
-		@OutputPort(id = PortIDs.T_DEFAULT, to = ServiceCallEntryPoint.class, async = true),
 		@OutputPort(id = PortIDs.T_BUILD_SERVICECALL_TREE, to = ServiceCallTreeBuilder.class, async = true)
 	})
 	public List<ServiceCallRecord> filterServiceCalls(List<IMonitoringRecord> records) {

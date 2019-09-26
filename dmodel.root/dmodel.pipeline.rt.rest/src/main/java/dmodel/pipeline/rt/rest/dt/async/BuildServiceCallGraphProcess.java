@@ -46,7 +46,9 @@ public class BuildServiceCallGraphProcess extends AbstractObservable<DirectedGra
 				blackboard.getArchitectureModel().getRepository());
 
 		// extract
-		this.flood(analyzer.deriveSystemComposition(model, spoonMapping));
+		DirectedGraph<String, Integer> callGraph = analyzer.deriveSystemComposition(model, spoonMapping);
+		blackboard.setServiceCallGraph(callGraph);
+		this.flood(callGraph);
 	}
 
 }

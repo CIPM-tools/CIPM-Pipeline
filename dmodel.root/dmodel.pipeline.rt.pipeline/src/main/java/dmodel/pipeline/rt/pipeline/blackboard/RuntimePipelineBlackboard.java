@@ -10,6 +10,7 @@ import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
+import dmodel.pipeline.shared.structure.DirectedGraph;
 
 @Service
 public class RuntimePipelineBlackboard {
@@ -18,6 +19,7 @@ public class RuntimePipelineBlackboard {
 	private MeasurementModel measurementModel;
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
+	private DirectedGraph<String, Integer> serviceCallGraph;
 
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
@@ -37,7 +39,9 @@ public class RuntimePipelineBlackboard {
 
 	@Scheduled(initialDelay = 1000 * 60 * 2, fixedRate = 1000 * 60 * 2)
 	public void syncModelsFS() {
-		architectureModel.saveToFilesystem(filesystemPCM);
+		if (architectureModel != null) {
+			architectureModel.saveToFilesystem(filesystemPCM);
+		}
 	}
 
 	public MeasurementModel getMeasurementModel() {
@@ -92,6 +96,14 @@ public class RuntimePipelineBlackboard {
 
 	public void setApplicationRunning(boolean is) {
 		this.applicationRunning = is;
+	}
+
+	public DirectedGraph<String, Integer> getServiceCallGraph() {
+		return serviceCallGraph;
+	}
+
+	public void setServiceCallGraph(DirectedGraph<String, Integer> serviceCallGraph) {
+		this.serviceCallGraph = serviceCallGraph;
 	}
 
 }

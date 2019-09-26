@@ -20,4 +20,8 @@ public interface ITemplateMapping {
 	String CONFIG_MODELS_OVERVIEW_FRAGMENT = "fragments/models/overview";
 	String CONFIG_MODELS_OVERVIEW_FRAGMENT_JS = "fragments/models/js/overview";
 
+	String CONFIG_RUNTIME_FRAGMENT = "fragments/runtime/index";
+	String CONFIG_RUNTIME_FRAGMENT_JS = "fragments/runtime/js/index";
+	Object CONFIG_RUNTIME_FRAGMENT_FOOTER = "fragments/runtime/runtime_footer";
+
 }

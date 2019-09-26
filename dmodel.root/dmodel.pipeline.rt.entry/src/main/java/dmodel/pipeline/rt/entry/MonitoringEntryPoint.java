@@ -35,7 +35,6 @@ public class MonitoringEntryPoint implements InitializingBean, IRecordReceivedLi
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-
 		new Thread(new ReRunRunnableWrapper(monitoringReader)).start();
 	}
 
@@ -61,7 +60,11 @@ public class MonitoringEntryPoint implements InitializingBean, IRecordReceivedLi
 		@Override
 		public void run() {
 			while (true) {
-				run.run();
+				try {
+					run.run();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
