@@ -18,9 +18,11 @@ public class IterativeRuntimePipeline extends
 	@Autowired
 	private TransformMeasurementModelEntry measurementModelTransformer;
 
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
+
 	public IterativeRuntimePipeline() {
 		super();
-		this.blackboard = new RuntimePipelineBlackboard();
 	}
 
 	@Override
@@ -30,6 +32,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		super.blackboard = blackboard;
 		this.buildPipeline(IterativePipelineEntryPoint.class);
 	}
 

@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.dt.mmmodel.MeasurementModel;
 import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
+import dmodel.pipeline.models.mapping.MappingFactory;
+import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
@@ -17,8 +19,11 @@ public class RuntimePipelineBlackboard {
 	private static final long CONSIDER_APPLICATION_RUNNING_BUFFER = 60000;
 
 	private MeasurementModel measurementModel;
+
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
+	private PalladioRuntimeMapping runtimeMapping;
+
 	private DirectedGraph<String, Integer> serviceCallGraph;
 
 	private boolean applicationRunning = false;
@@ -26,6 +31,7 @@ public class RuntimePipelineBlackboard {
 
 	public RuntimePipelineBlackboard() {
 		this.reset();
+		this.runtimeMapping = MappingFactory.eINSTANCE.createPalladioRuntimeMapping();
 	}
 
 	@Scheduled(initialDelay = 1000 * 60, fixedRate = 1000 * 60)
@@ -104,6 +110,14 @@ public class RuntimePipelineBlackboard {
 
 	public void setServiceCallGraph(DirectedGraph<String, Integer> serviceCallGraph) {
 		this.serviceCallGraph = serviceCallGraph;
+	}
+
+	public PalladioRuntimeMapping getRuntimeMapping() {
+		return runtimeMapping;
+	}
+
+	public void setRuntimeMapping(PalladioRuntimeMapping runtimeMapping) {
+		this.runtimeMapping = runtimeMapping;
 	}
 
 }

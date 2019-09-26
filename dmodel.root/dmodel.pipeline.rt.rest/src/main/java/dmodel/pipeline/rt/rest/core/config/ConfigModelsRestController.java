@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.rest.data.config.ModelPathContainer;
 import dmodel.pipeline.rt.rest.data.config.ModelPathResponse;
 import dmodel.pipeline.shared.ModelUtil;
@@ -36,6 +37,9 @@ public class ConfigModelsRestController {
 
 	@Autowired
 	private DModelConfigurationContainer config;
+
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
 
 	@GetMapping("/config/models/get")
 	public String getModelConfig() {
@@ -69,6 +73,8 @@ public class ConfigModelsRestController {
 			if (val.isUsage()) {
 				into.setUsagePath(req.getUsage());
 			}
+			blackboard.loadArchitectureModel(into);
+
 			return config.syncWithFilesystem() ? "{\"success\" : true}" : "{\"success\" : false}";
 		} catch (IOException e) {
 			e.printStackTrace();

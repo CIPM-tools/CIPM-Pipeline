@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.models.mapping.MappingPackage;
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.PCMUtils;
@@ -37,12 +39,21 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer 
 	@Value("${config}")
 	private String configPath;
 
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
+
+	@Autowired
+	private DModelConfigurationContainer config;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// load our emf models
 		PCMUtils.loadPCMModels();
 		CorrespondenceUtil.initVitruv();
 		MappingPackage.eINSTANCE.eClass();
+
+		// load models into blackboard
+		blackboard.loadArchitectureModel(config.getModels());
 	}
 
 	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = { "classpath:/META-INF/resources/",

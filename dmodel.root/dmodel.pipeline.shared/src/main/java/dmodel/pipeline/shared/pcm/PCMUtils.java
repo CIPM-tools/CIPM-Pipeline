@@ -13,6 +13,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.pcm.PcmPackage;
+import org.palladiosimulator.pcm.core.CoreFactory;
+import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
@@ -117,6 +119,12 @@ public class PCMUtils {
 		final Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
 		final Map<String, Object> m = reg.getExtensionToFactoryMap();
 		m.put("resourcetype", new XMIResourceFactoryImpl());
+	}
+
+	public static PCMRandomVariable createRandomVariableFromString(String string) {
+		PCMRandomVariable var = CoreFactory.eINSTANCE.createPCMRandomVariable();
+		var.setSpecification(string);
+		return var;
 	}
 
 }
