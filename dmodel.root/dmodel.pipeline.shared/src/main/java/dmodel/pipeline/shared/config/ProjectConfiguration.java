@@ -1,8 +1,13 @@
 package dmodel.pipeline.shared.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ProjectConfiguration {
+	@JsonIgnore
+	private List<IConfigurationChangeListener<ProjectConfiguration>> listeners;
 
 	private String rootPath;
 	private List<String> sourceFolders;
@@ -10,12 +15,17 @@ public class ProjectConfiguration {
 
 	private String correspondencePath;
 
+	public ProjectConfiguration() {
+		this.listeners = new ArrayList<>();
+	}
+
 	public String getRootPath() {
 		return rootPath;
 	}
 
 	public void setRootPath(String rootPath) {
 		this.rootPath = rootPath;
+		this.listeners.forEach(l -> l.configurationChanged(this));
 	}
 
 	public List<String> getSourceFolders() {
@@ -24,6 +34,7 @@ public class ProjectConfiguration {
 
 	public void setSourceFolders(List<String> sourceFolders) {
 		this.sourceFolders = sourceFolders;
+		this.listeners.forEach(l -> l.configurationChanged(this));
 	}
 
 	public String getInstrumentedPath() {
@@ -32,6 +43,7 @@ public class ProjectConfiguration {
 
 	public void setInstrumentedPath(String instrumentedPath) {
 		this.instrumentedPath = instrumentedPath;
+		this.listeners.forEach(l -> l.configurationChanged(this));
 	}
 
 	public String getCorrespondencePath() {
@@ -40,6 +52,15 @@ public class ProjectConfiguration {
 
 	public void setCorrespondencePath(String correspondencePath) {
 		this.correspondencePath = correspondencePath;
+		this.listeners.forEach(l -> l.configurationChanged(this));
+	}
+
+	public List<IConfigurationChangeListener<ProjectConfiguration>> getListeners() {
+		return listeners;
+	}
+
+	public void setListeners(List<IConfigurationChangeListener<ProjectConfiguration>> listeners) {
+		this.listeners = listeners;
 	}
 
 }

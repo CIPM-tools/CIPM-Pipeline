@@ -28,7 +28,7 @@ import dmodel.pipeline.shared.config.ModelConfiguration;
 public class ConfigModelsRestController {
 	private static final String[] DEFAULT_PATH_ALLOCATION = new String[] { "models", "temp_allocation.allocation" };
 	private static final String[] DEFAULT_PATH_REPOSITORY = new String[] { "models", "temp_repository.repository" };
-	private static final String[] DEFAULT_PATH_RESENV = new String[] { "models", "temp_resenv.resourcenevironment" };
+	private static final String[] DEFAULT_PATH_RESENV = new String[] { "models", "temp_resenv.resourceenvironment" };
 	private static final String[] DEFAULT_PATH_USAGE = new String[] { "models", "temp_usage.usagemodel" };
 	private static final String[] DEFAULT_PATH_SYSTEM = new String[] { "models", "temp_system.system" };
 

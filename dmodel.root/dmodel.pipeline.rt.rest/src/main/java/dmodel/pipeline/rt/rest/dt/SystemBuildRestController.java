@@ -29,7 +29,6 @@ import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.rest.core.processes.ReloadModelsProcess;
 import dmodel.pipeline.rt.rest.dt.async.StartBuildingSystemProcess;
 import dmodel.pipeline.rt.rest.dt.container.DesignTimeSystemDataContainer;
 import dmodel.pipeline.rt.rest.dt.data.JsonPCMSystem;
@@ -43,7 +42,6 @@ import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
 import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.PCMUtils;
-import dmodel.pipeline.shared.util.StackedRunnable;
 
 @RestController
 public class SystemBuildRestController {
@@ -73,17 +71,16 @@ public class SystemBuildRestController {
 	public String buildSystem() {
 		finishedBuilding = false;
 
-		ReloadModelsProcess process1 = new ReloadModelsProcess(blackboard, config.getModels());
-		StartBuildingSystemProcess process2 = new StartBuildingSystemProcess(dataContainer.getCallGraph(), blackboard,
+		StartBuildingSystemProcess process = new StartBuildingSystemProcess(dataContainer.getCallGraph(), blackboard,
 				systemBuilder);
-		process2.addListener(conf -> {
+		process.addListener(conf -> {
 			if (conf == null) {
 				finishedBuilding = true;
 				flushResultingSystem(systemBuilder.getCurrentSystem());
 			}
 		});
 
-		executorService.submit(new StackedRunnable(true, process1, process2));
+		executorService.submit(process);
 
 		return JsonUtil.emptyObject();
 	}
@@ -171,8 +168,7 @@ public class SystemBuildRestController {
 	}
 
 	private void flushResultingSystem(System currentSystem) {
-		blackboard.getArchitectureModel().setSystem(currentSystem);
-		blackboard.getArchitectureModel().updatedSystem();
+		blackboard.getArchitectureModel().swapSystem(currentSystem);
 	}
 
 	private void inheritNameMapping(Map<String, String> nameMapping) {

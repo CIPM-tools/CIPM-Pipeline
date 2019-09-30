@@ -11,6 +11,7 @@ import org.palladiosimulator.pcm.system.SystemFactory;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
+import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
 
 public class InMemoryPCM {
@@ -26,12 +27,32 @@ public class InMemoryPCM {
 	private long lastUpdatedAllocation;
 	private long lastUpdatedResourceEnv;
 
+	private LocalFilesystemPCM reflected;
+
 	public InMemoryPCM() {
 		this.updatedAllocation();
 		this.updatedRepository();
 		this.updatedResourceEnv();
 		this.updatedSystem();
 		this.updatedUsage();
+	}
+
+	public static InMemoryPCM createFromFilesystemSynced(LocalFilesystemPCM pcm) {
+		InMemoryPCM ret = createFromFilesystem(pcm);
+
+		FileBackedModelUtil.synchronize(ret.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
+				n -> ret.updatedAllocation(), null);
+		FileBackedModelUtil.synchronize(ret.getRepository(), pcm.getRepositoryFile(), Repository.class,
+				n -> ret.updatedRepository(), null);
+		FileBackedModelUtil.synchronize(ret.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
+				ResourceEnvironment.class, n -> ret.updatedResourceEnv(), null);
+		FileBackedModelUtil.synchronize(ret.getSystem(), pcm.getSystemFile(), System.class, n -> ret.updatedSystem(),
+				null);
+		FileBackedModelUtil.synchronize(ret.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
+				n -> ret.updatedUsage(), null);
+		ret.reflected = pcm;
+
+		return ret;
 	}
 
 	/**
@@ -43,6 +64,7 @@ public class InMemoryPCM {
 	 */
 	public static InMemoryPCM createFromFilesystem(LocalFilesystemPCM pcm) {
 		InMemoryPCM ret = new InMemoryPCM();
+		ret.reflected = pcm;
 
 		// empty models if not available
 		if (pcm.getRepositoryFile().exists()) {
@@ -128,26 +150,6 @@ public class InMemoryPCM {
 		this.resourceEnvironmentModel = resourceEnvironmentModel;
 	}
 
-	public void updatedRepository() {
-		this.lastUpdatedRepository = java.lang.System.currentTimeMillis();
-	}
-
-	public void updatedSystem() {
-		this.lastUpdatedSystem = java.lang.System.currentTimeMillis();
-	}
-
-	public void updatedUsage() {
-		this.lastUpdatedUsage = java.lang.System.currentTimeMillis();
-	}
-
-	public void updatedAllocation() {
-		this.lastUpdatedAllocation = java.lang.System.currentTimeMillis();
-	}
-
-	public void updatedResourceEnv() {
-		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
-	}
-
 	public long getLastUpdatedRepository() {
 		return lastUpdatedRepository;
 	}
@@ -166,5 +168,45 @@ public class InMemoryPCM {
 
 	public long getLastUpdatedResourceEnv() {
 		return lastUpdatedResourceEnv;
+	}
+
+	private void updatedRepository() {
+		this.lastUpdatedRepository = java.lang.System.currentTimeMillis();
+	}
+
+	private void updatedSystem() {
+		this.lastUpdatedSystem = java.lang.System.currentTimeMillis();
+	}
+
+	private void updatedUsage() {
+		this.lastUpdatedUsage = java.lang.System.currentTimeMillis();
+	}
+
+	private void updatedAllocation() {
+		this.lastUpdatedAllocation = java.lang.System.currentTimeMillis();
+	}
+
+	private void updatedResourceEnv() {
+		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
+	}
+
+	public void swapSystem(System currentSystem) {
+		FileBackedModelUtil.clear(this.system);
+		if (reflected != null) {
+			this.system = FileBackedModelUtil.synchronize(currentSystem, reflected.getSystemFile(), System.class,
+					n -> updatedSystem(), null);
+			this.updatedSystem();
+		} else {
+			this.system = currentSystem;
+			this.updatedSystem();
+		}
+	}
+
+	public void clearListeners() {
+		FileBackedModelUtil.clear(allocationModel);
+		FileBackedModelUtil.clear(repository);
+		FileBackedModelUtil.clear(resourceEnvironmentModel);
+		FileBackedModelUtil.clear(usageModel);
+		FileBackedModelUtil.clear(system);
 	}
 }

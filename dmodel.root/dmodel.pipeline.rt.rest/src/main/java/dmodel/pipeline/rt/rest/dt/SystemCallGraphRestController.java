@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.rest.core.processes.ReloadModelsProcess;
 import dmodel.pipeline.rt.rest.dt.async.BuildServiceCallGraphProcess;
 import dmodel.pipeline.rt.rest.dt.container.DesignTimeSystemDataContainer;
 import dmodel.pipeline.rt.rest.dt.data.JsonCallGraph;
@@ -26,7 +25,6 @@ import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.PCMUtils;
 import dmodel.pipeline.shared.structure.DirectedGraph;
-import dmodel.pipeline.shared.util.StackedRunnable;
 
 @RestController
 public class SystemCallGraphRestController {
@@ -82,18 +80,17 @@ public class SystemCallGraphRestController {
 		callGraphBuilded = false;
 
 		// create processes
-		ReloadModelsProcess process1 = new ReloadModelsProcess(blackboard, config.getModels());
-		BuildServiceCallGraphProcess process2 = new BuildServiceCallGraphProcess(config.getProject(), blackboard,
+		BuildServiceCallGraphProcess process = new BuildServiceCallGraphProcess(config.getProject(), blackboard,
 				systemAnalyzer, transformer);
 
 		// add progress listener
-		process2.addListener(status -> {
+		process.addListener(status -> {
 			callGraphBuilded = true;
 			dataContainer.setCallGraph(status);
 		});
 
 		// execute them
-		executorService.submit(new StackedRunnable(true, process1, process2));
+		executorService.submit(process);
 
 		// no return
 		return JsonUtil.emptyObject();

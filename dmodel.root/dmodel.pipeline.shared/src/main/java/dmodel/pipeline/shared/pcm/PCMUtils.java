@@ -10,7 +10,9 @@ import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.URIConverter;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.pcm.PcmPackage;
 import org.palladiosimulator.pcm.core.CoreFactory;
@@ -22,6 +24,7 @@ import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.ResourcetypePackage;
 
 import de.uka.ipd.sdq.identifier.Identifier;
@@ -37,6 +40,18 @@ public class PCMUtils {
 		ResourcetypePackage.eINSTANCE.eClass();
 
 		initPathmaps();
+	}
+
+	public static ResourceRepository getDefaultResourceRepository() {
+		ResourceSet resourceSet = new ResourceSetImpl();
+		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
+				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
+
+		URI filePathUri = org.eclipse.emf.common.util.URI.createURI("pathmap://PCM_MODELS/Palladio.resourcetype");
+
+		Resource resource = resourceSet.getResource(filePathUri, true);
+
+		return (ResourceRepository) resource.getContents().get(0);
 	}
 
 	public static Optional<RequiredRole> getRequiredRoleBySignature(BasicComponent comp, Signature toSig) {

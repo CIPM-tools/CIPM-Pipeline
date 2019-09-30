@@ -1,22 +1,29 @@
 package dmodel.pipeline.rt.pipeline.blackboard;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.dt.mmmodel.MeasurementModel;
 import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
 import dmodel.pipeline.models.mapping.MappingFactory;
+import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
+import dmodel.pipeline.shared.FileBackedModelUtil;
+import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 
 @Service
-public class RuntimePipelineBlackboard {
+public class RuntimePipelineBlackboard implements InitializingBean {
 	private static final long CONSIDER_APPLICATION_RUNNING_BUFFER = 60000;
+	private static final String RT_MAPPING_PATH = "models" + File.separator + "rt_mapping.corr";
 
 	private MeasurementModel measurementModel;
 
@@ -26,12 +33,45 @@ public class RuntimePipelineBlackboard {
 
 	private DirectedGraph<String, Integer> serviceCallGraph;
 
+	@Autowired
+	private DModelConfigurationContainer config;
+
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
 
+	private File currentRuntimeMappingPath;
+
 	public RuntimePipelineBlackboard() {
 		this.reset();
-		this.runtimeMapping = MappingFactory.eINSTANCE.createPalladioRuntimeMapping();
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		// load mapping package
+		MappingPackage.eINSTANCE.eClass();
+
+		config.getProject().getListeners().add(d -> {
+			refreshRuntimeMappingPath();
+		});
+		refreshRuntimeMappingPath();
+	}
+
+	private void refreshRuntimeMappingPath() {
+		File rtMappingFile = new File(new File(config.getProject().getRootPath()), RT_MAPPING_PATH);
+		try {
+			if (currentRuntimeMappingPath != null
+					&& rtMappingFile.getCanonicalPath().equals(currentRuntimeMappingPath.getCanonicalPath())) {
+				return;
+			}
+		} catch (IOException e) {
+			return;
+		}
+
+		this.runtimeMapping = FileBackedModelUtil.synchronize(this.runtimeMapping, rtMappingFile,
+				PalladioRuntimeMapping.class, null, v -> {
+					return MappingFactory.eINSTANCE.createPalladioRuntimeMapping();
+				});
+		currentRuntimeMappingPath = rtMappingFile;
 	}
 
 	@Scheduled(initialDelay = 1000 * 60, fixedRate = 1000 * 60)
@@ -40,13 +80,6 @@ public class RuntimePipelineBlackboard {
 			this.applicationRunning = true;
 		} else {
 			this.applicationRunning = false;
-		}
-	}
-
-	@Scheduled(initialDelay = 1000 * 60 * 2, fixedRate = 1000 * 60 * 2)
-	public void syncModelsFS() {
-		if (architectureModel != null) {
-			architectureModel.saveToFilesystem(filesystemPCM);
 		}
 	}
 
@@ -73,7 +106,11 @@ public class RuntimePipelineBlackboard {
 		filesystemPCM.setSystemFile(config.getSystemPath().length() > 0 ? new File(config.getSystemPath()) : null);
 		filesystemPCM.setUsageModelFile(config.getUsagePath().length() > 0 ? new File(config.getUsagePath()) : null);
 
-		architectureModel = InMemoryPCM.createFromFilesystem(filesystemPCM);
+		// clear the old listeners (memory leak)
+		if (architectureModel != null) {
+			architectureModel.clearListeners();
+		}
+		architectureModel = InMemoryPCM.createFromFilesystemSynced(filesystemPCM);
 	}
 
 	public InMemoryPCM getArchitectureModel() {

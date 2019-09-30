@@ -11,12 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.rest.core.processes.ReloadModelsProcess;
 import dmodel.pipeline.rt.rest.dt.async.InstrumentationProcess;
 import dmodel.pipeline.rt.rest.dt.data.InstrumentationStatus;
 import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
-import dmodel.pipeline.shared.util.StackedRunnable;
 
 @RestController
 public class DesignTimeRestController {
@@ -46,16 +44,15 @@ public class DesignTimeRestController {
 		}
 
 		// create processes
-		ReloadModelsProcess process1 = new ReloadModelsProcess(blackboard, config.getModels());
-		InstrumentationProcess process2 = new InstrumentationProcess(config.getProject(), blackboard, transformer);
+		InstrumentationProcess process = new InstrumentationProcess(config.getProject(), blackboard, transformer);
 
 		// add progress listener
-		process2.addListener(status -> {
+		process.addListener(status -> {
 			instrumentationStatus = status;
 		});
 
 		// execute them
-		executorService.submit(new StackedRunnable(true, process1, process2));
+		executorService.submit(process);
 
 		// no return
 		return JsonUtil.emptyObject();
