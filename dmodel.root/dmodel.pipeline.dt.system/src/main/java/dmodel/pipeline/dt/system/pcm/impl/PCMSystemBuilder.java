@@ -11,8 +11,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.isomorphism.VF2GraphIsomorphismInspector;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.ComposedStructure;
@@ -20,7 +18,6 @@ import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
 import org.palladiosimulator.pcm.core.entity.InterfaceProvidingEntity;
 import org.palladiosimulator.pcm.repository.BasicComponent;
-import org.palladiosimulator.pcm.repository.CompositeComponent;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
@@ -44,8 +41,6 @@ import dmodel.pipeline.dt.system.pcm.IConnectionConflictListener;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
-import dmodel.pipeline.dt.system.pcm.graph.ComposedStructureConverter;
-import dmodel.pipeline.dt.system.pcm.graph.ComposedStructureConverter.AssemblyNode;
 import dmodel.pipeline.shared.pcm.PCMUtils;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 
@@ -76,13 +71,9 @@ public class PCMSystemBuilder {
 	private Map<RequiredRole, ProvidedRole> reqProvMapping;
 	private ComposedStructure currentOuterStructure;
 
-	// helper classes
-	private ComposedStructureConverter structConverter;
-
 	public PCMSystemBuilder() {
 		this.assemblySelectionListener = new ArrayList<>();
 		this.connectionConflictListener = new ArrayList<>();
-		this.structConverter = new ComposedStructureConverter();
 	}
 
 	public boolean startBuildingSystem(DirectedGraph<String, Integer> serviceCallGraph) {
@@ -188,7 +179,6 @@ public class PCMSystemBuilder {
 		if (currentEdges.isEmpty()) {
 			// we search for an entry point
 			if (!entryPoints.hasNext()) {
-				mergeToExistingComposites();
 				linkFreeRulesToSystemBorder();
 				// we are finished
 				return true;
@@ -215,22 +205,6 @@ public class PCMSystemBuilder {
 			// pop a edge and process it
 			currentEdge = currentEdges.removeFirst();
 			return processEdgeSet();
-		}
-	}
-
-	private void mergeToExistingComposites() {
-		List<CompositeComponent> compositeComponents = PCMUtils.getElementsByType(this.repository,
-				CompositeComponent.class);
-		for (CompositeComponent composite : compositeComponents) {
-			// we use subgraph isomorphism algorithm to find matching
-			Graph<AssemblyNode, String> convSys = structConverter.converToGraph(currentSystem);
-			Graph<AssemblyNode, String> convComp = structConverter.converToGraph(composite);
-
-			VF2GraphIsomorphismInspector<AssemblyNode, String> isomorphInspector = new VF2GraphIsomorphismInspector<>(
-					convSys, convComp, (v1, v2) -> v1.getComponentId().compareTo(v2.getComponentId()),
-					(e1, e2) -> e1.compareTo(e2));
-
-			// TODO
 		}
 	}
 

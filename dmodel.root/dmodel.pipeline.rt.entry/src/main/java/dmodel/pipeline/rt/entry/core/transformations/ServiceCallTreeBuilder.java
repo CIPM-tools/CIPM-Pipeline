@@ -19,6 +19,7 @@ import dmodel.pipeline.shared.structure.Tree;
 
 public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
+	/* @formatter:off */
 	@InputPorts(@InputPort(PortIDs.T_BUILD_SERVICECALL_TREE))
 	@OutputPorts({
 		@OutputPort(to = ResourceEnvironmentDerivation.class, async = true, id = PortIDs.T_PCM_RESENV),
@@ -26,6 +27,7 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 		@OutputPort(to = UsageDataDerivation.class, async = true, id = PortIDs.T_PCM_USAGE),
 		@OutputPort(to = RuntimeSystemDerivation.class, async = true, id = PortIDs.T_PCM_SYSTEM)
 	})
+	/* @formatter:on */
 	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<ServiceCallRecord> records) {
 		return MonitoringDataUtil.buildServiceCallTree(records);
 	}
