@@ -13,7 +13,9 @@ import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
 import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
+import lombok.Data;
 
+@Data
 public class InMemoryPCM {
 	private Repository repository;
 	private System system;
@@ -108,66 +110,6 @@ public class InMemoryPCM {
 		ModelUtil.saveToFile(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile());
 		ModelUtil.saveToFile(this.getSystem(), pcm.getSystemFile());
 		ModelUtil.saveToFile(this.getUsageModel(), pcm.getUsageModelFile());
-	}
-
-	public Repository getRepository() {
-		return repository;
-	}
-
-	public void setRepository(Repository repository) {
-		this.repository = repository;
-	}
-
-	public System getSystem() {
-		return system;
-	}
-
-	public void setSystem(System system) {
-		this.system = system;
-	}
-
-	public UsageModel getUsageModel() {
-		return usageModel;
-	}
-
-	public void setUsageModel(UsageModel usageModel) {
-		this.usageModel = usageModel;
-	}
-
-	public Allocation getAllocationModel() {
-		return allocationModel;
-	}
-
-	public void setAllocationModel(Allocation allocationModel) {
-		this.allocationModel = allocationModel;
-	}
-
-	public ResourceEnvironment getResourceEnvironmentModel() {
-		return resourceEnvironmentModel;
-	}
-
-	public void setResourceEnvironmentModel(ResourceEnvironment resourceEnvironmentModel) {
-		this.resourceEnvironmentModel = resourceEnvironmentModel;
-	}
-
-	public long getLastUpdatedRepository() {
-		return lastUpdatedRepository;
-	}
-
-	public long getLastUpdatedSystem() {
-		return lastUpdatedSystem;
-	}
-
-	public long getLastUpdatedUsage() {
-		return lastUpdatedUsage;
-	}
-
-	public long getLastUpdatedAllocation() {
-		return lastUpdatedAllocation;
-	}
-
-	public long getLastUpdatedResourceEnv() {
-		return lastUpdatedResourceEnv;
 	}
 
 	private void updatedRepository() {

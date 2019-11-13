@@ -3,6 +3,8 @@ package dmodel.pipeline.shared.structure;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+
 public class Tree<T> {
 	private TreeNode<T> root;
 
@@ -20,6 +22,7 @@ public class Tree<T> {
 		return root;
 	}
 
+	@Data
 	public static class TreeNode<T> {
 		private T data;
 		private TreeNode<T> parent;
@@ -27,26 +30,6 @@ public class Tree<T> {
 
 		public TreeNode() {
 			this.children = new ArrayList<>();
-		}
-
-		public T getData() {
-			return data;
-		}
-
-		public void setData(T data) {
-			this.data = data;
-		}
-
-		public TreeNode<T> getParent() {
-			return parent;
-		}
-
-		public void setParent(TreeNode<T> parent) {
-			this.parent = parent;
-		}
-
-		public List<TreeNode<T>> getChildren() {
-			return children;
 		}
 
 		public TreeNode<T> addChildren(T data) {

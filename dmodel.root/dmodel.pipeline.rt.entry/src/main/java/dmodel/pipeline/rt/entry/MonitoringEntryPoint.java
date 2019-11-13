@@ -2,8 +2,6 @@ package dmodel.pipeline.rt.entry;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +15,8 @@ import kieker.common.logging.LogFactory;
 import kieker.common.record.IMonitoringRecord;
 
 @Service
+@lombok.extern.java.Log
 public class MonitoringEntryPoint implements InitializingBean, IRecordReceivedListener {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MonitoringEntryPoint.class);
 	private static final Log KIEKER_LOGGER = LogFactory.getLog(MonitoringEntryPoint.class);
 
 	private SingleSocketRecordReader monitoringReader;
@@ -44,7 +42,7 @@ public class MonitoringEntryPoint implements InitializingBean, IRecordReceivedLi
 		blackboard.receivedMonitoringData();
 		blackboard.setApplicationRunning(true);
 
-		LOGGER.debug("Received a monitoring record of type \"" + record.getClass().getName() + "\".");
+		log.fine("Received a monitoring record of type \"" + record.getClass().getName() + "\".");
 		for (IMonitoringDataCollector collector : collectors) {
 			collector.collect(record);
 		}

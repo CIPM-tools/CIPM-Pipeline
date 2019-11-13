@@ -1,4 +1,4 @@
-@Ecore(nsPrefix="hcl", nsURI="http://www.example.com/Example")
+@Ecore(nsPrefix="scg", nsURI="http://www.example.com/Example")
 @GenModel(
     bundleManifest = "false",
     modelDirectory = "src/main/java-gen",
@@ -29,12 +29,12 @@ class ServiceCallGraph {
 		
 		edges.add(edge)
 		
-		if (outgoingEdges.containsKey(from.id)) {
+		if (!outgoingEdges.containsKey(from.getId)) {
 			outgoingEdges.put(from.id, newBasicEList())
 		}
 		outgoingEdges.get(from.id).add(edge)
 		
-		if (incomingEdges.containsKey(to.id)) {
+		if (!incomingEdges.containsKey(to.id)) {
 			incomingEdges.put(to.id, newBasicEList())
 		}
 		incomingEdges.get(to.id).add(edge)
