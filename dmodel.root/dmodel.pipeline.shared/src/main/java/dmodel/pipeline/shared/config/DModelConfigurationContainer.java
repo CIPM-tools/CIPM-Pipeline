@@ -3,6 +3,7 @@ package dmodel.pipeline.shared.config;
 import java.io.File;
 import java.io.IOException;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -25,9 +26,11 @@ public class DModelConfigurationContainer {
 	private ValidationFeedbackLoopConfiguration vfl;
 
 	// path of the file
+	@JsonIgnore
 	private File fileBackedPath;
 
 	// create writer
+	@JsonIgnore
 	private ObjectMapper writer = new ObjectMapper(new YAMLFactory());
 
 	public boolean syncWithFilesystem() {

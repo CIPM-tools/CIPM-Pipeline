@@ -20,7 +20,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	@InputPorts({ @InputPort(PortIDs.T_PCM_SYSTEM) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
 		LOG.info("Deriving system refinements at runtime.");
-		if (getBlackboard().getServiceCallGraph() != null) {
+		if (getBlackboard().getBorder().getServiceCallGraph() != null) {
 			// TODO
 		} else {
 			LOG.warn("System derivation at runtime needs a service call graph.");

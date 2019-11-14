@@ -131,13 +131,40 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_INT = 1;
 
 	/**
+	 * The operation id for the '<em>Increment Edge</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF = 2;
+
+	/**
+	 * The operation id for the '<em>Has Edge</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF = 3;
+
+	/**
+	 * The operation id for the '<em>Has Node</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF = 4;
+
+	/**
 	 * The number of operations of the '<em>Service Call Graph</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SERVICE_CALL_GRAPH_OPERATION_COUNT = 2;
+	int SERVICE_CALL_GRAPH_OPERATION_COUNT = 5;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
@@ -316,6 +343,36 @@ public interface ServiceCallGraphPackage extends EPackage {
 	EOperation getServiceCallGraph__AddEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_int();
 
 	/**
+	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#incrementEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF) <em>Increment Edge</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Increment Edge</em>' operation.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#incrementEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF)
+	 * @generated
+	 */
+	EOperation getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF();
+
+	/**
+	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF) <em>Has Edge</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Has Edge</em>' operation.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF)
+	 * @generated
+	 */
+	EOperation getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF();
+
+	/**
+	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF) <em>Has Node</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Has Node</em>' operation.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF)
+	 * @generated
+	 */
+	EOperation getServiceCallGraph__HasNode__ResourceDemandingSEFF();
+
+	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge <em>Edge</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -472,6 +529,30 @@ public interface ServiceCallGraphPackage extends EPackage {
 		 * @generated
 		 */
 		EOperation SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_INT = eINSTANCE.getServiceCallGraph__AddEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_int();
+
+		/**
+		 * The meta object literal for the '<em><b>Increment Edge</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF = eINSTANCE.getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF();
+
+		/**
+		 * The meta object literal for the '<em><b>Has Edge</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF = eINSTANCE.getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF();
+
+		/**
+		 * The meta object literal for the '<em><b>Has Node</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF = eINSTANCE.getServiceCallGraph__HasNode__ResourceDemandingSEFF();
 
 		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.

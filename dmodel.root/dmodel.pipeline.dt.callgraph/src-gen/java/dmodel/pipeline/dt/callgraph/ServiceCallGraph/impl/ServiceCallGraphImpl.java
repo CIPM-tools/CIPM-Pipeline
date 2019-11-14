@@ -147,7 +147,7 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 */
 	@Override
 	public void addNode(final ResourceDemandingSEFF seff) {
-		nodes.add(seff);
+		getNodes().add(seff);
 	}
 
 	/**
@@ -156,20 +156,62 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 */
 	@Override
 	public void addEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to, final int value) {
+		// nodes
+		if (!hasNode(from)) {
+			this.addNode(from);
+		}
+		if (!hasNode(to)) {
+			this.addNode(to);
+		}
+		// edge
 		ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();
-				edge.setFrom(from);
-				edge.setTo(to);
-				edge.setValue(value);
+		edge.setFrom(from);
+		edge.setTo(to);
+		edge.setValue(value);
 		
-				if (!getOutgoingEdges().containsKey(from)) {
-					getOutgoingEdges().put(from, new BasicEList<ServiceCallGraphEdge>());
-				}
-				getOutgoingEdges().get(from).add(edge);
+		if (!getOutgoingEdges().containsKey(from)) {
+			getOutgoingEdges().put(from, new BasicEList<ServiceCallGraphEdge>());
+		}
+		getOutgoingEdges().get(from).add(edge);
 		
-				if (!getIncomingEdges().containsKey(to)) {
-					getIncomingEdges().put(to, new BasicEList<ServiceCallGraphEdge>());
-				}
-				getIncomingEdges().get(to).add(edge);
+		if (!getIncomingEdges().containsKey(to)) {
+			getIncomingEdges().put(to, new BasicEList<ServiceCallGraphEdge>());
+		}
+		getIncomingEdges().get(to).add(edge);
+	}
+
+	/**
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void incrementEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to) {
+		ServiceCallGraphEdge edge = this.hasEdge(from, to);
+		if (edge != null) {
+			edge.setValue(edge.getValue() + 1);
+		} else {
+			this.addEdge(from, to, 1);
+		}
+	}
+
+	/**
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ServiceCallGraphEdge hasEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to) {
+		return getEdges().stream().filter(edge -> {
+			return edge.getFrom().getId().equals(from.getId()) && edge.getTo().getId().equals(to.getId());
+		}).findFirst().orElse(null);
+	}
+
+	/**
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean hasNode(final ResourceDemandingSEFF node) {
+		return getNodes().stream().anyMatch(n -> n.getId().equals(node.getId()));
 	}
 
 	/**
@@ -291,6 +333,13 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_INT:
 				addEdge((ResourceDemandingSEFF)arguments.get(0), (ResourceDemandingSEFF)arguments.get(1), (Integer)arguments.get(2));
 				return null;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF:
+				incrementEdge((ResourceDemandingSEFF)arguments.get(0), (ResourceDemandingSEFF)arguments.get(1));
+				return null;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF:
+				return hasEdge((ResourceDemandingSEFF)arguments.get(0), (ResourceDemandingSEFF)arguments.get(1));
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF:
+				return hasNode((ResourceDemandingSEFF)arguments.get(0));
 		}
 		return super.eInvoke(operationID, arguments);
 	}

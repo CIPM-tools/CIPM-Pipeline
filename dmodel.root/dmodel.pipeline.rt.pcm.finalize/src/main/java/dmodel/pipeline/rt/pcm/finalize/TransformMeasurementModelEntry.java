@@ -21,7 +21,7 @@ public class TransformMeasurementModelEntry {
 
 		mmmProcessors.stream().forEach(proc -> {
 			proc.processMeasurementModel(blackboard.getMeasurementModel(), blackboard.getArchitectureModel(),
-					blackboard.getRuntimeMapping());
+					blackboard.getBorder().getRuntimeMapping());
 		});
 	}
 

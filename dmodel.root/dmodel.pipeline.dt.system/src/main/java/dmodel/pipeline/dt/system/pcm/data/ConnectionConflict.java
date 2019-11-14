@@ -6,8 +6,16 @@ import java.util.List;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class ConnectionConflict extends AbstractConflict<ProvidedRole> {
+	@EqualsAndHashCode.Exclude
 	private List<ProvidedRole> provided;
+
+	@EqualsAndHashCode.Exclude
 	private RequiredRole required;
 
 	private long id;
@@ -16,25 +24,5 @@ public class ConnectionConflict extends AbstractConflict<ProvidedRole> {
 		super();
 		this.provided = new ArrayList<>();
 		this.id = id;
-	}
-
-	public List<ProvidedRole> getProvided() {
-		return provided;
-	}
-
-	public void setProvided(List<ProvidedRole> provided) {
-		this.provided = provided;
-	}
-
-	public RequiredRole getRequired() {
-		return required;
-	}
-
-	public void setRequired(RequiredRole required) {
-		this.required = required;
-	}
-
-	public long getId() {
-		return id;
 	}
 }

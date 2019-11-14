@@ -1,58 +1,71 @@
 package dmodel.pipeline.rt.validation;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
+import org.pcm.headless.api.client.PCMHeadlessClient;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import dmodel.pipeline.rt.validation.contracts.IValidationListener;
-import dmodel.pipeline.rt.validation.data.ValidationData;
-import dmodel.pipeline.rt.validation.data.ValidationState;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.monitoring.MonitoringDataContainer;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import lombok.extern.java.Log;
 
 @Component
-public class ValidationFeedbackLoop implements IValidationProcessor {
-	private ValidationState currentState;
-
-	private List<IValidationListener> listeners;
-
-	private ValidationData currentData;
+@Log
+public class ValidationFeedbackLoop implements IValidationProcessor, InitializingBean {
+	private static final long TIMEOUT_VFL = 5000;
 
 	@Autowired
 	private DModelConfigurationContainer config;
 
+	private PCMHeadlessClient client;
+
+	private ScheduledExecutorService executorService;
+
 	public ValidationFeedbackLoop() {
-		this.currentState = ValidationState.INIT;
 	}
 
 	@Override
-	public void input(InMemoryPCM instance, MonitoringDataContainer monitoringData) {
+	public void process(InMemoryPCM instance, MonitoringDataContainer monitoringData,
+			List<IValidationProcessor> processors) {
+		// TODO
 	}
 
 	@Override
-	public ValidationState getState() {
-		// TODO Auto-generated method stub
-		return null;
+	public void afterPropertiesSet() throws Exception {
+		config.getVfl().registerChangeListener(v -> {
+			updatePCMHeadlessClient();
+		});
+		updatePCMHeadlessClient();
+
+		executorService = Executors.newScheduledThreadPool(config.getVfl().getConcurrentSimulations());
 	}
 
-	@Override
-	public void registerValidationListener(IValidationListener listener) {
-		this.listeners.add(listener);
+	private void updatePCMHeadlessClient() {
+		client = new PCMHeadlessClient(buildBackendUrl(config.getVfl().getUrl(), config.getVfl().getPort()));
+
+		// check if it is available
+		if (client.isReachable(TIMEOUT_VFL)) {
+			log.info("Backend for VFL is reachable.");
+		} else {
+			log.warning("Backend for VFL seems to be offline.");
+		}
 	}
 
-	@Override
-	public void unregisterValidationListener(IValidationListener listener) {
-		this.listeners.remove(listener);
-	}
+	private String buildBackendUrl(String url, int port) {
+		StringBuilder res = new StringBuilder();
+		if (!url.startsWith("http://")) {
+			res.append("http://");
+		}
+		res.append(url);
+		res.append(":");
+		res.append(port);
+		res.append("/");
 
-	@Override
-	public ValidationData getData() {
-		return currentData;
-	}
-
-	private void flushState(ValidationState state) {
-		listeners.forEach(l -> l.stateChanged(state));
+		return res.toString();
 	}
 }

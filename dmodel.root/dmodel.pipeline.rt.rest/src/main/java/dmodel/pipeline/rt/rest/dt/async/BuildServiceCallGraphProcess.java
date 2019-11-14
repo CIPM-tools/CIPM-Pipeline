@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.rest.dt.async;
 
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.records.instrument.ApplicationProject;
@@ -7,27 +8,21 @@ import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.ProjectConfiguration;
-import dmodel.pipeline.shared.structure.DirectedGraph;
 import dmodel.pipeline.shared.util.AbstractObservable;
+import lombok.AllArgsConstructor;
 import spoon.Launcher;
 
-public class BuildServiceCallGraphProcess extends AbstractObservable<DirectedGraph<String, Integer>>
-		implements Runnable {
+@AllArgsConstructor
+public class BuildServiceCallGraphProcess extends AbstractObservable<ServiceCallGraph> implements Runnable {
 
 	private ProjectConfiguration config;
 	private ISystemCompositionAnalyzer analyzer;
-	private RuntimePipelineBlackboard blackboard;
+	private RunTimeDesignTimeBorder border;
 	private IApplicationInstrumenter transformer;
-
-	public BuildServiceCallGraphProcess(ProjectConfiguration config, RuntimePipelineBlackboard blackboard,
-			ISystemCompositionAnalyzer analyzer, IApplicationInstrumenter transformer) {
-		this.config = config;
-		this.analyzer = analyzer;
-		this.blackboard = blackboard;
-		this.transformer = transformer;
-	}
+	private RuntimePipelineBlackboard blackboard;
 
 	@Override
 	public void run() {
@@ -46,8 +41,8 @@ public class BuildServiceCallGraphProcess extends AbstractObservable<DirectedGra
 				blackboard.getArchitectureModel().getRepository());
 
 		// extract
-		DirectedGraph<String, Integer> callGraph = analyzer.deriveSystemComposition(model, spoonMapping);
-		blackboard.setServiceCallGraph(callGraph);
+		ServiceCallGraph callGraph = analyzer.deriveSystemComposition(model, spoonMapping);
+		border.setServiceCallGraph(callGraph);
 		this.flood(callGraph);
 	}
 

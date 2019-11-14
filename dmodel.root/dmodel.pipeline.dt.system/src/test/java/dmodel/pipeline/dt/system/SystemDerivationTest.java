@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
 
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
@@ -20,7 +21,6 @@ import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.PCMUtils;
-import dmodel.pipeline.shared.structure.DirectedGraph;
 import spoon.Launcher;
 import tools.vitruv.models.im.ImFactory;
 import tools.vitruv.models.im.InstrumentationModel;
@@ -68,11 +68,10 @@ public class SystemDerivationTest {
 
 		// analyze it
 		ISystemCompositionAnalyzer systemExtractor = new StaticCodeReferenceAnalyzer();
-		DirectedGraph<String, Integer> callGraph = systemExtractor.deriveSystemComposition(model, spoonMapping);
+		ServiceCallGraph callGraph = systemExtractor.deriveSystemComposition(model, spoonMapping);
 
 		// derive system
 		PCMSystemBuilder extractor = new PCMSystemBuilder();
-		extractor.setRepository(meta.getRepository());
 		boolean finished = extractor.startBuildingSystem(callGraph);
 		assertFalse(finished);
 		assertEquals(extractor.getCurrentConflict().getClass(), ConnectionConflict.class);

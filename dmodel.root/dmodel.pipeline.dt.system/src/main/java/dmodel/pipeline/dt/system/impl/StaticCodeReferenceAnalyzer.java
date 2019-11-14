@@ -6,18 +6,16 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
 import dmodel.pipeline.dt.system.util.SpoonUtil;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
-import dmodel.pipeline.shared.structure.DirectedGraph;
 import spoon.Launcher;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
@@ -28,14 +26,12 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 @Component
 public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
-	private static final Logger LOG = LoggerFactory.getLogger(StaticCodeReferenceAnalyzer.class);
-
 	public StaticCodeReferenceAnalyzer() {
 	}
 
 	@Override
-	public DirectedGraph<String, Integer> deriveSystemComposition(Launcher model, SpoonCorrespondence spoonCorr) {
-		DirectedGraph<String, Integer> serviceCallGraph = new DirectedGraph<>();
+	public ServiceCallGraph deriveSystemComposition(Launcher model, SpoonCorrespondence spoonCorr) {
+		ServiceCallGraph serviceCallGraph = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
 
 		spoonCorr.getServiceMappingEntries().stream().forEach(service -> {
 			investigateService(service, serviceCallGraph, model, spoonCorr);
@@ -44,8 +40,8 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 		return serviceCallGraph;
 	}
 
-	private void investigateService(Entry<CtMethod<?>, ResourceDemandingSEFF> service,
-			DirectedGraph<String, Integer> callGraph, Launcher model, SpoonCorrespondence spoonCorr) {
+	private void investigateService(Entry<CtMethod<?>, ResourceDemandingSEFF> service, ServiceCallGraph callGraph,
+			Launcher model, SpoonCorrespondence spoonCorr) {
 		// get method and code block for the method
 		CtMethod<?> belongingMethod = service.getKey();
 		CtBlock<?> body = belongingMethod.getBody();
@@ -62,39 +58,36 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 				Method classPathReference = SpoonUtil.getClassPathReferenceSoft(invoc.getExecutable());
 
 				// if found in one of these
-				List<Pair<String, String>> nLinks = Collections.emptyList();
+				List<ResourceDemandingSEFF> nLinks = Collections.emptyList();
 				if (resolvedMethod != null) {
-					nLinks = resolveCalledSeffs(service.getValue().getId(), resolvedMethod, spoonCorr);
+					nLinks = resolveCalledSeffs(resolvedMethod, spoonCorr);
 				} else if (classPathReference != null) {
-					nLinks = resolveCalledSeffs(service.getValue().getId(), classPathReference, model, spoonCorr);
+					nLinks = resolveCalledSeffs(classPathReference, model, spoonCorr);
 				}
 
 				// create links
 				nLinks.forEach(link -> {
-					this.incrementEdge(callGraph, link.getLeft(), link.getRight());
+					callGraph.incrementEdge(service.getValue(), link);
 				});
 			}
 		});
 
 	}
 
-	private List<Pair<String, String>> resolveCalledSeffs(String id, Method classPathReference, Launcher model,
+	private List<ResourceDemandingSEFF> resolveCalledSeffs(Method classPathReference, Launcher model,
 			SpoonCorrespondence spoonCorr) {
 		List<CtMethod<?>> matchingMethods = getMatchingMethods(classPathReference, model.getFactory(), spoonCorr);
-		return matchingMethods.stream().map(m -> Pair.of(id, spoonCorr.resolveService(m).getId()))
-				.collect(Collectors.toList());
+		return matchingMethods.stream().map(m -> spoonCorr.resolveService(m)).collect(Collectors.toList());
 	}
 
-	private List<Pair<String, String>> resolveCalledSeffs(String sourceServiceId, CtMethod<?> resolvedMethod,
-			SpoonCorrespondence spoonCorr) {
+	private List<ResourceDemandingSEFF> resolveCalledSeffs(CtMethod<?> resolvedMethod, SpoonCorrespondence spoonCorr) {
 		ResourceDemandingSEFF belongingSeff = spoonCorr.resolveService(resolvedMethod);
 		if (belongingSeff != null) {
 			// this is an easy case, we link the both services with a safe call
-			return Lists.newArrayList(Pair.of(sourceServiceId, belongingSeff.getId()));
+			return Lists.newArrayList(belongingSeff);
 		} else {
 			List<CtMethod<?>> matchingMethods = getMatchingMethods(resolvedMethod, spoonCorr);
-			return matchingMethods.stream().map(m -> Pair.of(sourceServiceId, spoonCorr.resolveService(m).getId()))
-					.collect(Collectors.toList());
+			return matchingMethods.stream().map(m -> spoonCorr.resolveService(m)).collect(Collectors.toList());
 		}
 	}
 
@@ -120,14 +113,6 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 
 			return false;
 		}).map(e -> e.getKey()).collect(Collectors.toList());
-	}
-
-	private <T> void incrementEdge(DirectedGraph<T, Integer> graph, T n1, T n2) {
-		if (graph.hasEdge(n1, n2)) {
-			int value = graph.getEdge(n1, n2);
-			graph.modifyEdge(n1, n2, value + 1);
-		}
-		graph.addEdge(n1, n2, 1);
 	}
 
 }

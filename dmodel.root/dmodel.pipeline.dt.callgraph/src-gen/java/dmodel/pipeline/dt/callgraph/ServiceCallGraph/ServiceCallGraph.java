@@ -95,4 +95,28 @@ public interface ServiceCallGraph extends EObject {
 	 */
 	void addEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to, int value);
 
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	void incrementEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to);
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	ServiceCallGraphEdge hasEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to);
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	boolean hasNode(ResourceDemandingSEFF node);
+
 } // ServiceCallGraph

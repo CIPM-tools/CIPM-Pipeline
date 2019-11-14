@@ -8,9 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.ComposedStructure;
@@ -21,7 +21,6 @@ import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
-import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryFactory;
 import org.palladiosimulator.pcm.repository.RequiredRole;
@@ -29,31 +28,27 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.system.SystemFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Maps;
 
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
 import dmodel.pipeline.dt.system.pcm.IAssemblySelectionListener;
 import dmodel.pipeline.dt.system.pcm.IConnectionConflictListener;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.shared.pcm.PCMUtils;
-import dmodel.pipeline.shared.structure.DirectedGraph;
+import lombok.extern.java.Log;
 
 // TODO simplify building method
 // TODO add logging
 // TODO outsource in other helping classes
-// TODO finish merging composites => we do not respect this here
 @Component
+@Log
 public class PCMSystemBuilder {
-	private static final Logger LOG = LoggerFactory.getLogger(PCMSystemBuilder.class);
-
-	private Repository repository;
-
 	private long conflictCounter = 0;
 	private List<IConnectionConflictListener> connectionConflictListener;
 	private List<IAssemblySelectionListener> assemblySelectionListener;
@@ -62,11 +57,11 @@ public class PCMSystemBuilder {
 	private AbstractConflict<?> currentConflict;
 	private List<AssemblyProvidedRole> openProvidedRoles;
 	private System currentSystem;
-	private Iterator<String> entryPoints;
+	private Iterator<ResourceDemandingSEFF> entryPoints;
 	private LinkedList<List<AssemblyEdge>> currentEdges; // clustered over signature
 
 	private List<AssemblyEdge> currentEdge;
-	private DirectedGraph<String, Integer> currentServiceCallGraph;
+	private ServiceCallGraph currentServiceCallGraph;
 	private Map<ProvidedRole, RequiredRole> provReqMapping;
 	private Map<RequiredRole, ProvidedRole> reqProvMapping;
 	private ComposedStructure currentOuterStructure;
@@ -76,13 +71,14 @@ public class PCMSystemBuilder {
 		this.connectionConflictListener = new ArrayList<>();
 	}
 
-	public boolean startBuildingSystem(DirectedGraph<String, Integer> serviceCallGraph) {
+	public boolean startBuildingSystem(ServiceCallGraph serviceCallGraph) {
 		// 0. create output system
 		currentSystem = SystemFactory.eINSTANCE.createSystem();
 		currentOuterStructure = currentSystem;
 
 		// 1.1. find entry points to the call graph
-		entryPoints = serviceCallGraph.getNodes().stream().filter(n -> serviceCallGraph.incomingEdges(n) == 0)
+		entryPoints = serviceCallGraph.getNodes().stream()
+				.filter(n -> serviceCallGraph.getIncomingEdges().get(n) == null)
 				.collect(Collectors.toCollection(LinkedHashSet::new)).iterator();
 
 		// 1.2. containers
@@ -149,7 +145,8 @@ public class PCMSystemBuilder {
 					.anyMatch(r -> conf.getRequired().getId().equals(r.getId()));
 		}).findFirst();
 		if (!selectedEdge.isPresent()) {
-			LOG.warn("Could not resolve the current conflict because the required role could not be found.");
+			log.log(Level.WARNING,
+					"Could not resolve the current conflict because the required role could not be found.");
 			return false;
 		}
 		// process the edge
@@ -170,7 +167,7 @@ public class PCMSystemBuilder {
 	}
 
 	private boolean buildingStep() {
-		LOG.info("Executing a building step.");
+		log.info("Executing a building step.");
 		// if there is a conflict we cannot do anything
 		if (currentConflict != null) {
 			return false;
@@ -179,24 +176,23 @@ public class PCMSystemBuilder {
 		if (currentEdges.isEmpty()) {
 			// we search for an entry point
 			if (!entryPoints.hasNext()) {
-				linkFreeRulesToSystemBorder();
+				log.info("Finished the building process and linking free roles to the system border.");
+				linkFreeRolesToSystemBorder();
 				// we are finished
 				return true;
 			} else {
 				// pop an entry point and get all edges
-				String currentEp = entryPoints.next();
+				ResourceDemandingSEFF seff = entryPoints.next();
 				// collect them and put to the list
-				ResourceDemandingSEFF seff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
-						currentEp);
 				AssemblyContext ctx = resolveAssemblyForEntryPoint(seff);
 
 				if (ctx == null) {
-					LOG.warn("Assembly for an entry point was null.");
+					log.log(Level.WARNING, "Assembly for an entry point was null.");
 					return false;
 				}
 
-				LOG.info("Adding outgoing edges of entry point '" + currentEp + "'.");
-				clusterAndAddOutgoingEdges(currentEp, ctx);
+				log.info("Adding outgoing edges of entry point '" + seff.getId() + "'.");
+				clusterAndAddOutgoingEdges(seff, ctx);
 
 				// recursion -> next step
 				return buildingStep();
@@ -208,11 +204,11 @@ public class PCMSystemBuilder {
 		}
 	}
 
-	private void linkFreeRulesToSystemBorder() {
+	private void linkFreeRolesToSystemBorder() {
 		for (AssemblyProvidedRole freeRole : openProvidedRoles) {
 			if (freeRole.ctx.getParentStructure__AssemblyContext().getId().equals(currentSystem.getId())) {
 				// it is directly under the parent
-				LOG.info("Link free provided role to the system border.");
+				log.info("Link free provided role to the system border.");
 
 				if (freeRole.role instanceof OperationProvidedRole) {
 					OperationProvidedRole innerProvided = (OperationProvidedRole) freeRole.role;
@@ -237,14 +233,12 @@ public class PCMSystemBuilder {
 	}
 
 	private boolean processEdgeSet() {
-		LOG.info("Processing set of edges with size " + currentEdge.size() + ".");
+		log.info("Processing set of edges with size " + currentEdge.size() + ".");
 		if (currentEdge.size() > 0) {
 			// resolve corresponding seffs
 			AssemblyEdge firstEdge = currentEdge.get(0);
-			ResourceDemandingSEFF from = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
-					firstEdge.serviceFrom); // for all in the set equal
-			Signature toSig = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class, firstEdge.serviceTo)
-					.getDescribedService__SEFF();
+			ResourceDemandingSEFF from = firstEdge.serviceFrom; // for all in the set equal
+			Signature toSig = firstEdge.serviceTo.getDescribedService__SEFF();
 
 			// get components for this seff
 			BasicComponent cfrom = from.getBasicComponent_ServiceEffectSpecification();
@@ -259,7 +253,7 @@ public class PCMSystemBuilder {
 
 			// edges > 1?
 			if (currentEdge.size() > 1) {
-				LOG.info("Found edge conflict. Please resolve and continue the building prodcedure.");
+				log.info("Found edge conflict. Please resolve and continue the building prodcedure.");
 				createEdgeConflict(currentEdge, reqRole.get(), toSig);
 				return false;
 			}
@@ -282,7 +276,7 @@ public class PCMSystemBuilder {
 	}
 
 	private AssemblyContext processSingleEdge(AssemblyEdge edge, RequiredRole reqRole, Signature callSig) {
-		ResourceDemandingSEFF linkTo = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class, edge.serviceTo);
+		ResourceDemandingSEFF linkTo = edge.serviceTo;
 		Optional<ProvidedRole> provRole = PCMUtils
 				.getProvidedRoleBySignature(linkTo.getBasicComponent_ServiceEffectSpecification(), callSig);
 
@@ -333,7 +327,7 @@ public class PCMSystemBuilder {
 				seff.getBasicComponent_ServiceEffectSpecification());
 		if (possAssemblys.size() > 0) {
 			// conflict
-			createAssemblyConflict(possAssemblys, seff.getId());
+			createAssemblyConflict(possAssemblys, seff);
 			return null;
 		}
 
@@ -387,11 +381,11 @@ public class PCMSystemBuilder {
 		assemblySelectionListener.forEach(l -> l.conflict(conflict));
 	}
 
-	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, String epId) {
+	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, ResourceDemandingSEFF seff) {
 		AssemblyConflict conflict = new AssemblyConflict(conflictCounter++);
 		conflict.setPoss(possAssemblys.stream().map(a -> a.ctx).collect(Collectors.toList()));
 		conflict.setReqRole(null);
-		conflict.setServiceTo(epId);
+		conflict.setServiceTo(seff);
 
 		this.currentConflict = conflict;
 
@@ -418,8 +412,7 @@ public class PCMSystemBuilder {
 		ConnectionConflict conflict = new ConnectionConflict(conflictCounter++);
 		conflict.setRequired(reqRole);
 		conflict.setProvided(edges.parallelStream().map(e -> {
-			ResourceDemandingSEFF toSeff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
-					e.serviceTo);
+			ResourceDemandingSEFF toSeff = e.serviceTo;
 			Optional<ProvidedRole> provRole = PCMUtils
 					.getProvidedRoleBySignature(toSeff.getBasicComponent_ServiceEffectSpecification(), toSig);
 			if (!provRole.isPresent()) {
@@ -434,19 +427,19 @@ public class PCMSystemBuilder {
 		connectionConflictListener.forEach(l -> l.conflict(conflict));
 	}
 
-	private void clusterAndAddOutgoingEdges(String current, AssemblyContext ctx) {
-		List<Pair<String, Integer>> edges = currentServiceCallGraph.getOutgoingEdges(current);
+	private void clusterAndAddOutgoingEdges(ResourceDemandingSEFF current, AssemblyContext ctx) {
+		List<ServiceCallGraphEdge> edges = currentServiceCallGraph.getOutgoingEdges().get(current);
 		Map<String, List<AssemblyEdge>> signatureClusteredEdges = new HashMap<>();
 
 		if (edges != null) {
 			edges.stream().forEach(edge -> {
-				ResourceDemandingSEFF calledSeff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
-						edge.getLeft());
+				ResourceDemandingSEFF calledSeff = edge.getTo();
+
 				if (!signatureClusteredEdges.containsKey(calledSeff.getDescribedService__SEFF().getId())) {
 					signatureClusteredEdges.put(calledSeff.getDescribedService__SEFF().getId(), Lists.newArrayList());
 				}
 				signatureClusteredEdges.get(calledSeff.getDescribedService__SEFF().getId())
-						.add(new AssemblyEdge(current, edge.getLeft(), ctx));
+						.add(new AssemblyEdge(current, edge.getTo(), ctx));
 			});
 
 			// add all
@@ -460,10 +453,6 @@ public class PCMSystemBuilder {
 		return currentSystem;
 	}
 
-	public void setRepository(Repository repository) {
-		this.repository = repository;
-	}
-
 	public AbstractConflict<?> getCurrentConflict() {
 		return currentConflict;
 	}
@@ -474,12 +463,13 @@ public class PCMSystemBuilder {
 	}
 
 	private class AssemblyEdge {
-		private String serviceFrom;
-		private String serviceTo;
+		private ResourceDemandingSEFF serviceFrom;
+		private ResourceDemandingSEFF serviceTo;
 
 		private AssemblyContext assemblyFrom;
 
-		private AssemblyEdge(String serviceFrom, String serviceTo, AssemblyContext assemblyCtxFrom) {
+		private AssemblyEdge(ResourceDemandingSEFF serviceFrom, ResourceDemandingSEFF serviceTo,
+				AssemblyContext assemblyCtxFrom) {
 			this.serviceFrom = serviceFrom;
 			this.serviceTo = serviceTo;
 			this.assemblyFrom = assemblyCtxFrom;

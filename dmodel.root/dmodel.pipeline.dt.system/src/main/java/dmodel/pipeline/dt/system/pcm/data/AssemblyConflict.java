@@ -5,45 +5,29 @@ import java.util.List;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.RequiredRole;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
 public class AssemblyConflict extends AbstractConflict<AssemblyContext> {
+	@EqualsAndHashCode.Exclude
 	private List<AssemblyContext> poss;
+
+	@EqualsAndHashCode.Exclude
 	private RequiredRole reqRole;
+
 	private long id;
-	private String serviceTo;
+
+	@EqualsAndHashCode.Exclude
+	private ResourceDemandingSEFF serviceTo;
 
 	public AssemblyConflict(long id) {
 		super();
 		this.poss = new ArrayList<>();
 		this.id = id;
-	}
-
-	public List<AssemblyContext> getPoss() {
-		return poss;
-	}
-
-	public void setPoss(List<AssemblyContext> poss) {
-		this.poss = poss;
-	}
-
-	public RequiredRole getReqRole() {
-		return reqRole;
-	}
-
-	public void setReqRole(RequiredRole reqRole) {
-		this.reqRole = reqRole;
-	}
-
-	public long getId() {
-		return id;
-	}
-
-	public String getServiceTo() {
-		return serviceTo;
-	}
-
-	public void setServiceTo(String serviceTo) {
-		this.serviceTo = serviceTo;
 	}
 
 }

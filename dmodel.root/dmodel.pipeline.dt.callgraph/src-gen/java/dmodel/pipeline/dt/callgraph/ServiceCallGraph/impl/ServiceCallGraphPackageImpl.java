@@ -201,6 +201,36 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 	 * @generated
 	 */
 	@Override
+	public EOperation getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF() {
+		return serviceCallGraphEClass.getEOperations().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF() {
+		return serviceCallGraphEClass.getEOperations().get(3);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getServiceCallGraph__HasNode__ResourceDemandingSEFF() {
+		return serviceCallGraphEClass.getEOperations().get(4);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getServiceCallGraphEdge() {
 		return serviceCallGraphEdgeEClass;
 	}
@@ -301,6 +331,9 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 		createEReference(serviceCallGraphEClass, SERVICE_CALL_GRAPH__INCOMING_EDGES);
 		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___ADD_NODE__RESOURCEDEMANDINGSEFF);
 		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_INT);
+		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF);
+		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF);
+		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF);
 
 		serviceCallGraphEdgeEClass = createEClass(SERVICE_CALL_GRAPH_EDGE);
 		createEReference(serviceCallGraphEdgeEClass, SERVICE_CALL_GRAPH_EDGE__FROM);
@@ -358,6 +391,17 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "from", 0, 1, IS_UNIQUE, IS_ORDERED);
 		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "to", 0, 1, IS_UNIQUE, IS_ORDERED);
 		addEParameter(op, ecorePackage.getEInt(), "value", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF(), null, "incrementEdge", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "from", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "to", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF(), this.getServiceCallGraphEdge(), "hasEdge", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "from", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "to", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getServiceCallGraph__HasNode__ResourceDemandingSEFF(), ecorePackage.getEBoolean(), "hasNode", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "node", 0, 1, IS_UNIQUE, IS_ORDERED);
 
 		initEClass(serviceCallGraphEdgeEClass, ServiceCallGraphEdge.class, "ServiceCallGraphEdge", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getServiceCallGraphEdge_From(), theSeffPackage.getResourceDemandingSEFF(), null, "from", null, 0, 1, ServiceCallGraphEdge.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

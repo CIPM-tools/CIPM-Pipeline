@@ -12,17 +12,37 @@
   <eClassifiers xsi:type="ecore:EClass" name="ServiceCallGraph">
     <eOperations name="addNode">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="nodes.add(seff);"/>
+        <details key="body" value="getNodes().add(seff);"/>
       </eAnnotations>
       <eParameters name="seff" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
     </eOperations>
     <eOperations name="addEdge">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;&#x9;&#x9;edge.setFrom(from);&#xA;&#x9;&#x9;edge.setTo(to);&#xA;&#x9;&#x9;edge.setValue(value);&#xA;&#xA;&#x9;&#x9;if (!getOutgoingEdges().containsKey(from)) {&#xA;&#x9;&#x9;&#x9;getOutgoingEdges().put(from, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;getOutgoingEdges().get(from).add(edge);&#xA;&#xA;&#x9;&#x9;if (!getIncomingEdges().containsKey(to)) {&#xA;&#x9;&#x9;&#x9;getIncomingEdges().put(to, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;&#x9;}&#xA;&#x9;&#x9;getIncomingEdges().get(to).add(edge);"/>
+        <details key="body" value="// nodes&#xA;if (!hasNode(from)) {&#xA;&#x9;this.addNode(from);&#xA;}&#xA;if (!hasNode(to)) {&#xA;&#x9;this.addNode(to);&#xA;}&#xA;// edge&#xA;ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;edge.setFrom(from);&#xA;edge.setTo(to);&#xA;edge.setValue(value);&#xA;&#xA;if (!getOutgoingEdges().containsKey(from)) {&#xA;&#x9;getOutgoingEdges().put(from, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getOutgoingEdges().get(from).add(edge);&#xA;&#xA;if (!getIncomingEdges().containsKey(to)) {&#xA;&#x9;getIncomingEdges().put(to, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getIncomingEdges().get(to).add(edge);"/>
       </eAnnotations>
       <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    </eOperations>
+    <eOperations name="incrementEdge">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="ServiceCallGraphEdge edge = this.hasEdge(from, to);&#xA;if (edge != null) {&#xA;&#x9;edge.setValue(edge.getValue() + 1);&#xA;} else {&#xA;&#x9;this.addEdge(from, to, 1);&#xA;}"/>
+      </eAnnotations>
+      <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
+      <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
+    </eOperations>
+    <eOperations name="hasEdge" eType="#//ServiceCallGraphEdge">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getEdges().stream().filter(edge -> {&#xA;&#x9;return edge.getFrom().getId().equals(from.getId()) &amp;&amp; edge.getTo().getId().equals(to.getId());&#xA;}).findFirst().orElse(null);"/>
+      </eAnnotations>
+      <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
+      <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
+    </eOperations>
+    <eOperations name="hasNode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getNodes().stream().anyMatch(n -> n.getId().equals(node.getId()));"/>
+      </eAnnotations>
+      <eParameters name="node" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
     </eOperations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1"
         eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>

@@ -29,8 +29,8 @@ import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.rt.rest.dt.async.StartBuildingSystemProcess;
-import dmodel.pipeline.rt.rest.dt.container.DesignTimeSystemDataContainer;
 import dmodel.pipeline.rt.rest.dt.data.JsonPCMSystem;
 import dmodel.pipeline.rt.rest.dt.data.JsonSystemAssembly;
 import dmodel.pipeline.rt.rest.dt.data.JsonSystemComposite;
@@ -40,7 +40,6 @@ import dmodel.pipeline.rt.rest.dt.data.JsonSystemRequiredRole;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
 import dmodel.pipeline.shared.JsonUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.PCMUtils;
 
 @RestController
@@ -50,19 +49,16 @@ public class SystemBuildRestController {
 	private PCMSystemBuilder systemBuilder;
 
 	@Autowired
-	private DesignTimeSystemDataContainer dataContainer;
-
-	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Autowired
 	private ScheduledExecutorService executorService;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private RuntimePipelineBlackboard blackboard;
 
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
+	private RunTimeDesignTimeBorder border;
 
 	// DATA
 	private boolean finishedBuilding = true;
@@ -71,8 +67,8 @@ public class SystemBuildRestController {
 	public String buildSystem() {
 		finishedBuilding = false;
 
-		StartBuildingSystemProcess process = new StartBuildingSystemProcess(dataContainer.getCallGraph(), blackboard,
-				systemBuilder);
+		StartBuildingSystemProcess process = new StartBuildingSystemProcess(systemBuilder,
+				border.getServiceCallGraph());
 		process.addListener(conf -> {
 			if (conf == null) {
 				finishedBuilding = true;

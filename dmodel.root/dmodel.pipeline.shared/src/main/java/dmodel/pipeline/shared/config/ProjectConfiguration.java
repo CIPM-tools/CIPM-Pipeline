@@ -5,17 +5,25 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 
 @Data
 public class ProjectConfiguration {
 	@JsonIgnore
 	private List<IConfigurationChangeListener<ProjectConfiguration>> listeners;
 
+	@Setter(AccessLevel.NONE)
 	private String rootPath;
+
+	@Setter(AccessLevel.NONE)
 	private List<String> sourceFolders;
+
+	@Setter(AccessLevel.NONE)
 	private String instrumentedPath;
 
+	@Setter(AccessLevel.NONE)
 	private String correspondencePath;
 
 	public ProjectConfiguration() {
