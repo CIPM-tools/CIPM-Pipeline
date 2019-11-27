@@ -63,6 +63,7 @@ public class ServiceCallGraphFactoryImpl extends EFactoryImpl implements Service
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH: return createServiceCallGraph();
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE: return createServiceCallGraphEdge();
 			case ServiceCallGraphPackage.EDGE_LIST: return (EObject)createEdgeList();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_NODE: return createServiceCallGraphNode();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
 		}
@@ -98,6 +99,17 @@ public class ServiceCallGraphFactoryImpl extends EFactoryImpl implements Service
 	public Map.Entry<Object, EList<ServiceCallGraphEdge>> createEdgeList() {
 		EdgeListImpl edgeList = new EdgeListImpl();
 		return edgeList;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ServiceCallGraphNode createServiceCallGraphNode() {
+		ServiceCallGraphNodeImpl serviceCallGraphNode = new ServiceCallGraphNodeImpl();
+		return serviceCallGraphNode;
 	}
 
 	/**

@@ -20,7 +20,7 @@ import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.Launcher;
 import tools.vitruv.models.im.ImFactory;
 import tools.vitruv.models.im.InstrumentationModel;

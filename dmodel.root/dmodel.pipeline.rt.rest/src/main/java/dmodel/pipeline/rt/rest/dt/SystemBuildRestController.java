@@ -40,7 +40,7 @@ import dmodel.pipeline.rt.rest.dt.data.JsonSystemRequiredRole;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
 import dmodel.pipeline.shared.JsonUtil;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 @RestController
 public class SystemBuildRestController {

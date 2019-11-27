@@ -84,6 +84,10 @@ public class ServiceCallGraphAdapterFactory extends AdapterFactoryImpl {
 				return createEdgeListAdapter();
 			}
 			@Override
+			public Adapter caseServiceCallGraphNode(ServiceCallGraphNode object) {
+				return createServiceCallGraphNodeAdapter();
+			}
+			@Override
 			public Adapter defaultCase(EObject object) {
 				return createEObjectAdapter();
 			}
@@ -142,6 +146,20 @@ public class ServiceCallGraphAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createEdgeListAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode <em>Node</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode
+	 * @generated
+	 */
+	public Adapter createServiceCallGraphNodeAdapter() {
 		return null;
 	}
 

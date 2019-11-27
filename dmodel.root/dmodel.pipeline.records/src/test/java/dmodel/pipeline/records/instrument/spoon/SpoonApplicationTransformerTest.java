@@ -11,7 +11,7 @@ import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import tools.vitruv.models.im.ImFactory;

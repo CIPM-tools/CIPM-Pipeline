@@ -22,7 +22,7 @@ import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.rt.pcm.finalize.IMeasurementModelProcessor;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 @Service
 public class ResourceEnvironmentTransformer implements IMeasurementModelProcessor {

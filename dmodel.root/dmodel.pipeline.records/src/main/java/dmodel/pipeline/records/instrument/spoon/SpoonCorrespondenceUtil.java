@@ -11,7 +11,7 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import de.uka.ipd.sdq.identifier.Identifier;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.CtElement;

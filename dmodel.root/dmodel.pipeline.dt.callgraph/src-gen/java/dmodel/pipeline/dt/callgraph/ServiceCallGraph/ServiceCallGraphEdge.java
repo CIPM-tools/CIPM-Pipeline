@@ -4,8 +4,6 @@ package dmodel.pipeline.dt.callgraph.ServiceCallGraph;
 
 import org.eclipse.emf.ecore.EObject;
 
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>Edge</b></em>'.
@@ -30,12 +28,12 @@ public interface ServiceCallGraphEdge extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>From</em>' reference.
-	 * @see #setFrom(ResourceDemandingSEFF)
+	 * @see #setFrom(ServiceCallGraphNode)
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraphEdge_From()
 	 * @model
 	 * @generated
 	 */
-	ResourceDemandingSEFF getFrom();
+	ServiceCallGraphNode getFrom();
 
 	/**
 	 * Sets the value of the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getFrom <em>From</em>}' reference.
@@ -45,19 +43,19 @@ public interface ServiceCallGraphEdge extends EObject {
 	 * @see #getFrom()
 	 * @generated
 	 */
-	void setFrom(ResourceDemandingSEFF value);
+	void setFrom(ServiceCallGraphNode value);
 
 	/**
 	 * Returns the value of the '<em><b>To</b></em>' reference.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>To</em>' reference.
-	 * @see #setTo(ResourceDemandingSEFF)
+	 * @see #setTo(ServiceCallGraphNode)
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraphEdge_To()
 	 * @model
 	 * @generated
 	 */
-	ResourceDemandingSEFF getTo();
+	ServiceCallGraphNode getTo();
 
 	/**
 	 * Sets the value of the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getTo <em>To</em>}' reference.
@@ -67,7 +65,7 @@ public interface ServiceCallGraphEdge extends EObject {
 	 * @see #getTo()
 	 * @generated
 	 */
-	void setTo(ResourceDemandingSEFF value);
+	void setTo(ServiceCallGraphNode value);
 
 	/**
 	 * Returns the value of the '<em><b>Value</b></em>' attribute.

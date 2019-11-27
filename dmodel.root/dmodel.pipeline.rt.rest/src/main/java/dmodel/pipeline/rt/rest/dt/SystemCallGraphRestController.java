@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
@@ -99,7 +100,8 @@ public class SystemCallGraphRestController {
 		JsonCallGraph output = new JsonCallGraph();
 		Repository parent = blackboard.getArchitectureModel().getRepository();
 
-		for (ResourceDemandingSEFF seff : graph.getNodes()) {
+		for (ServiceCallGraphNode scnode : graph.getNodes()) {
+			ResourceDemandingSEFF seff = scnode.getSeff();
 			JsonCallGraphNode node = new JsonCallGraphNode();
 			node.setComponentId(seff.getBasicComponent_ServiceEffectSpecification().getId());
 			node.setComponentName(seff.getBasicComponent_ServiceEffectSpecification().getEntityName());
@@ -111,8 +113,8 @@ public class SystemCallGraphRestController {
 
 		for (ServiceCallGraphEdge edge : graph.getEdges()) {
 			JsonCallGraphEdge nedge = new JsonCallGraphEdge();
-			nedge.setServiceFrom(edge.getFrom().getId());
-			nedge.setServiceTo(edge.getTo().getId());
+			nedge.setServiceFrom(edge.getFrom().getSeff().getId());
+			nedge.setServiceTo(edge.getTo().getSeff().getId());
 
 			output.getEdges().add(nedge);
 		}

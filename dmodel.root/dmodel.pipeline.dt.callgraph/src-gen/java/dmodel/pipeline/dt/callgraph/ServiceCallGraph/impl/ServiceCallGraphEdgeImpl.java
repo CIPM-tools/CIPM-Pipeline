@@ -3,18 +3,16 @@
 package dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage;
 
 import org.eclipse.emf.common.notify.Notification;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
-
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 /**
  * <!-- begin-user-doc -->
@@ -40,7 +38,7 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 * @ordered
 	 */
-	protected ResourceDemandingSEFF from;
+	protected ServiceCallGraphNode from;
 
 	/**
 	 * The cached value of the '{@link #getTo() <em>To</em>}' reference.
@@ -50,7 +48,7 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 * @ordered
 	 */
-	protected ResourceDemandingSEFF to;
+	protected ServiceCallGraphNode to;
 
 	/**
 	 * The default value of the '{@link #getValue() <em>Value</em>}' attribute.
@@ -97,10 +95,10 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 */
 	@Override
-	public ResourceDemandingSEFF getFrom() {
-		if (from != null && ((EObject)from).eIsProxy()) {
+	public ServiceCallGraphNode getFrom() {
+		if (from != null && from.eIsProxy()) {
 			InternalEObject oldFrom = (InternalEObject)from;
-			from = (ResourceDemandingSEFF)eResolveProxy(oldFrom);
+			from = (ServiceCallGraphNode)eResolveProxy(oldFrom);
 			if (from != oldFrom) {
 				if (eNotificationRequired())
 					eNotify(new ENotificationImpl(this, Notification.RESOLVE, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__FROM, oldFrom, from));
@@ -114,7 +112,7 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public ResourceDemandingSEFF basicGetFrom() {
+	public ServiceCallGraphNode basicGetFrom() {
 		return from;
 	}
 
@@ -124,8 +122,8 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 */
 	@Override
-	public void setFrom(ResourceDemandingSEFF newFrom) {
-		ResourceDemandingSEFF oldFrom = from;
+	public void setFrom(ServiceCallGraphNode newFrom) {
+		ServiceCallGraphNode oldFrom = from;
 		from = newFrom;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__FROM, oldFrom, from));
@@ -137,10 +135,10 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 */
 	@Override
-	public ResourceDemandingSEFF getTo() {
-		if (to != null && ((EObject)to).eIsProxy()) {
+	public ServiceCallGraphNode getTo() {
+		if (to != null && to.eIsProxy()) {
 			InternalEObject oldTo = (InternalEObject)to;
-			to = (ResourceDemandingSEFF)eResolveProxy(oldTo);
+			to = (ServiceCallGraphNode)eResolveProxy(oldTo);
 			if (to != oldTo) {
 				if (eNotificationRequired())
 					eNotify(new ENotificationImpl(this, Notification.RESOLVE, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__TO, oldTo, to));
@@ -154,7 +152,7 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public ResourceDemandingSEFF basicGetTo() {
+	public ServiceCallGraphNode basicGetTo() {
 		return to;
 	}
 
@@ -164,8 +162,8 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 */
 	@Override
-	public void setTo(ResourceDemandingSEFF newTo) {
-		ResourceDemandingSEFF oldTo = to;
+	public void setTo(ServiceCallGraphNode newTo) {
+		ServiceCallGraphNode oldTo = to;
 		to = newTo;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__TO, oldTo, to));
@@ -223,10 +221,10 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__FROM:
-				setFrom((ResourceDemandingSEFF)newValue);
+				setFrom((ServiceCallGraphNode)newValue);
 				return;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__TO:
-				setTo((ResourceDemandingSEFF)newValue);
+				setTo((ServiceCallGraphNode)newValue);
 				return;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				setValue((Integer)newValue);
@@ -244,10 +242,10 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__FROM:
-				setFrom((ResourceDemandingSEFF)null);
+				setFrom((ServiceCallGraphNode)null);
 				return;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__TO:
-				setTo((ResourceDemandingSEFF)null);
+				setTo((ServiceCallGraphNode)null);
 				return;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				setValue(VALUE_EDEFAULT);

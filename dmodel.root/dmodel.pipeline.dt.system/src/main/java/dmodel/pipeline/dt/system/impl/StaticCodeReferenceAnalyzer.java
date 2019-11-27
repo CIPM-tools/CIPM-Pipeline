@@ -67,7 +67,7 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 
 				// create links
 				nLinks.forEach(link -> {
-					callGraph.incrementEdge(service.getValue(), link);
+					callGraph.incrementEdge(service.getValue(), link, null, null);
 				});
 			}
 		});

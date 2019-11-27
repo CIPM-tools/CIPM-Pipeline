@@ -7,6 +7,7 @@ import org.eclipse.emf.common.util.EMap;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 /**
@@ -31,7 +32,7 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 public interface ServiceCallGraph extends EObject {
 	/**
 	 * Returns the value of the '<em><b>Nodes</b></em>' reference list.
-	 * The list contents are of type {@link org.palladiosimulator.pcm.seff.ResourceDemandingSEFF}.
+	 * The list contents are of type {@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode}.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Nodes</em>' reference list.
@@ -39,7 +40,7 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	EList<ResourceDemandingSEFF> getNodes();
+	EList<ServiceCallGraphNode> getNodes();
 
 	/**
 	 * Returns the value of the '<em><b>Edges</b></em>' containment reference list.
@@ -85,7 +86,7 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	void addNode(ResourceDemandingSEFF seff);
+	ServiceCallGraphNode addNode(ResourceDemandingSEFF seff, ResourceContainer host);
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -93,7 +94,7 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	void addEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to, int value);
+	void addEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to, ResourceContainer fromContainer, ResourceContainer toContainer, int value);
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -101,7 +102,7 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	void incrementEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to);
+	void incrementEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to, ResourceContainer fromContainer, ResourceContainer toContainer);
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -109,7 +110,7 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	ServiceCallGraphEdge hasEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to);
+	ServiceCallGraphEdge hasEdge(ResourceDemandingSEFF from, ResourceDemandingSEFF to, ResourceContainer fromContainer, ResourceContainer toContainer);
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -117,6 +118,14 @@ public interface ServiceCallGraph extends EObject {
 	 * @model
 	 * @generated
 	 */
-	boolean hasNode(ResourceDemandingSEFF node);
+	ServiceCallGraphNode hasNode(ResourceDemandingSEFF node, ResourceContainer host);
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	boolean nodeEqual(ResourceDemandingSEFF node, ResourceContainer host, ResourceDemandingSEFF node2, ResourceContainer host2);
 
 } // ServiceCallGraph

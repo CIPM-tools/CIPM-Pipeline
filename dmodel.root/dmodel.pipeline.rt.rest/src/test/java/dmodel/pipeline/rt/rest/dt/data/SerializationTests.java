@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.rt.rest.dt.SystemBuildRestController;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 public class SerializationTests {
 

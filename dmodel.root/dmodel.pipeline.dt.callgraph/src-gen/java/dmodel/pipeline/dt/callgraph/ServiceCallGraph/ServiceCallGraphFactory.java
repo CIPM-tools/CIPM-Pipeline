@@ -40,6 +40,15 @@ public interface ServiceCallGraphFactory extends EFactory {
 	ServiceCallGraphEdge createServiceCallGraphEdge();
 
 	/**
+	 * Returns a new object of class '<em>Node</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>Node</em>'.
+	 * @generated
+	 */
+	ServiceCallGraphNode createServiceCallGraphNode();
+
+	/**
 	 * Returns the package supported by this factory.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->

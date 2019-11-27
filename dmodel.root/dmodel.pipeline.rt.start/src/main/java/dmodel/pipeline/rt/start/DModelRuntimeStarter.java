@@ -26,7 +26,7 @@ import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "dmodel.pipeline")

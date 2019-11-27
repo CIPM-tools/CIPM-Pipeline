@@ -35,17 +35,19 @@ import com.google.common.collect.Maps;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
+import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.dt.system.pcm.IAssemblySelectionListener;
 import dmodel.pipeline.dt.system.pcm.IConnectionConflictListener;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
-import dmodel.pipeline.shared.pcm.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import lombok.extern.java.Log;
 
 // TODO simplify building method
 // TODO add logging
 // TODO outsource in other helping classes
+// TODO use PCMSystemUtil
 @Component
 @Log
 public class PCMSystemBuilder {
@@ -57,7 +59,7 @@ public class PCMSystemBuilder {
 	private AbstractConflict<?> currentConflict;
 	private List<AssemblyProvidedRole> openProvidedRoles;
 	private System currentSystem;
-	private Iterator<ResourceDemandingSEFF> entryPoints;
+	private Iterator<ServiceCallGraphNode> entryPoints;
 	private LinkedList<List<AssemblyEdge>> currentEdges; // clustered over signature
 
 	private List<AssemblyEdge> currentEdge;
@@ -182,17 +184,17 @@ public class PCMSystemBuilder {
 				return true;
 			} else {
 				// pop an entry point and get all edges
-				ResourceDemandingSEFF seff = entryPoints.next();
+				ServiceCallGraphNode node = entryPoints.next();
 				// collect them and put to the list
-				AssemblyContext ctx = resolveAssemblyForEntryPoint(seff);
+				AssemblyContext ctx = resolveAssemblyForEntryPoint(node.getSeff());
 
 				if (ctx == null) {
 					log.log(Level.WARNING, "Assembly for an entry point was null.");
 					return false;
 				}
 
-				log.info("Adding outgoing edges of entry point '" + seff.getId() + "'.");
-				clusterAndAddOutgoingEdges(seff, ctx);
+				log.info("Adding outgoing edges of entry point '" + node.getSeff().getId() + "'.");
+				clusterAndAddOutgoingEdges(node.getSeff(), ctx);
 
 				// recursion -> next step
 				return buildingStep();
@@ -433,13 +435,13 @@ public class PCMSystemBuilder {
 
 		if (edges != null) {
 			edges.stream().forEach(edge -> {
-				ResourceDemandingSEFF calledSeff = edge.getTo();
+				ResourceDemandingSEFF calledSeff = edge.getTo().getSeff();
 
 				if (!signatureClusteredEdges.containsKey(calledSeff.getDescribedService__SEFF().getId())) {
 					signatureClusteredEdges.put(calledSeff.getDescribedService__SEFF().getId(), Lists.newArrayList());
 				}
 				signatureClusteredEdges.get(calledSeff.getDescribedService__SEFF().getId())
-						.add(new AssemblyEdge(current, edge.getTo(), ctx));
+						.add(new AssemblyEdge(current, edge.getTo().getSeff(), ctx));
 			});
 
 			// add all
