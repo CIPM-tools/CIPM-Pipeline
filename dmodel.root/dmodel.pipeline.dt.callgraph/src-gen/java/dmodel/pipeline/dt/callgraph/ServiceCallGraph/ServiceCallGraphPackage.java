@@ -167,13 +167,22 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = 5;
 
 	/**
+	 * The operation id for the '<em>Remove Edge</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE = 6;
+
+	/**
 	 * The number of operations of the '<em>Service Call Graph</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SERVICE_CALL_GRAPH_OPERATION_COUNT = 6;
+	int SERVICE_CALL_GRAPH_OPERATION_COUNT = 7;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
@@ -439,6 +448,16 @@ public interface ServiceCallGraphPackage extends EPackage {
 	EOperation getServiceCallGraph__NodeEqual__ResourceDemandingSEFF_ResourceContainer_ResourceDemandingSEFF_ResourceContainer();
 
 	/**
+	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#removeEdge(dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge) <em>Remove Edge</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Remove Edge</em>' operation.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#removeEdge(dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge)
+	 * @generated
+	 */
+	EOperation getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge();
+
+	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge <em>Edge</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -659,6 +678,14 @@ public interface ServiceCallGraphPackage extends EPackage {
 		 * @generated
 		 */
 		EOperation SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__NodeEqual__ResourceDemandingSEFF_ResourceContainer_ResourceDemandingSEFF_ResourceContainer();
+
+		/**
+		 * The meta object literal for the '<em><b>Remove Edge</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE = eINSTANCE.getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge();
 
 		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.

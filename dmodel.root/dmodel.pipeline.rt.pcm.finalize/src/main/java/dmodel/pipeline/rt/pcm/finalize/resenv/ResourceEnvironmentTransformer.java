@@ -127,7 +127,6 @@ public class ResourceEnvironmentTransformer implements IMeasurementModelProcesso
 		// backlink
 		spec.getProcessingRate_ProcessingResourceSpecification()
 				.setProcessingResourceSpecification_processingRate_PCMRandomVariable(spec);
-		// TODO spec.setSchedulingPolicy(SchedulingPolicy.);
 		return spec;
 	}
 

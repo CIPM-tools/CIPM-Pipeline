@@ -430,7 +430,7 @@ public class PCMSystemBuilder {
 	}
 
 	private void clusterAndAddOutgoingEdges(ResourceDemandingSEFF current, AssemblyContext ctx) {
-		List<ServiceCallGraphEdge> edges = currentServiceCallGraph.getOutgoingEdges().get(current);
+		List<ServiceCallGraphEdge> edges = currentServiceCallGraph.getOutgoingEdges().get(resolveNode(current));
 		Map<String, List<AssemblyEdge>> signatureClusteredEdges = new HashMap<>();
 
 		if (edges != null) {
@@ -449,6 +449,11 @@ public class PCMSystemBuilder {
 				currentEdges.addLast(l);
 			});
 		}
+	}
+
+	private ServiceCallGraphNode resolveNode(ResourceDemandingSEFF seff) {
+		return currentServiceCallGraph.getNodes().stream()
+				.filter(n -> n.getSeff().getId().equals(seff.getId()) && n.getHost() == null).findFirst().orElse(null);
 	}
 
 	public System getCurrentSystem() {

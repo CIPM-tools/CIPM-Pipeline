@@ -250,6 +250,16 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 	 * @generated
 	 */
 	@Override
+	public EOperation getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge() {
+		return serviceCallGraphEClass.getEOperations().get(6);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getServiceCallGraphEdge() {
 		return serviceCallGraphEdgeEClass;
 	}
@@ -384,6 +394,7 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER);
 		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER);
 		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER);
+		createEOperation(serviceCallGraphEClass, SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE);
 
 		serviceCallGraphEdgeEClass = createEClass(SERVICE_CALL_GRAPH_EDGE);
 		createEReference(serviceCallGraphEdgeEClass, SERVICE_CALL_GRAPH_EDGE__FROM);
@@ -471,6 +482,9 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 		addEParameter(op, theResourceenvironmentPackage.getResourceContainer(), "host", 0, 1, IS_UNIQUE, IS_ORDERED);
 		addEParameter(op, theSeffPackage.getResourceDemandingSEFF(), "node2", 0, 1, IS_UNIQUE, IS_ORDERED);
 		addEParameter(op, theResourceenvironmentPackage.getResourceContainer(), "host2", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge(), null, "removeEdge", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, this.getServiceCallGraphEdge(), "edge", 0, 1, IS_UNIQUE, IS_ORDERED);
 
 		initEClass(serviceCallGraphEdgeEClass, ServiceCallGraphEdge.class, "ServiceCallGraphEdge", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getServiceCallGraphEdge_From(), this.getServiceCallGraphNode(), null, "from", null, 0, 1, ServiceCallGraphEdge.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

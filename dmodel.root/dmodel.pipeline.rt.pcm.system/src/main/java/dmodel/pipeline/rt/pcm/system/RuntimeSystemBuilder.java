@@ -96,8 +96,12 @@ public class RuntimeSystemBuilder {
 		while (currentNodes.size() > 0) {
 			String node = currentNodes.pop();
 			marked.add(node);
-			for (Pair<String, Integer> child : assemblyInvocationGraph.getOutgoingEdges(node)) {
-				currentNodes.add(child.getLeft());
+
+			List<Pair<String, Integer>> outgoingEdges = assemblyInvocationGraph.getOutgoingEdges(node);
+			if (outgoingEdges != null) {
+				for (Pair<String, Integer> child : assemblyInvocationGraph.getOutgoingEdges(node)) {
+					currentNodes.add(child.getLeft());
+				}
 			}
 		}
 
@@ -147,7 +151,7 @@ public class RuntimeSystemBuilder {
 				if (matchingInnerRoles.size() == 0) {
 					log.warning("There is no inner role which matches the exposed role of the system.");
 				} else {
-					matchingInnerRoles.sort((a, b) -> {
+					AssemblyProvidedRole innerProvided = matchingInnerRoles.stream().min((a, b) -> {
 						if (addedAssemblyIds.contains(a.ctx.getId())) {
 							if (addedAssemblyIds.contains(b.ctx.getId())) {
 								return 0;
@@ -159,18 +163,32 @@ public class RuntimeSystemBuilder {
 						} else {
 							return 0;
 						}
-					});
+					}).get();
 
-					AssemblyProvidedRole innerProvided = matchingInnerRoles.get(0);
-					PCMSystemUtil.createProvidedDelegation(system, (OperationProvidedRole) innerProvided.role,
-							innerProvided.ctx, (OperationProvidedRole) spr);
+					if (!system.getConnectors__ComposedStructure().stream().anyMatch(c -> {
+						if (c instanceof ProvidedDelegationConnector) {
+							ProvidedDelegationConnector pdc = (ProvidedDelegationConnector) c;
+							return pdc.getAssemblyContext_ProvidedDelegationConnector().getId()
+									.equals(innerProvided.ctx.getId())
+									&& pdc.getInnerProvidedRole_ProvidedDelegationConnector().getId()
+											.equals(innerProvided.role.getId())
+									&& pdc.getOuterProvidedRole_ProvidedDelegationConnector().getId()
+											.equals(spr.getId());
+						}
+						return false;
+					})) {
+						// delete all old delegations that contain this role
+						List<ProvidedDelegationConnector> oldConnectors = PCMUtils
+								.getElementsByType(system, ProvidedDelegationConnector.class).stream().filter(d -> {
+									return d.getOuterProvidedRole_ProvidedDelegationConnector().getId()
+											.equals(spr.getId());
+								}).collect(Collectors.toList());
+						system.getConnectors__ComposedStructure().removeAll(oldConnectors);
 
-					// delete all old delegations that contain this role
-					List<ProvidedDelegationConnector> oldConnectors = PCMUtils
-							.getElementsByType(system, ProvidedDelegationConnector.class).stream().filter(d -> {
-								return d.getOuterProvidedRole_ProvidedDelegationConnector().getId().equals(spr.getId());
-							}).collect(Collectors.toList());
-					system.getConnectors__ComposedStructure().removeAll(oldConnectors);
+						// add
+						PCMSystemUtil.createProvidedDelegation(system, (OperationProvidedRole) innerProvided.role,
+								innerProvided.ctx, (OperationProvidedRole) spr);
+					}
 				}
 			}
 		});
@@ -189,14 +207,13 @@ public class RuntimeSystemBuilder {
 	}
 
 	private void processTreeNodeRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> parent) {
-
 		Pair<AssemblyContext, ResourceDemandingSEFF> parentData = parent.getData();
-		boolean newParent = currentlyContainingAssemblyIds.contains(parentData.getLeft().getId());
+		boolean newParent = !currentlyContainingAssemblyIds.contains(parentData.getLeft().getId());
 
 		parent.getChildren().forEach(child -> {
-			boolean newChild = currentlyContainingAssemblyIds.contains(child.getData().getLeft().getId());
+			boolean newChild = !currentlyContainingAssemblyIds.contains(child.getData().getLeft().getId());
 
-			if (!newParent) {
+			if (!newParent && !newChild) {
 				processTreeNodeRecursive(child);
 			} else {
 				// create a new assembly connector for the specific role
@@ -225,25 +242,36 @@ public class RuntimeSystemBuilder {
 						}).map(r -> (OperationRequiredRole) r).findFirst().orElse(null);
 
 				if (providedRole != null && requiredRole != null) {
+					// remove the old connector
+					if (!newChild || !newParent) {
+						log.info("Search old container.");
+						Connector conn = system.getConnectors__ComposedStructure().stream().filter(c -> {
+							if (c instanceof AssemblyConnector) {
+								AssemblyConnector ac = (AssemblyConnector) c;
+								return ((ac.getProvidedRole_AssemblyConnector().getId().equals(providedRole.getId())
+										&& ac.getProvidingAssemblyContext_AssemblyConnector().getId()
+												.equals(child.getData().getLeft().getId())
+										&& !newChild)
+										|| (ac.getRequiredRole_AssemblyConnector().getId().equals(requiredRole.getId())
+												&& ac.getRequiringAssemblyContext_AssemblyConnector().getId()
+														.equals(parentData.getLeft().getId())
+												&& !newParent));
+							}
+							return false;
+						}).findFirst().orElse(null);
+						if (conn != null) {
+							log.info("Delete old connector.");
+							system.getConnectors__ComposedStructure().remove(conn);
+						}
+					}
+
+					log.info("Create new connector.");
 					PCMSystemUtil.createAssemblyConnector(system, providedRole, child.getData().getLeft(), requiredRole,
 							parent.getData().getLeft());
 				}
 
-				if (!newChild) {
-					// remove the old connector
-					Connector conn = system.getConnectors__ComposedStructure().stream().filter(c -> {
-						if (c instanceof AssemblyConnector) {
-							AssemblyConnector ac = (AssemblyConnector) c;
-							return ac.getProvidedRole_AssemblyConnector().getId().equals(providedRole.getId())
-									&& ac.getProvidingAssemblyContext_AssemblyConnector().getId()
-											.equals(child.getData().getLeft().getId());
-						}
-						return false;
-					}).findFirst().orElse(null);
-					if (conn != null) {
-						system.getConnectors__ComposedStructure().remove(conn);
-					}
-				}
+				// recursion
+				processTreeNodeRecursive(child);
 			}
 		});
 	}

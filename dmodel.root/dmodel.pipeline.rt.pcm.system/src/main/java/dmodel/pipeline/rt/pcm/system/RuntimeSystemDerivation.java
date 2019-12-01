@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.pcm.system;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.repository.BasicComponent;
+import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
@@ -24,6 +26,7 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
+import dmodel.pipeline.rt.pcm.system.impl.SimpleAssemblyDeprecationProcessor;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -39,17 +42,17 @@ import lombok.extern.java.Log;
 public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 	// caches
 	private Cache<String, ResourceDemandingSEFF> cache = new Cache2kBuilder<String, ResourceDemandingSEFF>() {
-	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(true).build();
+	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
 	private Cache<String, ResourceContainer> cacheResEnv = new Cache2kBuilder<String, ResourceContainer>() {
-	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(true).build();
+	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
 	// references
 	private RuntimeSystemBuilder runtimeSystemBuilder;
 	private Map<Pair<String, String>, AssemblyContext> creationCache;
 
 	public RuntimeSystemDerivation() {
-		this.runtimeSystemBuilder = new RuntimeSystemBuilder();
+		this.runtimeSystemBuilder = new RuntimeSystemBuilder(new SimpleAssemblyDeprecationProcessor(2));
 		this.creationCache = new HashMap<>();
 	}
 
@@ -60,6 +63,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 
 		ServiceCallGraph runtimeGraph = buildGraphFromMonitoringData(entryCalls);
 		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraph(runtimeGraph);
+		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
 	}
 
 	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraph(ServiceCallGraph callGraph) {
@@ -157,9 +161,68 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 
 	private void processTreeRecursive(ServiceCallGraph ret, TreeNode<ServiceCallRecord> root) {
 		for (TreeNode<ServiceCallRecord> node : root.getChildren()) {
+			// get container
+			ResourceContainer fromContainer = resolveResourceContainerWithCache(root.getData().getHostId());
+			ResourceContainer toContainer = resolveResourceContainerWithCache(node.getData().getHostId());
+
+			ResourceDemandingSEFF fromSeff = resolveServiceWithCache(root.getData().getServiceId());
+			ResourceDemandingSEFF toSeff = resolveServiceWithCache(node.getData().getServiceId());
+
+			AssemblyContext fromAssembly = resolveAssemblyOnContainer(
+					fromSeff.getBasicComponent_ServiceEffectSpecification(), fromContainer);
+			AssemblyContext toAssembly = resolveAssemblyOnContainer(
+					toSeff.getBasicComponent_ServiceEffectSpecification(), toContainer);
+
+			OperationRequiredRole reqRole = getCorrespondingRequiredRole(fromSeff, toSeff);
+
+			// delete already existing links for that role
+			if (ret.getOutgoingEdges().get(root.getData()) != null) {
+				log.info("Search for old edges.");
+				List<ServiceCallGraphEdge> toRemoveEdges = ret.getOutgoingEdges().get(root.getData().getServiceId())
+						.stream().filter(edge -> {
+							ResourceDemandingSEFF fromSeffEdge = edge.getFrom().getSeff();
+							ResourceDemandingSEFF toSeffEdge = edge.getTo().getSeff();
+
+							AssemblyContext fromAssemblyEdge = resolveAssemblyOnContainer(
+									fromSeffEdge.getBasicComponent_ServiceEffectSpecification(), fromContainer);
+							AssemblyContext toAssemblyEdge = resolveAssemblyOnContainer(
+									toSeffEdge.getBasicComponent_ServiceEffectSpecification(), toContainer);
+
+							if (fromAssemblyEdge.getId().equals(fromAssembly.getId())
+									&& !toAssemblyEdge.getId().equals(toAssembly.getId())) {
+								// same assembly from but different to
+								OperationRequiredRole edgeReqRole = getCorrespondingRequiredRole(fromSeffEdge,
+										toSeffEdge);
+								if (edgeReqRole.getId().equals(reqRole.getId())) {
+									return true;
+								}
+							}
+
+							return false;
+						}).collect(Collectors.toList());
+				log.info("Removed " + toRemoveEdges.size() + " old edges.");
+				toRemoveEdges.forEach(e -> ret.removeEdge(e));
+			}
+
+			// create connection
 			createConnectionInSCG(ret, root.getData(), node.getData());
-			node.getChildren().forEach(n -> processTreeRecursive(ret, n));
+
+			// recursive processing
+			processTreeRecursive(ret, node);
 		}
+	}
+
+	private OperationRequiredRole getCorrespondingRequiredRole(ResourceDemandingSEFF fromSeff,
+			ResourceDemandingSEFF toSeff) {
+		return fromSeff.getBasicComponent_ServiceEffectSpecification().getRequiredRoles_InterfaceRequiringEntity()
+				.stream().filter(req -> {
+					if (req instanceof OperationRequiredRole) {
+						return ((OperationRequiredRole) req).getRequiredInterface__OperationRequiredRole()
+								.getSignatures__OperationInterface().stream()
+								.anyMatch(sig -> sig.getId().equals(toSeff.getDescribedService__SEFF().getId()));
+					}
+					return false;
+				}).map(r -> (OperationRequiredRole) r).findFirst().orElse(null);
 	}
 
 	private void createConnectionInSCG(ServiceCallGraph ret, ServiceCallRecord anchor, ServiceCallRecord data) {
@@ -184,21 +247,32 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		}
 	}
 
-	private ResourceContainer resolveResourceContainerWithCache(String id) {
-		if (cacheResEnv.containsKey(id)) {
-			return cacheResEnv.get(id);
+	private ResourceContainer resolveResourceContainerWithCache(String hostId) {
+		if (cacheResEnv.containsKey(hostId)) {
+			return cacheResEnv.get(hostId);
 		} else {
-			ResourceContainer container = PCMUtils.getElementById(
-					this.getBlackboard().getArchitectureModel().getResourceEnvironmentModel(), ResourceContainer.class,
-					id);
-			if (container != null) {
-				cacheResEnv.put(id, container);
-			} else {
-				log.warning("Failed to resolve container with ID '" + id
-						+ "'. The resource environment model seems to be inconsistent.");
+			Optional<String> pcmContainerId = getMappedResourceContainerId(hostId);
+
+			if (pcmContainerId.isPresent()) {
+				ResourceContainer container = PCMUtils.getElementById(
+						this.getBlackboard().getArchitectureModel().getResourceEnvironmentModel(),
+						ResourceContainer.class, pcmContainerId.get());
+				if (container != null) {
+					cacheResEnv.put(hostId, container);
+				} else {
+					log.warning("Failed to resolve container with ID '" + pcmContainerId.get()
+							+ "'. The resource environment model seems to be inconsistent.");
+				}
+				return container;
 			}
-			return container;
+			return null;
 		}
+	}
+
+	private Optional<String> getMappedResourceContainerId(String hostId) {
+		return getBlackboard().getBorder().getRuntimeMapping().getHostMappings().stream().filter(m -> {
+			return m.getHostID().equals(hostId);
+		}).map(m -> m.getPcmContainerID()).findFirst();
 	}
 
 }

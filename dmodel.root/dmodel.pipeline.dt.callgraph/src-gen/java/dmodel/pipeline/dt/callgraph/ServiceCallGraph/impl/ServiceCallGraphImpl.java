@@ -178,15 +178,18 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		edge.setTo(toNode);
 		edge.setValue(value);
 		
-		if (!getOutgoingEdges().containsKey(from)) {
-			getOutgoingEdges().put(from, new BasicEList<ServiceCallGraphEdge>());
+		if (!getOutgoingEdges().containsKey(fromNode)) {
+			getOutgoingEdges().put(fromNode, new BasicEList<ServiceCallGraphEdge>());
 		}
-		getOutgoingEdges().get(from).add(edge);
+		getOutgoingEdges().get(fromNode).add(edge);
 		
-		if (!getIncomingEdges().containsKey(to)) {
-			getIncomingEdges().put(to, new BasicEList<ServiceCallGraphEdge>());
+		if (!getIncomingEdges().containsKey(toNode)) {
+			getIncomingEdges().put(toNode, new BasicEList<ServiceCallGraphEdge>());
 		}
-		getIncomingEdges().get(to).add(edge);
+		getIncomingEdges().get(toNode).add(edge);
+		
+		// add globally
+		getEdges().add(edge);
 	}
 
 	/**
@@ -252,6 +255,20 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		} else {
 			return node.getId().equals(node2.getId()) && host.getId().equals(host2.getId());
 		}
+	}
+
+	/**
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void removeEdge(final ServiceCallGraphEdge edge) {
+		// remove from all sub lists
+		getOutgoingEdges().get(edge.getFrom()).remove(edge);
+		getIncomingEdges().get(edge.getTo()).remove(edge);
+		
+		// remove from global list
+		getEdges().remove(edge);
 	}
 
 	/**
@@ -381,6 +398,9 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 				return hasNode((ResourceDemandingSEFF)arguments.get(0), (ResourceContainer)arguments.get(1));
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER:
 				return nodeEqual((ResourceDemandingSEFF)arguments.get(0), (ResourceContainer)arguments.get(1), (ResourceDemandingSEFF)arguments.get(2), (ResourceContainer)arguments.get(3));
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE:
+				removeEdge((ServiceCallGraphEdge)arguments.get(0));
+				return null;
 		}
 		return super.eInvoke(operationID, arguments);
 	}

@@ -2,6 +2,7 @@ package dmodel.pipeline.shared;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,17 @@ public class ModelUtil {
 
 		Resource resource = resourceSet.getResource(filePathUri, true);
 		return clazz.cast(resource.getContents().get(0));
+	}
+
+	public static <T> T readFromResource(URL resource, Class<T> clazz) {
+		ResourceSet resourceSet = new ResourceSetImpl();
+		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
+				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
+
+		URI resourceUri = org.eclipse.emf.common.util.URI.createURI(resource.toString());
+
+		Resource rresource = resourceSet.getResource(resourceUri, true);
+		return clazz.cast(rresource.getContents().get(0));
 	}
 
 	public static <T extends EObject> void saveToFile(T model, File path) {

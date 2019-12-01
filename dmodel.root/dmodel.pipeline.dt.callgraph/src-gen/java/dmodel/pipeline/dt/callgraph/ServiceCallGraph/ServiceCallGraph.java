@@ -128,4 +128,12 @@ public interface ServiceCallGraph extends EObject {
 	 */
 	boolean nodeEqual(ResourceDemandingSEFF node, ResourceContainer host, ResourceDemandingSEFF node2, ResourceContainer host2);
 
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	void removeEdge(ServiceCallGraphEdge edge);
+
 } // ServiceCallGraph
