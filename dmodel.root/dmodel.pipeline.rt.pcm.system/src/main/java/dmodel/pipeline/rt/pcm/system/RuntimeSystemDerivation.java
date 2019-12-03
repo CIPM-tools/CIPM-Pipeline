@@ -61,23 +61,26 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();
 
-		ServiceCallGraph runtimeGraph = buildGraphFromMonitoringData(entryCalls);
-		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraph(runtimeGraph);
+		List<ServiceCallGraph> runtimeGraph = buildGraphsFromMonitoringData(entryCalls);
+		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraphs(runtimeGraph);
 		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
 	}
 
-	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraph(ServiceCallGraph callGraph) {
-		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees = Lists.newArrayList();
-		callGraph.getNodes().forEach(n -> {
-			if (callGraph.getIncomingEdges().get(n) == null) {
-				// root node
-				Tree<Pair<AssemblyContext, ResourceDemandingSEFF>> nTree = new Tree<>(
-						Pair.of(resolveOrCreateAssembly(n), n.getSeff()));
-				transformCallGraphRecursive(nTree.getRoot(), callGraph.getOutgoingEdges().get(n), callGraph);
-				trees.add(nTree);
-			}
-		});
-		return trees;
+	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraphs(
+			List<ServiceCallGraph> callGraphs) {
+		return callGraphs.stream().map(callGraph -> {
+			List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees = Lists.newArrayList();
+			callGraph.getNodes().forEach(n -> {
+				if (callGraph.getIncomingEdges().get(n) == null) {
+					// root node
+					Tree<Pair<AssemblyContext, ResourceDemandingSEFF>> nTree = new Tree<>(
+							Pair.of(resolveOrCreateAssembly(n), n.getSeff()));
+					transformCallGraphRecursive(nTree.getRoot(), callGraph.getOutgoingEdges().get(n), callGraph);
+					trees.add(nTree);
+				}
+			});
+			return trees;
+		}).flatMap(List::stream).collect(Collectors.toList());
 	}
 
 	private void transformCallGraphRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> parent,
@@ -149,14 +152,12 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		}
 	}
 
-	private ServiceCallGraph buildGraphFromMonitoringData(List<Tree<ServiceCallRecord>> entryCalls) {
-		ServiceCallGraph ret = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
-
-		entryCalls.stream().forEach(ec -> {
+	private List<ServiceCallGraph> buildGraphsFromMonitoringData(List<Tree<ServiceCallRecord>> entryCalls) {
+		return entryCalls.stream().map(ec -> {
+			ServiceCallGraph ret = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
 			processTreeRecursive(ret, ec.getRoot());
-		});
-
-		return ret;
+			return ret;
+		}).collect(Collectors.toList());
 	}
 
 	private void processTreeRecursive(ServiceCallGraph ret, TreeNode<ServiceCallRecord> root) {

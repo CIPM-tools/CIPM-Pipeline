@@ -18,6 +18,7 @@ import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.system.System;
 
+import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Sets;
 
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
@@ -31,6 +32,7 @@ import lombok.extern.java.Log;
 
 @Log
 // TODO refactor
+// TODO linking to outside wrong if there is a back change laterly -> use a timestamp to the roles which is used to calculate their oder
 public class RuntimeSystemBuilder {
 	private System system;
 	private Set<String> currentlyContainingAssemblyIds;
@@ -48,14 +50,20 @@ public class RuntimeSystemBuilder {
 				.map(asmbly -> asmbly.getId()).collect(Collectors.toSet());
 		addedAssemblyIds = Sets.newHashSet();
 
-		// merge assemblys
-		trees.forEach(tree -> {
-			processTreeNodeRecursive(tree.getRoot());
-		});
-
 		// add all necessary assembly contexts
 		trees.forEach(tree -> {
 			addTreeAssemblysRecursive(tree.getRoot());
+		});
+
+		// merge assemblys
+		trees.forEach(tree -> {
+			List<String> added = Lists.newArrayList();
+			List<String> removed = Lists.newArrayList();
+			processTreeNodeRecursive(tree.getRoot(), removed, added);
+
+			currentlyContainingAssemblyIds.removeAll(removed);
+			currentlyContainingAssemblyIds.addAll(added);
+			addedAssemblyIds.addAll(added);
 		});
 
 		// expose open roles
@@ -108,16 +116,39 @@ public class RuntimeSystemBuilder {
 		// process all assembly context that are not needed anymore
 		List<AssemblyContext> deprecatedAssemblys = PCMUtils.getElementsByType(system, AssemblyContext.class).stream()
 				.filter(ac -> {
-					return marked.contains(ac.getId());
+					return !marked.contains(ac.getId());
 				}).collect(Collectors.toList());
 
 		deprecatedAssemblys.forEach(da -> {
 			if (deprecationProcessor.shouldDelete(da)) {
+				java.lang.System.out.println(da.getEntityName());
+				// remove all structures that are involved too!
 				ComposedStructure cs = (ComposedStructure) da.eContainer();
 				cs.getAssemblyContexts__ComposedStructure().remove(da);
+
+				List<Connector> connectors = resolveCorrespondingConnectors(da);
+				system.getConnectors__ComposedStructure().removeAll(connectors);
 			}
 		});
 		deprecationProcessor.iterationFinished();
+	}
+
+	private List<Connector> resolveCorrespondingConnectors(AssemblyContext da) {
+		return system.getConnectors__ComposedStructure().stream().filter(conn -> {
+			if (conn instanceof AssemblyConnector) {
+				return ((AssemblyConnector) conn).getProvidingAssemblyContext_AssemblyConnector().getId()
+						.equals(da.getId())
+						|| ((AssemblyConnector) conn).getRequiringAssemblyContext_AssemblyConnector().getId()
+								.equals(da.getId());
+			} else if (conn instanceof ProvidedDelegationConnector) {
+				return ((ProvidedDelegationConnector) conn).getAssemblyContext_ProvidedDelegationConnector().getId()
+						.equals(da.getId());
+			} else if (conn instanceof RequiredDelegationConnector) {
+				return ((RequiredDelegationConnector) conn).getAssemblyContext_RequiredDelegationConnector().getId()
+						.equals(da.getId());
+			}
+			return false;
+		}).collect(Collectors.toList());
 	}
 
 	private void exposeProvidedRoles() {
@@ -196,9 +227,9 @@ public class RuntimeSystemBuilder {
 
 	private void addTreeAssemblysRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> root) {
 		if (!currentlyContainingAssemblyIds.contains(root.getData().getLeft().getId())) {
+			root.getData().getLeft().setEntityName(
+					"Assembly_" + root.getData().getLeft().getEncapsulatedComponent__AssemblyContext().getEntityName());
 			system.getAssemblyContexts__ComposedStructure().add(root.getData().getLeft());
-			currentlyContainingAssemblyIds.add(root.getData().getLeft().getId());
-			addedAssemblyIds.add(root.getData().getLeft().getId());
 		}
 
 		root.getChildren().forEach(child -> {
@@ -206,7 +237,8 @@ public class RuntimeSystemBuilder {
 		});
 	}
 
-	private void processTreeNodeRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> parent) {
+	private void processTreeNodeRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> parent,
+			List<String> removedAssemblys, List<String> addedAssemblys) {
 		Pair<AssemblyContext, ResourceDemandingSEFF> parentData = parent.getData();
 		boolean newParent = !currentlyContainingAssemblyIds.contains(parentData.getLeft().getId());
 
@@ -214,7 +246,7 @@ public class RuntimeSystemBuilder {
 			boolean newChild = !currentlyContainingAssemblyIds.contains(child.getData().getLeft().getId());
 
 			if (!newParent && !newChild) {
-				processTreeNodeRecursive(child);
+				processTreeNodeRecursive(child, removedAssemblys, addedAssemblys);
 			} else {
 				// create a new assembly connector for the specific role
 				OperationProvidedRole providedRole = child.getData().getLeft()
@@ -243,9 +275,9 @@ public class RuntimeSystemBuilder {
 
 				if (providedRole != null && requiredRole != null) {
 					// remove the old connector
-					if (!newChild || !newParent) {
+					if (!newChild ^ !newParent) {
 						log.info("Search old container.");
-						Connector conn = system.getConnectors__ComposedStructure().stream().filter(c -> {
+						AssemblyConnector conn = system.getConnectors__ComposedStructure().stream().filter(c -> {
 							if (c instanceof AssemblyConnector) {
 								AssemblyConnector ac = (AssemblyConnector) c;
 								return ((ac.getProvidedRole_AssemblyConnector().getId().equals(providedRole.getId())
@@ -258,10 +290,19 @@ public class RuntimeSystemBuilder {
 												&& !newParent));
 							}
 							return false;
-						}).findFirst().orElse(null);
+						}).map(c -> (AssemblyConnector) c).findFirst().orElse(null);
 						if (conn != null) {
 							log.info("Delete old connector.");
 							system.getConnectors__ComposedStructure().remove(conn);
+
+							AssemblyContext removedAssembly = !newChild
+									? conn.getRequiringAssemblyContext_AssemblyConnector()
+									: conn.getProvidingAssemblyContext_AssemblyConnector();
+							AssemblyContext addedAssembly = !newChild
+									? conn.getProvidingAssemblyContext_AssemblyConnector()
+									: conn.getRequiringAssemblyContext_AssemblyConnector();
+							removedAssemblys.add(removedAssembly.getId());
+							addedAssemblys.add(addedAssembly.getId());
 						}
 					}
 
@@ -271,7 +312,7 @@ public class RuntimeSystemBuilder {
 				}
 
 				// recursion
-				processTreeNodeRecursive(child);
+				processTreeNodeRecursive(child, removedAssemblys, addedAssemblys);
 			}
 		});
 	}

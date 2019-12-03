@@ -30,6 +30,7 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 	protected static final String HOSTID_CLIENT = "client";
 	protected static final String HOSTID_LOGIC = "logic";
 	protected static final String HOSTID_DB = "db";
+	protected static final String HOSTID_DB2 = "db2";
 
 	@BeforeClass
 	public static void loadInitModels() {
@@ -48,30 +49,12 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 				AbstractBaseSystemTransformationTest.class.getResource("/models/test.allocation"), Allocation.class);
 	}
 
-	@Override
-	protected void loadPCMModels() {
-		blackboard.getArchitectureModel().setRepository(ModelUtil.readFromResource(
-				AbstractBaseSystemTransformationTest.class.getResource("/models/test.repository"), Repository.class));
-
-		blackboard.getArchitectureModel()
-				.setSystem(ModelUtil.readFromResource(
-						AbstractBaseSystemTransformationTest.class.getResource("/models/test.system"),
-						org.palladiosimulator.pcm.system.System.class));
-
-		blackboard.getArchitectureModel()
-				.setResourceEnvironmentModel(ModelUtil.readFromResource(
-						AbstractBaseSystemTransformationTest.class.getResource("/models/test.resourceenvironment"),
-						ResourceEnvironment.class));
-
-		blackboard.getArchitectureModel().setAllocationModel(ModelUtil.readFromResource(
-				AbstractBaseSystemTransformationTest.class.getResource("/models/test.allocation"), Allocation.class));
-	}
-
 	@Before
 	public void initHostMapping() {
 		this.addHostMapping("_l5HWYBHtEeqXP_Rw8ZOxlQ", HOSTID_CLIENT);
 		this.addHostMapping("_nyc2kRHtEeqXP_Rw8ZOxlQ", HOSTID_LOGIC);
 		this.addHostMapping("_pvtNcRHtEeqXP_Rw8ZOxlQ", HOSTID_DB);
+		this.addHostMapping("_DJuGYRXjEeqKY-U3QOe1UQ", HOSTID_DB2);
 	}
 
 	@Test
@@ -81,7 +64,7 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 		assertNotNull(blackboard.getArchitectureModel().getResourceEnvironmentModel());
 		assertNotNull(blackboard.getArchitectureModel().getAllocationModel());
 
-		assertEquals(blackboard.getBorder().getRuntimeMapping().getHostMappings().size(), 3);
+		assertEquals(blackboard.getBorder().getRuntimeMapping().getHostMappings().size(), 4);
 	}
 
 	protected long countAssembly(System system, String comp) {

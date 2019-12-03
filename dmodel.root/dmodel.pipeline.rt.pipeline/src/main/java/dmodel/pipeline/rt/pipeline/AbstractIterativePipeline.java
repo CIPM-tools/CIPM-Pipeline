@@ -83,7 +83,8 @@ public abstract class AbstractIterativePipeline<S, B> {
 	}
 
 	protected void buildPipeline(Class<? extends AbstractIterativePipelinePart<B>> entryPointClass)
-			throws InstantiationException, IllegalAccessException {
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException {
 		long startMs = System.currentTimeMillis();
 		LOG.info("Start building dModel Pipeline.");
 
@@ -97,7 +98,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 		if (entryPointClass.isAnnotationPresent(PipelineEntryPoint.class)) {
 			// create entry instance
-			AbstractIterativePipelinePart<B> entry = entryPointClass.newInstance();
+			AbstractIterativePipelinePart<B> entry = entryPointClass.getConstructor().newInstance();
 			entry.setBlackboard(blackboard);
 
 			// search start ports
@@ -139,7 +140,8 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 	@SuppressWarnings("unchecked") // maybe improve this later
 	private void buildSubTree(NodeInformation parent, OutputPorts outputPorts)
-			throws InstantiationException, IllegalAccessException {
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException {
 		List<Pair<NodeInformation, Integer>> successors = new ArrayList<>();
 
 		for (OutputPort sub : outputPorts.value()) {
@@ -151,7 +153,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 					if (instanceMapping.containsKey(method.getDeclaringClass())) {
 						subPartInstance = instanceMapping.get(method.getDeclaringClass());
 					} else {
-						subPartInstance = subClass.newInstance();
+						subPartInstance = subClass.getConstructor().newInstance();
 						instanceMapping.put(method.getDeclaringClass(), subPartInstance);
 						((AbstractIterativePipelinePart<B>) subPartInstance).setBlackboard(blackboard);
 					}
@@ -179,7 +181,6 @@ public abstract class AbstractIterativePipeline<S, B> {
 						if (method.isAnnotationPresent(OutputPorts.class)) {
 							buildSubTree(currentInfo, method.getAnnotation(OutputPorts.class));
 						} else {
-							// this is an end point
 							this.endPoints++;
 						}
 					}
