@@ -2,19 +2,21 @@ package dmodel.pipeline.rt.pcm.usagemodel.tree.transition;
 
 import java.util.List;
 
-import dmodel.pipeline.dt.mmmodel.UsageServiceCallDescriptor;
+import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.system.System;
+
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.ServiceCallSession;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageServiceCallDescriptor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.DescriptorTransition;
 import dmodel.pipeline.rt.pcm.usagemodel.util.UsageServiceUtil;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
 
 public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtractor {
-
 	@Override
 	public Tree<DescriptorTransition<UsageServiceCallDescriptor>> extractProbabilityCallTree(
-			List<ServiceCallSession> sessions) {
+			List<ServiceCallSession> sessions, Repository repository, System system) {
 		// 1. first build our internal representation tree
 		Tree<ReferenceTreeTransition> innerTree = new Tree<>(new ReferenceTreeTransition(null));
 
@@ -30,7 +32,7 @@ public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtracto
 			TreeNode<ReferenceTreeTransition> currentNode = innerTree.getRoot();
 			for (ServiceCallRecord next : session.getEntryCalls()) {
 				// 1.3.2. convert the record
-				UsageServiceCallDescriptor conv = UsageServiceUtil.createDescriptor(next);
+				UsageServiceCallDescriptor conv = UsageServiceUtil.createDescriptor(next, repository, system);
 
 				// 1.3.3. already has the following node?
 				TreeNode<ReferenceTreeTransition> nextNode = null;

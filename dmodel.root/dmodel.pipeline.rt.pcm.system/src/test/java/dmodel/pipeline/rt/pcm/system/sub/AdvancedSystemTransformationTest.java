@@ -60,6 +60,79 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 	}
 
 	@Test
+	public void uiChangeTest() {
+		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/uichange.dat");
+		assertEquals(records.size(), 3);
+
+		transformation.deriveSystemData(records);
+
+		// check models after
+		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
+		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
+		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
+
+		// system should have changed
+		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
+		assertEquals(blackboard.getArchitectureModel().getSystem().getConnectors__ComposedStructure().size(), 5);
+		assertEquals(
+				ModelUtil.getObjects(blackboard.getArchitectureModel().getSystem(), AssemblyConnector.class).size(), 4);
+		assertEquals(ModelUtil
+				.getObjects(blackboard.getArchitectureModel().getSystem(), ProvidedDelegationConnector.class).size(),
+				1);
+
+		assertEquals(7, blackboard.getArchitectureModel().getSystem().getAssemblyContexts__ComposedStructure().size());
+		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_aZ5BYBHqEeqXP_Rw8ZOxlQ"));
+		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ"));
+		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ"));
+		assertEquals(2, countAssembly(blackboard.getArchitectureModel().getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ"));
+		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_vFEekBXdEeqKY-U3QOe1UQ"));
+		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_lc4ZgBYjEeqKY-U3QOe1UQ"));
+
+		AssemblyContext aLogic = getAssemblys(blackboard.getArchitectureModel().getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ")
+				.get(0);
+		AssemblyContext aUI2 = getAssemblys(blackboard.getArchitectureModel().getSystem(), "_lc4ZgBYjEeqKY-U3QOe1UQ")
+				.get(0);
+		AssemblyContext aDB1 = getAssemblys(blackboard.getArchitectureModel().getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ")
+				.get(0);
+		AssemblyContext aDB2 = getAssemblys(blackboard.getArchitectureModel().getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ")
+				.get(1);
+		AssemblyContext aTranslator1 = getAssemblys(blackboard.getArchitectureModel().getSystem(),
+				"_vFEekBXdEeqKY-U3QOe1UQ").get(0);
+		AssemblyContext aDB22 = getAssemblys(blackboard.getArchitectureModel().getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ")
+				.get(0);
+
+		ProvidedDelegationConnector prov = ModelUtil
+				.getObjects(blackboard.getArchitectureModel().getSystem(), ProvidedDelegationConnector.class).get(0);
+		assertTrue(prov.getAssemblyContext_ProvidedDelegationConnector().getId().equals(aUI2.getId()));
+		assertTrue(prov.getInnerProvidedRole_ProvidedDelegationConnector().getId()
+				.equals(aUI2.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity()
+						.get(0).getId()));
+
+		assertTrue(isConnected(blackboard.getArchitectureModel().getSystem(), aUI2,
+				aUI2.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
+				aLogic,
+				aLogic.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
+
+		assertTrue(isConnected(blackboard.getArchitectureModel().getSystem(), aLogic,
+				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
+				aDB2,
+				aDB2.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
+		assertFalse(isConnected(blackboard.getArchitectureModel().getSystem(), aLogic,
+				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
+				aDB1,
+				aDB1.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
+		assertTrue(isConnected(blackboard.getArchitectureModel().getSystem(), aLogic,
+				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(1),
+				aTranslator1, aTranslator1.getEncapsulatedComponent__AssemblyContext()
+						.getProvidedRoles_InterfaceProvidingEntity().get(0)));
+		assertTrue(isConnected(blackboard.getArchitectureModel().getSystem(), aTranslator1,
+				aTranslator1.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity()
+						.get(0),
+				aDB22,
+				aDB22.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
+	}
+
+	@Test
 	public void dbChangeTest() {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/dbchange2.dat");
 		assertEquals(records.size(), 2);
@@ -128,8 +201,6 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
 		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
-
-		ModelUtil.saveToFile(blackboard.getArchitectureModel().getSystem(), "result.system");
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));

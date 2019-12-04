@@ -2,7 +2,7 @@ package dmodel.pipeline.rt.pcm.usagemodel.tree.path;
 
 import java.util.List;
 
-import dmodel.pipeline.dt.mmmodel.IAbstractUsageDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.IAbstractUsageDescriptor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.DescriptorTransition;
 import dmodel.pipeline.shared.structure.Tree;
 

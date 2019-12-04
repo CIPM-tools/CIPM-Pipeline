@@ -4,7 +4,7 @@ import java.util.List;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
-import dmodel.pipeline.rt.pcm.resourceenv.ResourceEnvironmentDerivation;
+import dmodel.pipeline.rt.pcm.resourceenv.ResourceEnvironmentTransformation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -19,7 +19,7 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 	/* @formatter:off */
 	@InputPorts(@InputPort(PortIDs.T_BUILD_SERVICECALL_TREE))
 	@OutputPorts({
-		@OutputPort(to = ResourceEnvironmentDerivation.class, async = true, id = PortIDs.T_PCM_RESENV)
+		@OutputPort(to = ResourceEnvironmentTransformation.class, async = true, id = PortIDs.T_PCM_RESENV)
 	})
 	/* @formatter:on */
 	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<ServiceCallRecord> records) {

@@ -6,17 +6,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import dmodel.pipeline.rt.pcm.finalize.TransformMeasurementModelEntry;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import kieker.common.record.IMonitoringRecord;
+import lombok.extern.java.Log;
 
 @Component
+@Log
 public class IterativeRuntimePipeline extends
 		AbstractIterativePipeline<List<IMonitoringRecord>, RuntimePipelineBlackboard> implements InitializingBean {
-
-	@Autowired
-	private TransformMeasurementModelEntry measurementModelTransformer;
 
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;
@@ -27,7 +25,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	public void initBlackboard() {
-		this.blackboard.reset();
+		// TODO maybe resetit
 	}
 
 	@Override
@@ -38,7 +36,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	protected void onIterationFinished() {
-		measurementModelTransformer.transformMeasurementModel(this.blackboard);
+		log.info("Finished execution of the pipeline.");
 	}
 
 }

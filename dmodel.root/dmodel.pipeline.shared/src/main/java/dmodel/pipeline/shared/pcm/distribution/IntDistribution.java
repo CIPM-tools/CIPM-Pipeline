@@ -1,6 +1,7 @@
 package dmodel.pipeline.shared.pcm.distribution;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -66,6 +67,10 @@ public class IntDistribution {
 	private double roundDouble(double val, int chars) {
 		double factor = Math.pow(10, chars);
 		return Math.round(val * factor) / factor;
+	}
+
+	public void pushAll(List<Integer> iterations) {
+		iterations.forEach(i -> push(i));
 	}
 
 }

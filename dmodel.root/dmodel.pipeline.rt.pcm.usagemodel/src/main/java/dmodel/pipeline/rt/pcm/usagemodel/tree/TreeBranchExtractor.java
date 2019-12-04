@@ -5,18 +5,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.system.System;
+import org.palladiosimulator.pcm.usagemodel.UsageScenario;
+
 import com.google.common.collect.Lists;
 
-import dmodel.pipeline.dt.mmmodel.IAbstractUsageDescriptor;
-import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
-import dmodel.pipeline.dt.mmmodel.UsageBranchDescriptor;
-import dmodel.pipeline.dt.mmmodel.UsageBranchTransition;
-import dmodel.pipeline.dt.mmmodel.UsageData;
-import dmodel.pipeline.dt.mmmodel.UsageGroup;
-import dmodel.pipeline.dt.mmmodel.UsageServiceCallDescriptor;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.IUsageDataExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.ServiceCallSession;
+import dmodel.pipeline.rt.pcm.usagemodel.data.IAbstractUsageDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageBranchDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageBranchTransition;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageGroup;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageServiceCallDescriptor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.path.IPathExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.path.SimpleComparisonPathExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.transition.ITransitionTreeExtractor;
@@ -36,11 +38,9 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		this.pathExtractor = new SimpleComparisonPathExtractor();
 	}
 
-	// TODO it is not absolutely necessary to build a specific tree and convert it
-	// then to a more specific one
-	// maybe we remove this later
 	@Override
-	public UsageData extract(List<Tree<ServiceCallRecord>> callSequences) {
+	public List<UsageScenario> extract(List<Tree<ServiceCallRecord>> callSequences, Repository repository,
+			System system) {
 		// 1. create entry call tree
 		List<ServiceCallRecord> entryCalls = callSequences.parallelStream().map(e -> e.getRoot().getData())
 				.collect(Collectors.toList());
@@ -50,7 +50,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 
 		// 3. create probability tree
 		Tree<DescriptorTransition<UsageServiceCallDescriptor>> transitionTree = treeExtractor
-				.extractProbabilityCallTree(sessions);
+				.extractProbabilityCallTree(sessions, repository, system);
 
 		// 4. find loop structures
 		// 4.1. bundle consecutive identical calls
@@ -70,22 +70,18 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 				.filter(p -> estimateRelevance(p) >= MIN_RELEVANCE).collect(Collectors.toList());
 
 		// 5. build final groups
-		UsageData usageData = MmmodelFactory.eINSTANCE.createUsageData();
-		for (Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree : relevantPaths) {
+		return relevantPaths.stream().map(relevantTree -> {
 			if (relevantTree.getRoot().getChildren().size() > 0) {
 				UsageGroup usageGroup = buildUserGroup(relevantTree);
-				usageData.getGroups().add(usageGroup);
+				return usageGroup.toPCM();
 			}
-		}
-
-		return usageData;
+			return null;
+		}).filter(f -> f != null).collect(Collectors.toList());
 	}
 
 	private UsageGroup buildUserGroup(Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree) {
-		UsageGroup nGroup = MmmodelFactory.eINSTANCE.createUsageGroup();
-
+		UsageGroup nGroup = new UsageGroup();
 		buildUserGroupRecursive(nGroup.getDescriptors(), relevantTree.getRoot().getChildren());
-
 		return nGroup;
 	}
 
@@ -98,13 +94,13 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 			buildUserGroupRecursive(container, child.getChildren());
 		} else {
 			// we need to create a branch
-			UsageBranchDescriptor nBranch = MmmodelFactory.eINSTANCE.createUsageBranchDescriptor();
+			UsageBranchDescriptor nBranch = new UsageBranchDescriptor();
 
 			// renormalize the branch prob
 			double sumProb = childs.stream().mapToDouble(c -> c.getData().getProbability()).sum();
 			double scale = 1.0d / sumProb;
 			for (TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> child : childs) {
-				UsageBranchTransition nTransition = MmmodelFactory.eINSTANCE.createUsageBranchTransition();
+				UsageBranchTransition nTransition = new UsageBranchTransition();
 				nTransition.setProbability(scale * child.getData().getProbability());
 				buildUserGroupRecursive(nTransition.getChilds(), child.getChildren());
 			}

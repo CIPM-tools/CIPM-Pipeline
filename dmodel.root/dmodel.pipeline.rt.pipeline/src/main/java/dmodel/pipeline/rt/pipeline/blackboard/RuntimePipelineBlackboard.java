@@ -6,21 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import dmodel.pipeline.dt.mmmodel.MeasurementModel;
-import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
 import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Service
 @Data
+@NoArgsConstructor
 public class RuntimePipelineBlackboard {
 	private static final long CONSIDER_APPLICATION_RUNNING_BUFFER = 60000;
-
-	private MeasurementModel measurementModel;
 
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
@@ -34,10 +32,6 @@ public class RuntimePipelineBlackboard {
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
 
-	public RuntimePipelineBlackboard() {
-		this.reset();
-	}
-
 	@Scheduled(initialDelay = 1000 * 60, fixedRate = 1000 * 60)
 	public void refreshApplicationRunning() {
 		if (System.currentTimeMillis() - lastMonitoringDataReceivedTimestamp < CONSIDER_APPLICATION_RUNNING_BUFFER) {
@@ -45,10 +39,6 @@ public class RuntimePipelineBlackboard {
 		} else {
 			this.applicationRunning = false;
 		}
-	}
-
-	public void reset() {
-		measurementModel = MmmodelFactory.eINSTANCE.createMeasurementModel();
 	}
 
 	public void loadArchitectureModel(ModelConfiguration config) {

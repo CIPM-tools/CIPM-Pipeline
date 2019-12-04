@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
 
-import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
 import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
@@ -66,9 +65,6 @@ public abstract class AbstractTransformationTest {
 			e.printStackTrace();
 		}
 
-		// measurement model
-		blackboard.setMeasurementModel(MmmodelFactory.eINSTANCE.createMeasurementModel());
-
 		// pcm
 		blackboard.setArchitectureModel(new InMemoryPCM());
 
@@ -81,7 +77,6 @@ public abstract class AbstractTransformationTest {
 		assertNotNull(blackboard.getBorder());
 		assertNotNull(blackboard.getBorder().getRuntimeMapping());
 		assertNotNull(blackboard.getConfig());
-		assertNotNull(blackboard.getMeasurementModel());
 	}
 
 	protected abstract void loadPCMModels();

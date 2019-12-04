@@ -38,6 +38,7 @@ public class PCMSystemUtil {
 		conn.setAssemblyContext_ProvidedDelegationConnector(ctx);
 		conn.setInnerProvidedRole_ProvidedDelegationConnector(role);
 		conn.setOuterProvidedRole_ProvidedDelegationConnector(spr);
+		conn.setEntityName("ProvDelegation " + spr.getEntityName() + " -> " + role.getEntityName());
 
 		if (add) {
 			conn.setParentStructure__Connector(system);

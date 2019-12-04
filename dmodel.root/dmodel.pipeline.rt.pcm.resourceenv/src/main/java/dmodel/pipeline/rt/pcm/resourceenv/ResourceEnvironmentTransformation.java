@@ -9,12 +9,13 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import dmodel.pipeline.dt.mmmodel.HostIdPair;
-import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
-import dmodel.pipeline.dt.mmmodel.ResourceContainer;
-import dmodel.pipeline.dt.mmmodel.ResourceEnvironmentData;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.allocation.AllocationDerivation;
+import dmodel.pipeline.rt.pcm.resourceenv.data.EnvironmentData;
+import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
+import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
+import dmodel.pipeline.rt.pcm.resourceenv.finalize.IResourceEnvironmentDeduction;
+import dmodel.pipeline.rt.pcm.resourceenv.finalize.ResourceEnvironmentTransformer;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -25,11 +26,16 @@ import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
 
-public class ResourceEnvironmentDerivation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
+public class ResourceEnvironmentTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
+	private IResourceEnvironmentDeduction transformer;
+
+	public ResourceEnvironmentTransformation() {
+		this.transformer = new ResourceEnvironmentTransformer();
+	}
 
 	@InputPorts({ @InputPort(PortIDs.T_PCM_RESENV) })
 	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = true, id = PortIDs.T_PCM_ALLOCATION))
-	public void deriveResourceEnvironmentData(List<Tree<ServiceCallRecord>> entryCalls) {
+	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
 		Set<String> hostIds = new HashSet<>();
 		Map<String, String> hostIdMapping = new HashMap<>();
 		List<Pair<String, String>> hostConnections = new ArrayList<>();
@@ -40,20 +46,17 @@ public class ResourceEnvironmentDerivation extends AbstractIterativePipelinePart
 		}
 
 		// apply new data
-		ResourceEnvironmentData data = MmmodelFactory.eINSTANCE.createResourceEnvironmentData();
+		EnvironmentData data = new EnvironmentData();
 		hostIds.forEach(id -> {
-			ResourceContainer container = MmmodelFactory.eINSTANCE.createResourceContainer();
-			container.setHostId(id);
-			container.setHostName(hostIdMapping.get(id));
-			data.getHosts().add(container);
+			data.getHosts().add(Host.builder().id(id).name(hostIdMapping.get(id)).build());
 		});
 		hostConnections.forEach(c -> {
-			HostIdPair pair = MmmodelFactory.eINSTANCE.createHostIdPair();
-			pair.setLeft(c.getLeft());
-			pair.setRight(c.getRight());
-			data.getConnections().add(pair);
+			data.getConnections().add(HostLink.builder().fromId(c.getLeft()).toId(c.getRight()).build());
 		});
-		getBlackboard().getMeasurementModel().setEnvironmentData(data);
+
+		// trigger deduction
+		transformer.processEnvironmentData(getBlackboard().getArchitectureModel(),
+				getBlackboard().getBorder().getRuntimeMapping(), data);
 	}
 
 	private void traverseNode(TreeNode<ServiceCallRecord> node, Set<String> hosts, Map<String, String> mapping,

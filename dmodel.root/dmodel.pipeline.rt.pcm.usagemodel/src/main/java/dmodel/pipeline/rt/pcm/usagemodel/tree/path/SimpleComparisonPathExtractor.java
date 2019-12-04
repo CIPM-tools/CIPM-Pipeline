@@ -11,8 +11,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import dmodel.pipeline.dt.mmmodel.IAbstractUsageDescriptor;
-import dmodel.pipeline.dt.mmmodel.UsageServiceCallDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.IAbstractUsageDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageServiceCallDescriptor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.DescriptorTransition;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;

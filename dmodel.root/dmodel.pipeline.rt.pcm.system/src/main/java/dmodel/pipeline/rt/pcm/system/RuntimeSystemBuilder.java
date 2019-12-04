@@ -63,7 +63,6 @@ public class RuntimeSystemBuilder {
 
 			currentlyContainingAssemblyIds.removeAll(removed);
 			currentlyContainingAssemblyIds.addAll(added);
-			addedAssemblyIds.addAll(added);
 		});
 
 		// expose open roles
@@ -121,7 +120,6 @@ public class RuntimeSystemBuilder {
 
 		deprecatedAssemblys.forEach(da -> {
 			if (deprecationProcessor.shouldDelete(da)) {
-				java.lang.System.out.println(da.getEntityName());
 				// remove all structures that are involved too!
 				ComposedStructure cs = (ComposedStructure) da.eContainer();
 				cs.getAssemblyContexts__ComposedStructure().remove(da);
@@ -187,10 +185,10 @@ public class RuntimeSystemBuilder {
 							if (addedAssemblyIds.contains(b.ctx.getId())) {
 								return 0;
 							} else {
-								return 1;
+								return -1;
 							}
 						} else if (addedAssemblyIds.contains(b.ctx.getId())) {
-							return -1;
+							return 1;
 						} else {
 							return 0;
 						}
@@ -230,6 +228,7 @@ public class RuntimeSystemBuilder {
 			root.getData().getLeft().setEntityName(
 					"Assembly_" + root.getData().getLeft().getEncapsulatedComponent__AssemblyContext().getEntityName());
 			system.getAssemblyContexts__ComposedStructure().add(root.getData().getLeft());
+			addedAssemblyIds.add(root.getData().getLeft().getId());
 		}
 
 		root.getChildren().forEach(child -> {
@@ -291,6 +290,7 @@ public class RuntimeSystemBuilder {
 							}
 							return false;
 						}).map(c -> (AssemblyConnector) c).findFirst().orElse(null);
+
 						if (conn != null) {
 							log.info("Delete old connector.");
 							system.getConnectors__ComposedStructure().remove(conn);
@@ -304,6 +304,7 @@ public class RuntimeSystemBuilder {
 							removedAssemblys.add(removedAssembly.getId());
 							addedAssemblys.add(addedAssembly.getId());
 						}
+
 					}
 
 					log.info("Create new connector.");

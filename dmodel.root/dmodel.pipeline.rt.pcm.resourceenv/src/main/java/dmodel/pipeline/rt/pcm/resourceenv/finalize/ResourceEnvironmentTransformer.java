@@ -1,6 +1,7 @@
-package dmodel.pipeline.rt.pcm.finalize.resenv;
+package dmodel.pipeline.rt.pcm.resourceenv.finalize;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.palladiosimulator.pcm.resourceenvironment.CommunicationLinkResourceSpecification;
@@ -12,22 +13,19 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceenvironmentFactory;
 import org.palladiosimulator.pcm.resourcetype.ProcessingResourceType;
 import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.SchedulingPolicy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
-import dmodel.pipeline.dt.mmmodel.MeasurementModel;
 import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
-import dmodel.pipeline.rt.pcm.finalize.IMeasurementModelProcessor;
+import dmodel.pipeline.rt.pcm.resourceenv.data.EnvironmentData;
+import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
+import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import lombok.extern.java.Log;
 
-@Service
-public class ResourceEnvironmentTransformer implements IMeasurementModelProcessor {
-	private static final Logger LOG = LoggerFactory.getLogger(ResourceEnvironmentTransformer.class);
-
+@Log
+public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduction {
 	private static final ResourceRepository DEFAULT_RESOURCE_REPO = PCMUtils.getDefaultResourceRepository();
 	private static final ProcessingResourceType CPU_PROC_TYPE = PCMUtils.getElementById(DEFAULT_RESOURCE_REPO,
 			ProcessingResourceType.class, "_oro4gG3fEdy4YaaT-RYrLQ");
@@ -35,17 +33,17 @@ public class ResourceEnvironmentTransformer implements IMeasurementModelProcesso
 			SchedulingPolicy.class, "ProcessorSharing");
 
 	@Override
-	public void processMeasurementModel(MeasurementModel mm, InMemoryPCM pcm, PalladioRuntimeMapping mapping) {
-		processHosts(mm, pcm, mapping);
-		processLinks(mm, pcm, mapping);
+	public void processEnvironmentData(InMemoryPCM pcm, PalladioRuntimeMapping mapping, EnvironmentData data) {
+		processHosts(pcm, mapping, data.getHosts());
+		processLinks(pcm, mapping, data.getConnections());
 	}
 
-	private void processLinks(MeasurementModel mm, InMemoryPCM pcm, PalladioRuntimeMapping mapping) {
-		mm.getEnvironmentData().getConnections().stream().forEach(link -> {
+	private void processLinks(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<HostLink> links) {
+		links.stream().forEach(link -> {
 			Optional<HostIDMapping> hostFrom = mapping.getHostMappings().stream()
-					.filter(mp -> mp.getHostID().equals(link.getLeft())).findFirst();
+					.filter(mp -> mp.getHostID().equals(link.getFromId())).findFirst();
 			Optional<HostIDMapping> hostTo = mapping.getHostMappings().stream()
-					.filter(mp -> mp.getHostID().equals(link.getRight())).findFirst();
+					.filter(mp -> mp.getHostID().equals(link.getToId())).findFirst();
 
 			if (hostFrom.isPresent() && hostTo.isPresent()) {
 				Optional<LinkingResource> belLink = getLinkingResource(pcm.getResourceEnvironmentModel(),
@@ -56,15 +54,15 @@ public class ResourceEnvironmentTransformer implements IMeasurementModelProcesso
 							hostTo.get().getPcmContainerID());
 				}
 			} else {
-				LOG.warn("Updating the Resource Environment failed due to mapping problems.");
+				log.warning("Updating the Resource Environment failed due to mapping problems.");
 			}
 		});
 	}
 
-	private void processHosts(MeasurementModel mm, InMemoryPCM pcm, PalladioRuntimeMapping mapping) {
-		mm.getEnvironmentData().getHosts().stream().forEach(host -> {
+	private void processHosts(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<Host> hosts) {
+		hosts.stream().forEach(host -> {
 			Optional<HostIDMapping> refMapping = mapping.getHostMappings().stream()
-					.filter(mp -> mp.getHostID().equals(host.getHostId())).findFirst();
+					.filter(mp -> mp.getHostID().equals(host.getId())).findFirst();
 
 			if (refMapping.isPresent()) {
 				ResourceContainer refContainer = PCMUtils.getElementById(pcm.getResourceEnvironmentModel(),
@@ -72,16 +70,16 @@ public class ResourceEnvironmentTransformer implements IMeasurementModelProcesso
 
 				if (refContainer == null) {
 					// create it
-					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getHostId(),
-							host.getHostName());
+					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getId(),
+							host.getName());
 					mapping.getHostMappings().add(resMapping);
 				}
 			} else {
 				Optional<ResourceContainer> optContainer = getContainerByName(pcm.getResourceEnvironmentModel(),
-						host.getHostName());
+						host.getName());
 				if (!optContainer.isPresent()) {
-					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getHostId(),
-							host.getHostName());
+					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getId(),
+							host.getName());
 					mapping.getHostMappings().add(resMapping);
 				}
 			}
@@ -109,7 +107,7 @@ public class ResourceEnvironmentTransformer implements IMeasurementModelProcesso
 
 		// add the container
 		resourceEnvironmentModel.getResourceContainer_ResourceEnvironment().add(container);
-		LOG.info("Created new resource environment container (name: '" + hostName + "').");
+		log.info("Created new resource environment container (name: '" + hostName + "').");
 
 		return nMapping;
 	}

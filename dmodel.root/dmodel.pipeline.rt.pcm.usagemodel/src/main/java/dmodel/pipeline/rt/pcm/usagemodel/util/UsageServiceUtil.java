@@ -1,15 +1,27 @@
 package dmodel.pipeline.rt.pcm.usagemodel.util;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
+import org.palladiosimulator.pcm.repository.OperationProvidedRole;
+import org.palladiosimulator.pcm.repository.OperationSignature;
+import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.palladiosimulator.pcm.system.System;
+import org.palladiosimulator.pcm.usagemodel.AbstractUserAction;
+import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
+import org.palladiosimulator.pcm.usagemodel.Start;
+import org.palladiosimulator.pcm.usagemodel.Stop;
+import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
-import dmodel.pipeline.dt.mmmodel.MmmodelFactory;
-import dmodel.pipeline.dt.mmmodel.UsageServiceCallDescriptor;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
+import dmodel.pipeline.rt.pcm.usagemodel.data.IAbstractUsageDescriptor;
+import dmodel.pipeline.rt.pcm.usagemodel.data.UsageServiceCallDescriptor;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 public class UsageServiceUtil {
 
@@ -23,12 +35,25 @@ public class UsageServiceUtil {
 		}
 	};
 
-	public static UsageServiceCallDescriptor createDescriptor(ServiceCallRecord rec) {
+	public static UsageServiceCallDescriptor createDescriptor(ServiceCallRecord rec, Repository repository,
+			System system) {
 		if (rec == null) {
 			return null;
 		}
 
-		UsageServiceCallDescriptor ret = MmmodelFactory.eINSTANCE.createUsageServiceCallDescriptor();
+		UsageServiceCallDescriptor ret = new UsageServiceCallDescriptor();
+		ResourceDemandingSEFF seff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
+				rec.getServiceId());
+		ret.setSignature((OperationSignature) seff.getDescribedService__SEFF());
+		ret.setProvidedRole(system.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
+			if (pr instanceof OperationProvidedRole) {
+				return ((OperationProvidedRole) pr).getProvidedInterface__OperationProvidedRole()
+						.getSignatures__OperationInterface().stream().anyMatch(op -> {
+							return op.getId().equals(seff.getDescribedService__SEFF().getId());
+						});
+			}
+			return false;
+		}).map(pr -> (OperationProvidedRole) pr).findFirst().orElse(null));
 
 		ret.setServiceId(rec.getServiceId());
 		for (Entry<String, Object> entry : ServiceParametersWrapper.buildFromJson(rec.getParameters()).getParameters()
@@ -39,6 +64,26 @@ public class UsageServiceUtil {
 		}
 
 		return ret;
+	}
+
+	public static ScenarioBehaviour createBehaviour(List<IAbstractUsageDescriptor> descriptors) {
+		ScenarioBehaviour behav = UsagemodelFactory.eINSTANCE.createScenarioBehaviour();
+
+		Start startAction = UsagemodelFactory.eINSTANCE.createStart();
+		behav.getActions_ScenarioBehaviour().add(startAction);
+
+		Stop stopAction = UsagemodelFactory.eINSTANCE.createStop();
+
+		AbstractUserAction current = startAction;
+		for (IAbstractUsageDescriptor desc : descriptors) {
+			AbstractUserAction conv = desc.toPCM();
+			current.setSuccessor(conv);
+			current = conv;
+		}
+		current.setSuccessor(stopAction);
+		behav.getActions_ScenarioBehaviour().add(stopAction);
+
+		return behav;
 	}
 
 }
