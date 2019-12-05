@@ -79,6 +79,7 @@ public class UsageServiceUtil {
 			AbstractUserAction conv = desc.toPCM();
 			current.setSuccessor(conv);
 			current = conv;
+			behav.getActions_ScenarioBehaviour().add(current);
 		}
 		current.setSuccessor(stopAction);
 		behav.getActions_ScenarioBehaviour().add(stopAction);

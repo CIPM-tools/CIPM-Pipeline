@@ -36,6 +36,7 @@ import dmodel.pipeline.shared.util.ExtendedEqualityHelper;
 
 public abstract class AbstractTransformationTest {
 	private static final Pattern BRACKET_PATTERN = Pattern.compile("\\[(.*)\\]");
+	private static final Pattern PARAMETER_PATTERN = Pattern.compile("(\\{.*\\})");
 	private final static Pattern LTRIM = Pattern.compile("^\\s+");
 
 	protected RuntimePipelineBlackboard blackboard;
@@ -155,11 +156,35 @@ public abstract class AbstractTransformationTest {
 		record = record.substring(2); // remove leading "- "
 		String[] dataSplit = record.split(" ");
 		Matcher hostIdMatcher = BRACKET_PATTERN.matcher(dataSplit[1]);
+
 		if (hostIdMatcher.find()) {
-			ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", dataSplit[0], "", "", "",
-					System.currentTimeMillis(), System.currentTimeMillis());
-			return rec;
+			if (dataSplit.length == 2) {
+				ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", dataSplit[0], "", "",
+						"", System.currentTimeMillis(), System.currentTimeMillis());
+				return rec;
+			} else if (dataSplit.length == 3) {
+				// check for parameters
+				Matcher parameterMatcher = PARAMETER_PATTERN.matcher(dataSplit[2]);
+				if (parameterMatcher.find()) {
+					ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", dataSplit[0],
+							parameterMatcher.group(1), "", "", System.currentTimeMillis(), System.currentTimeMillis());
+					return rec;
+				}
+				return null;
+			} else if (dataSplit.length == 4) {
+				// check for parameters
+				Matcher parameterMatcher = PARAMETER_PATTERN.matcher(dataSplit[2]);
+				if (parameterMatcher.find()) {
+					ServiceCallRecord rec = new ServiceCallRecord(dataSplit[3], "", hostIdMatcher.group(1), "",
+							dataSplit[0], parameterMatcher.group(1), "", "", System.currentTimeMillis(),
+							System.currentTimeMillis());
+					return rec;
+				}
+			}
+
+			return null;
 		}
+
 		return null;
 	}
 

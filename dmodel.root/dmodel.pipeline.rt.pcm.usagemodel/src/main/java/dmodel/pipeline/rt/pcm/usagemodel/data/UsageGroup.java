@@ -29,7 +29,8 @@ public class UsageGroup implements IPCMAnalogue<UsageScenario> {
 		OpenWorkload workload = UsagemodelFactory.eINSTANCE.createOpenWorkload();
 		workload.setInterArrivalTime_OpenWorkload(
 				PCMUtils.createRandomVariableFromString(String.valueOf(interarrivalTime)));
+		ret.setWorkload_UsageScenario(workload);
 
-		return null;
+		return ret;
 	}
 }

@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.pcm.usagemodel.transformation;
 import java.util.List;
 
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
+import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.IUsageDataExtractor;
@@ -33,6 +34,9 @@ public class UsageDataDerivation extends AbstractIterativePipelinePart<RuntimePi
 		log.info("Extracted " + data.size() + " usage scenario(s).");
 
 		// 2. deduct
+		if (getBlackboard().getArchitectureModel().getUsageModel() == null) {
+			getBlackboard().getArchitectureModel().setUsageModel(UsagemodelFactory.eINSTANCE.createUsageModel());
+		}
 		getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().clear();
 		getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().addAll(data);
 	}

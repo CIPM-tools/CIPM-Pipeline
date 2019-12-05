@@ -12,7 +12,9 @@ import dmodel.pipeline.rt.pcm.usagemodel.tree.DescriptorTransition;
 import dmodel.pipeline.rt.pcm.usagemodel.util.UsageServiceUtil;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
+import lombok.extern.java.Log;
 
+@Log
 public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtractor {
 	@Override
 	public Tree<DescriptorTransition<UsageServiceCallDescriptor>> extractProbabilityCallTree(
@@ -36,11 +38,13 @@ public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtracto
 
 				// 1.3.3. already has the following node?
 				TreeNode<ReferenceTreeTransition> nextNode = null;
-				for (TreeNode<ReferenceTreeTransition> transition : currentNode.getChildren()) {
-					if (transition.getData().callDescriptor.getServiceId().equals(conv.getServiceId())) {
-						// this is our next node
-						nextNode = transition;
-						break;
+				if (currentNode.getParent() != null) {
+					for (TreeNode<ReferenceTreeTransition> transition : currentNode.getParent().getChildren()) {
+						if (transition.getData().callDescriptor.getServiceId().equals(conv.getServiceId())) {
+							// this is our next node
+							nextNode = transition;
+							break;
+						}
 					}
 				}
 

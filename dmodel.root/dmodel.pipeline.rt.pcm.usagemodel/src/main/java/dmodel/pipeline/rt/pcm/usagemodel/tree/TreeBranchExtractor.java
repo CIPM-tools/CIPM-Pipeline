@@ -25,7 +25,9 @@ import dmodel.pipeline.rt.pcm.usagemodel.tree.transition.ITransitionTreeExtracto
 import dmodel.pipeline.rt.pcm.usagemodel.tree.transition.ReferenceTransitionTreeExtractor;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
+import lombok.extern.java.Log;
 
+@Log
 public class TreeBranchExtractor implements IUsageDataExtractor {
 	private static final double MIN_RELEVANCE = 0.05;
 	private static final float USER_GROUP_MAX_VARIANCE = 0.25f;
@@ -92,7 +94,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 			// straight forward -> add it and start recursion
 			container.add(child.getData().getCall());
 			buildUserGroupRecursive(container, child.getChildren());
-		} else {
+		} else if (childs.size() > 1) {
 			// we need to create a branch
 			UsageBranchDescriptor nBranch = new UsageBranchDescriptor();
 
