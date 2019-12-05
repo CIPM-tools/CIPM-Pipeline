@@ -1,6 +1,5 @@
 package dmodel.pipeline.rt.validation;
 
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -30,8 +29,7 @@ public class ValidationFeedbackLoop implements IValidationProcessor, Initializin
 	}
 
 	@Override
-	public void process(InMemoryPCM instance, MonitoringDataContainer monitoringData,
-			List<IValidationProcessor> processors) {
+	public void process(InMemoryPCM instance, MonitoringDataContainer monitoringData) {
 		// TODO
 	}
 
