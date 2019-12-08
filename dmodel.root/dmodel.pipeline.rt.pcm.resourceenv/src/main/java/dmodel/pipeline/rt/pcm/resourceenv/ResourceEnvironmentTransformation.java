@@ -25,7 +25,9 @@ import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
+import lombok.extern.java.Log;
 
+@Log
 public class ResourceEnvironmentTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 	private IResourceEnvironmentDeduction transformer;
 
@@ -33,9 +35,11 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 		this.transformer = new ResourceEnvironmentTransformer();
 	}
 
-	@InputPorts({ @InputPort(PortIDs.T_PCM_RESENV) })
-	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = true, id = PortIDs.T_PCM_ALLOCATION))
+	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_RESENV) })
+	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_ALLOCATION))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
+		log.info("Deriving resource environment.");
+
 		Set<String> hostIds = new HashSet<>();
 		Map<String, String> hostIdMapping = new HashMap<>();
 		List<Pair<String, String>> hostConnections = new ArrayList<>();

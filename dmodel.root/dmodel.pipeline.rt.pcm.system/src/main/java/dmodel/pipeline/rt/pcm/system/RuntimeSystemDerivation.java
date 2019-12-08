@@ -30,7 +30,10 @@ import dmodel.pipeline.rt.pcm.system.impl.SimpleAssemblyDeprecationProcessor;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
+import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
+import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
@@ -56,7 +59,8 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		this.creationCache = new HashMap<>();
 	}
 
-	@InputPorts({ @InputPort(PortIDs.T_PCM_SYSTEM) })
+	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_ALLOCATION_PCM_SYSTEM) })
+	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();

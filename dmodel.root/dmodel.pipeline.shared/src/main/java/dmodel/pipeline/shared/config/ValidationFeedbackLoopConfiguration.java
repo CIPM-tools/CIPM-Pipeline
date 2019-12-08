@@ -20,7 +20,6 @@ public class ValidationFeedbackLoopConfiguration {
 	@Setter(AccessLevel.NONE)
 	private int port;
 
-	private int concurrentSimulations = 5;
 	private long simulationTime = 150000;
 	private long measurements = 10000;
 

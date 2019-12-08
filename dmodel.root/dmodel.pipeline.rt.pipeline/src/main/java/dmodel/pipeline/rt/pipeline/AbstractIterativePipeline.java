@@ -267,7 +267,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 		}
 
 		private boolean setInput(Object input, int place) {
-			inputs.set(place, input);
+			if (input != null && place < inputs.size()) {
+				inputs.set(place, input);
+			}
 			return currentSize.incrementAndGet() == targetSize;
 		}
 

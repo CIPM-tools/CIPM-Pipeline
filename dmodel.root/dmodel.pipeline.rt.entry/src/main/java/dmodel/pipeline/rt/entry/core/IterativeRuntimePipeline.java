@@ -25,7 +25,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	public void initBlackboard() {
-		// TODO maybe resetit
+		blackboard.reset();
 	}
 
 	@Override

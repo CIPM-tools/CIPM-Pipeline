@@ -33,7 +33,6 @@ public class UsageModelDerivationBaseTest extends AbstractTransformationTest {
 	@Before
 	public void initTransformation() {
 		derivation = new UsageDataDerivation();
-		derivation.setBlackboard(blackboard);
 	}
 
 	@BeforeClass
@@ -75,7 +74,7 @@ public class UsageModelDerivationBaseTest extends AbstractTransformationTest {
 	public void noMonitoringDataTest() {
 		List<Tree<ServiceCallRecord>> records = Lists.newArrayList();
 
-		derivation.deriveUsageData(records);
+		derivation.deriveUsageData(records, blackboard.getArchitectureModel());
 
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));

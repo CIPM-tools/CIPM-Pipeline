@@ -19,7 +19,7 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/scenario1.dat");
 		assertEquals(records.size(), 3);
 
-		derivation.deriveUsageData(records);
+		derivation.deriveUsageData(records, blackboard.getArchitectureModel());
 
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
@@ -40,7 +40,7 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/scenario2.dat");
 		assertEquals(records.size(), 6);
 
-		derivation.deriveUsageData(records);
+		derivation.deriveUsageData(records, blackboard.getArchitectureModel());
 
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));

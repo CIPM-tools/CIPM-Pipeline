@@ -1,15 +1,18 @@
 package dmodel.pipeline.shared.pipeline;
 
 public interface PortIDs {
-	String T_PCM_RESENV = "pcm-resenv";
-	String T_PCM_USAGE = "pcm-usage";
-	String T_PCM_ALLOCATION = "pcm-allocation";
-	String T_PCM_SYSTEM = "pcm-system";
+	String T_BUILD_SERVICECALL_TREE = "sc";
 
-	String T_ALLOCATION_MMM = "allocation-mmm";
-	String T_SYSTEM_MMM = "system-mmm";
-	String T_USAGE_MMM = "usage-mmm";
-	String T_RESENV_MMM = "resenv-mmm";
+	String T_VAL_PRE = "validation-pre";
 
-	String T_BUILD_SERVICECALL_TREE = "scall-tree";
+	String T_SC_PCM_RESENV = "sc->resenv";
+	String T_SC_PCM_ALLOCATION = "sc->allocation";
+	String T_RESENV_PCM_ALLOCATION = "resenv->allocation";
+
+	String T_ALLOCATION_PCM_SYSTEM = "allocation->system";
+	String T_SC_PCM_SYSTEM = "sc->system";
+
+	String T_SYSTEM_ROUTER = "system->router";
+	String T_SC_ROUTER = "sc->router";
+	String T_RAW_ROUTER = "raw->router";
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.start.spring.config.ITemplateMapping;
 import dmodel.pipeline.rt.start.spring.util.TemplateHelper;
+import dmodel.pipeline.rt.validation.simulation.HeadlessPCMSimulator;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
 @Controller
@@ -18,6 +19,9 @@ public class TemplateController {
 
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;
+
+	@Autowired
+	private HeadlessPCMSimulator simulator;
 
 	@Autowired
 	private TemplateHelper helper;
@@ -99,6 +103,7 @@ public class TemplateController {
 
 	private void prepareModel(Model model, String page) {
 		model.addAttribute("runtime_available", blackboard.isApplicationRunning());
+		model.addAttribute("headless_available", simulator.isReachable());
 		model.addAttribute("currentPage", page);
 	}
 

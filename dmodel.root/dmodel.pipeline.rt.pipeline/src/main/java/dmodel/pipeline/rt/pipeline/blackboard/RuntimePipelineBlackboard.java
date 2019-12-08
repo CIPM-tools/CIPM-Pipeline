@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import dmodel.pipeline.rt.pipeline.blackboard.validation.ValidationResultContainer;
 import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
+import dmodel.pipeline.rt.validation.ValidationFeedbackComponent;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
@@ -28,6 +30,12 @@ public class RuntimePipelineBlackboard {
 
 	@Autowired
 	private RunTimeDesignTimeBorder border;
+
+	@Autowired
+	private ValidationFeedbackComponent validationFeedbackComponent;
+
+	@Autowired
+	private ValidationResultContainer validationResultContainer;
 
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
@@ -61,6 +69,11 @@ public class RuntimePipelineBlackboard {
 
 	public void receivedMonitoringData() {
 		this.lastMonitoringDataReceivedTimestamp = System.currentTimeMillis();
+	}
+
+	public void reset() {
+		// delete previous validation results
+		validationResultContainer.reset();
 	}
 
 }

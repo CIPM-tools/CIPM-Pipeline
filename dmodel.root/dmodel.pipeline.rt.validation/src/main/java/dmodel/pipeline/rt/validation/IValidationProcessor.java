@@ -1,10 +1,13 @@
 package dmodel.pipeline.rt.validation;
 
-import dmodel.pipeline.shared.monitoring.MonitoringDataContainer;
+import java.util.List;
+
+import dmodel.pipeline.monitoring.records.ServiceContextRecord;
+import dmodel.pipeline.rt.validation.data.ValidationMetric;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 public interface IValidationProcessor {
 
-	void process(InMemoryPCM instance, MonitoringDataContainer monitoringData);
+	List<ValidationMetric> process(InMemoryPCM instance, List<ServiceContextRecord> monitoringData, String taskName);
 
 }

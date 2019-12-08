@@ -8,4 +8,10 @@ $(document).ready(function() {
 		$(this).tab('show')
 	});
 	
+	// resize canvas
+	prepareOverview();
+	
 });
+
+function prepareOverview() {
+}

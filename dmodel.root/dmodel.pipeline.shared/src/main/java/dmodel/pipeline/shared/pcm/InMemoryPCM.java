@@ -13,6 +13,7 @@ import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
 import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
@@ -30,6 +31,22 @@ public class InMemoryPCM {
 	private long lastUpdatedResourceEnv;
 
 	private LocalFilesystemPCM reflected;
+
+	@Builder
+	public InMemoryPCM(Repository repository, System system, UsageModel usageModel, Allocation allocationModel,
+			ResourceEnvironment resourceEnvironmentModel) {
+		this.repository = repository;
+		this.system = system;
+		this.usageModel = usageModel;
+		this.allocationModel = allocationModel;
+		this.resourceEnvironmentModel = resourceEnvironmentModel;
+
+		this.updatedAllocation();
+		this.updatedRepository();
+		this.updatedResourceEnv();
+		this.updatedSystem();
+		this.updatedUsage();
+	}
 
 	public InMemoryPCM() {
 		this.updatedAllocation();
@@ -150,5 +167,11 @@ public class InMemoryPCM {
 		FileBackedModelUtil.clear(resourceEnvironmentModel);
 		FileBackedModelUtil.clear(usageModel);
 		FileBackedModelUtil.clear(system);
+	}
+
+	public InMemoryPCM copyReference() {
+		return InMemoryPCM.builder().repository(getRepository()).system(getSystem())
+				.resourceEnvironmentModel(getResourceEnvironmentModel()).allocationModel(getAllocationModel())
+				.usageModel(getUsageModel()).build();
 	}
 }
