@@ -92,13 +92,6 @@ public class InMemoryPCM {
 			ret.repository = RepositoryFactory.eINSTANCE.createRepository();
 		}
 
-		if (pcm.getAllocationModelFile().exists()) {
-			ret.allocationModel = ModelUtil.readFromFile(pcm.getAllocationModelFile().getAbsolutePath(),
-					Allocation.class);
-		} else {
-			ret.allocationModel = AllocationFactory.eINSTANCE.createAllocation();
-		}
-
 		if (pcm.getResourceEnvironmentFile().exists()) {
 			ret.resourceEnvironmentModel = ModelUtil.readFromFile(pcm.getResourceEnvironmentFile().getAbsolutePath(),
 					ResourceEnvironment.class);
@@ -110,6 +103,15 @@ public class InMemoryPCM {
 			ret.system = ModelUtil.readFromFile(pcm.getSystemFile().getAbsolutePath(), System.class);
 		} else {
 			ret.system = SystemFactory.eINSTANCE.createSystem();
+		}
+
+		if (pcm.getAllocationModelFile().exists()) {
+			ret.allocationModel = ModelUtil.readFromFile(pcm.getAllocationModelFile().getAbsolutePath(),
+					Allocation.class);
+		} else {
+			ret.allocationModel = AllocationFactory.eINSTANCE.createAllocation();
+			ret.allocationModel.setSystem_Allocation(ret.system);
+			ret.allocationModel.setTargetResourceEnvironment_Allocation(ret.resourceEnvironmentModel);
 		}
 
 		if (pcm.getUsageModelFile().exists()) {

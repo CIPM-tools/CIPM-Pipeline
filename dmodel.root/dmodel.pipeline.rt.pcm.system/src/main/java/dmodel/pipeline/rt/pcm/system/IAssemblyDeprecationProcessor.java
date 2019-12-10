@@ -6,6 +6,8 @@ public interface IAssemblyDeprecationProcessor {
 
 	public boolean shouldDelete(AssemblyContext ctx);
 
+	public boolean isCurrentlyDeprecated(AssemblyContext ctx);
+
 	public void iterationFinished();
 
 }

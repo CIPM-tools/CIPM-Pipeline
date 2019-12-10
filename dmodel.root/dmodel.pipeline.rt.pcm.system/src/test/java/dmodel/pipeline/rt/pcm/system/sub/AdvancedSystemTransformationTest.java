@@ -69,7 +69,6 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
@@ -142,7 +141,6 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
@@ -200,7 +198,6 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
@@ -267,7 +264,6 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// ModelUtil.saveToFile(blackboard.getArchitectureModel().getSystem(),
 		// "result.system");

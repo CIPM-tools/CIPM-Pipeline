@@ -16,15 +16,18 @@ import lombok.Data;
 public class UsageGroup implements IPCMAnalogue<UsageScenario> {
 	private long interarrivalTime;
 	private List<IAbstractUsageDescriptor> descriptors;
+	private int id;
 
-	public UsageGroup() {
+	public UsageGroup(int id) {
 		this.descriptors = Lists.newArrayList();
+		this.id = id;
 	}
 
 	@Override
 	public UsageScenario toPCM() {
 		UsageScenario ret = UsagemodelFactory.eINSTANCE.createUsageScenario();
 		ret.setScenarioBehaviour_UsageScenario(UsageServiceUtil.createBehaviour(descriptors));
+		ret.setEntityName("Scenario" + id);
 
 		OpenWorkload workload = UsagemodelFactory.eINSTANCE.createOpenWorkload();
 		workload.setInterArrivalTime_OpenWorkload(

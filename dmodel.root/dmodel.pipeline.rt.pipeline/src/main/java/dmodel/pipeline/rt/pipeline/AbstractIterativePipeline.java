@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import dmodel.pipeline.rt.pipeline.annotation.EntryInputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -35,7 +38,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 	// queuing mechanism
 	private boolean running;
-	private int endPoints;
+	private Set<Method> endPoints;
 	private LinkedList<S> queue;
 	private AtomicInteger reachedEndpoints;
 
@@ -70,7 +73,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 	}
 
 	protected void triggerEndpoint() {
-		if (reachedEndpoints.incrementAndGet() == this.endPoints) {
+		if (reachedEndpoints.incrementAndGet() == this.endPoints.size()) {
 			// we finished
 			running = false;
 			onIterationFinished();
@@ -82,9 +85,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 		}
 	}
 
-	protected void buildPipeline(Class<? extends AbstractIterativePipelinePart<B>> entryPointClass)
-			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			NoSuchMethodException, SecurityException {
+	protected void buildPipeline(Class<? extends AbstractIterativePipelinePart<B>> entryPointClass,
+			IPipelineClassProvider<B> classProvider) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		long startMs = System.currentTimeMillis();
 		LOG.info("Start building dModel Pipeline.");
 
@@ -93,12 +96,17 @@ public abstract class AbstractIterativePipeline<S, B> {
 		this.nodeInformationMapping.clear();
 		this.running = false;
 		this.queue.clear();
-		this.endPoints = 0;
+		this.endPoints = Sets.newHashSet();
 		this.entryPoints.clear();
 
 		if (entryPointClass.isAnnotationPresent(PipelineEntryPoint.class)) {
 			// create entry instance
-			AbstractIterativePipelinePart<B> entry = entryPointClass.getConstructor().newInstance();
+			AbstractIterativePipelinePart<B> entry;
+			if (classProvider.contains(entryPointClass)) {
+				entry = classProvider.provide(entryPointClass);
+			} else {
+				entry = entryPointClass.getConstructor().newInstance();
+			}
 			entry.setBlackboard(blackboard);
 
 			// search start ports
@@ -113,9 +121,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 						// build tree
 						if (method.isAnnotationPresent(OutputPorts.class)) {
-							buildSubTree(nodeInfo, method.getAnnotation(OutputPorts.class));
+							buildSubTree(nodeInfo, method.getAnnotation(OutputPorts.class), classProvider);
 						} else {
-							this.endPoints++;
+							this.endPoints.add(method);
 						}
 
 						// add entry point
@@ -139,13 +147,14 @@ public abstract class AbstractIterativePipeline<S, B> {
 	}
 
 	@SuppressWarnings("unchecked") // maybe improve this later
-	private void buildSubTree(NodeInformation parent, OutputPorts outputPorts)
+	private void buildSubTree(NodeInformation parent, OutputPorts outputPorts, IPipelineClassProvider<B> classProvider)
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			NoSuchMethodException, SecurityException {
 		List<Pair<NodeInformation, Integer>> successors = new ArrayList<>();
 
 		for (OutputPort sub : outputPorts.value()) {
-			Class<? extends AbstractIterativePipelinePart<?>> subClass = sub.to();
+			Class<? extends AbstractIterativePipelinePart<B>> subClass = (Class<? extends AbstractIterativePipelinePart<B>>) sub
+					.to();
 			for (Method method : subClass.getMethods()) {
 				if (method.isAnnotationPresent(InputPorts.class)) {
 					// resolve subpart
@@ -153,7 +162,11 @@ public abstract class AbstractIterativePipeline<S, B> {
 					if (instanceMapping.containsKey(method.getDeclaringClass())) {
 						subPartInstance = instanceMapping.get(method.getDeclaringClass());
 					} else {
-						subPartInstance = subClass.getConstructor().newInstance();
+						if (classProvider.contains(subClass)) {
+							subPartInstance = classProvider.provide(subClass);
+						} else {
+							subPartInstance = subClass.getConstructor().newInstance();
+						}
 						instanceMapping.put(method.getDeclaringClass(), subPartInstance);
 						((AbstractIterativePipelinePart<B>) subPartInstance).setBlackboard(blackboard);
 					}
@@ -179,9 +192,9 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 						// recursion
 						if (method.isAnnotationPresent(OutputPorts.class)) {
-							buildSubTree(currentInfo, method.getAnnotation(OutputPorts.class));
+							buildSubTree(currentInfo, method.getAnnotation(OutputPorts.class), classProvider);
 						} else {
-							this.endPoints++;
+							this.endPoints.add(method);
 						}
 					}
 				}

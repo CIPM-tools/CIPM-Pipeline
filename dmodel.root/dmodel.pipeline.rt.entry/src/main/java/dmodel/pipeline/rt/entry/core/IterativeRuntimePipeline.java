@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
@@ -19,6 +20,9 @@ public class IterativeRuntimePipeline extends
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;
 
+	@Autowired
+	private ApplicationContext applicationContext;
+
 	public IterativeRuntimePipeline() {
 		super();
 	}
@@ -31,7 +35,7 @@ public class IterativeRuntimePipeline extends
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.blackboard = blackboard;
-		this.buildPipeline(IterativePipelineEntryPoint.class);
+		this.buildPipeline(IterativePipelineEntryPoint.class, new SpringContextClassProvider(applicationContext));
 	}
 
 	@Override

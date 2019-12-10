@@ -81,6 +81,12 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getId(),
 							host.getName());
 					mapping.getHostMappings().add(resMapping);
+				} else {
+					HostIDMapping nMapping = MappingFactory.eINSTANCE.createHostIDMapping();
+					nMapping.setHostID(host.getId());
+					nMapping.setPcmContainerID(optContainer.get().getId());
+
+					mapping.getHostMappings().add(nMapping);
 				}
 			}
 		});

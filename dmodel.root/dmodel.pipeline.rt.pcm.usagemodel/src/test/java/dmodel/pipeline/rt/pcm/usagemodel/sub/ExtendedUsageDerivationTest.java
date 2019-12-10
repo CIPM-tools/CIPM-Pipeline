@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.beust.jcommander.internal.Lists;
+
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.UsageModelDerivationBaseTest;
 import dmodel.pipeline.shared.structure.Tree;
@@ -19,7 +21,7 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/scenario1.dat");
 		assertEquals(records.size(), 3);
 
-		derivation.deriveUsageData(records, blackboard.getArchitectureModel());
+		derivation.deriveUsageData(records, blackboard.getArchitectureModel(), Lists.newArrayList());
 
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
@@ -40,7 +42,7 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/scenario2.dat");
 		assertEquals(records.size(), 6);
 
-		derivation.deriveUsageData(records, blackboard.getArchitectureModel());
+		derivation.deriveUsageData(records, blackboard.getArchitectureModel(), Lists.newArrayList());
 
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));

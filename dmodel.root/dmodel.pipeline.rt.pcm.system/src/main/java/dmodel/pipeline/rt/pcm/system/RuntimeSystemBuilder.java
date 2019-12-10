@@ -6,6 +6,8 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.palladiosimulator.pcm.allocation.Allocation;
+import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.ComposedStructure;
@@ -44,7 +46,8 @@ public class RuntimeSystemBuilder {
 		this.deprecationProcessor = deprecationProcessor;
 	}
 
-	public void mergeSystem(System currentSystem, List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees) {
+	public void mergeSystem(Allocation allocationModel, System currentSystem,
+			List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees) {
 		system = currentSystem;
 		currentlyContainingAssemblyIds = currentSystem.getAssemblyContexts__ComposedStructure().stream()
 				.map(asmbly -> asmbly.getId()).collect(Collectors.toSet());
@@ -69,10 +72,10 @@ public class RuntimeSystemBuilder {
 		exposeProvidedRoles();
 
 		// remove unnecessary (soft)
-		findAndProcessUnnecessary();
+		findAndProcessUnnecessary(allocationModel);
 	}
 
-	private void findAndProcessUnnecessary() {
+	private void findAndProcessUnnecessary(Allocation allocation) {
 		DirectedGraph<String, Integer> assemblyInvocationGraph = new DirectedGraph<>();
 
 		// process connectors
@@ -126,6 +129,13 @@ public class RuntimeSystemBuilder {
 
 				List<Connector> connectors = resolveCorrespondingConnectors(da);
 				system.getConnectors__ComposedStructure().removeAll(connectors);
+
+				// remove all allocations
+				PCMUtils.getElementsByType(allocation, AllocationContext.class).forEach(ac -> {
+					if (ac.getAssemblyContext_AllocationContext().getId().equals(da.getId())) {
+						allocation.getAllocationContexts_Allocation().remove(ac);
+					}
+				});
 			}
 		});
 		deprecationProcessor.iterationFinished();
@@ -239,10 +249,12 @@ public class RuntimeSystemBuilder {
 	private void processTreeNodeRecursive(TreeNode<Pair<AssemblyContext, ResourceDemandingSEFF>> parent,
 			List<String> removedAssemblys, List<String> addedAssemblys) {
 		Pair<AssemblyContext, ResourceDemandingSEFF> parentData = parent.getData();
-		boolean newParent = !currentlyContainingAssemblyIds.contains(parentData.getLeft().getId());
+		boolean newParent = !currentlyContainingAssemblyIds.contains(parentData.getLeft().getId())
+				|| deprecationProcessor.isCurrentlyDeprecated(parentData.getLeft());
 
 		parent.getChildren().forEach(child -> {
-			boolean newChild = !currentlyContainingAssemblyIds.contains(child.getData().getLeft().getId());
+			boolean newChild = !currentlyContainingAssemblyIds.contains(child.getData().getLeft().getId())
+					|| deprecationProcessor.isCurrentlyDeprecated(child.getData().getLeft());
 
 			if (!newParent && !newChild) {
 				processTreeNodeRecursive(child, removedAssemblys, addedAssemblys);
@@ -292,7 +304,7 @@ public class RuntimeSystemBuilder {
 						}).map(c -> (AssemblyConnector) c).findFirst().orElse(null);
 
 						if (conn != null) {
-							log.info("Delete old connector.");
+							log.fine("Delete old connector.");
 							system.getConnectors__ComposedStructure().remove(conn);
 
 							AssemblyContext removedAssembly = !newChild
@@ -307,7 +319,7 @@ public class RuntimeSystemBuilder {
 
 					}
 
-					log.info("Create new connector.");
+					log.fine("Create new connector.");
 					PCMSystemUtil.createAssemblyConnector(system, providedRole, child.getData().getLeft(), requiredRole,
 							parent.getData().getLeft());
 				}

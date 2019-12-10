@@ -1,5 +1,7 @@
 package dmodel.pipeline.rt.validation.data;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -7,7 +9,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ValidationMetric {
 
-	private String targetId;
+	private List<String> targetIds;
 	private ValidationMetricValue value;
 
 }

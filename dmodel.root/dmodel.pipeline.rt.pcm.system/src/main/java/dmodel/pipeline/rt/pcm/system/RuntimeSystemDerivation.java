@@ -35,6 +35,7 @@ import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.allocation.PCMAllocationUtil;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
@@ -67,7 +68,8 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 
 		List<ServiceCallGraph> runtimeGraph = buildGraphsFromMonitoringData(entryCalls);
 		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraphs(runtimeGraph);
-		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
+		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getAllocationModel(),
+				getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
 	}
 
 	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraphs(
@@ -110,6 +112,10 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 			creationCache.put(Pair.of(rec.getHost().getId(),
 					rec.getSeff().getBasicComponent_ServiceEffectSpecification().getId()), ret);
 
+			// deploy it
+			PCMAllocationUtil.deployAssemblyOnContainer(getBlackboard().getArchitectureModel().getAllocationModel(),
+					ret, rec.getHost());
+
 			return ret;
 		}
 	}
@@ -118,9 +124,11 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		ResourceContainer belongingContainer = data.getHost();
 		BasicComponent belComponent = data.getSeff().getBasicComponent_ServiceEffectSpecification();
 
-		Pair<String, String> resolvingPair = Pair.of(belongingContainer.getId(), belComponent.getId());
-		if (creationCache.containsKey(resolvingPair)) {
-			return creationCache.get(resolvingPair);
+		if (belongingContainer != null && belComponent != null) {
+			Pair<String, String> resolvingPair = Pair.of(belongingContainer.getId(), belComponent.getId());
+			if (creationCache.containsKey(resolvingPair)) {
+				return creationCache.get(resolvingPair);
+			}
 		}
 
 		if (belongingContainer != null && belComponent != null) {
@@ -133,6 +141,17 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		return null;
 	}
 
+	private AssemblyContext resolveFreeAssembly(BasicComponent belComponent) {
+		return PCMUtils.getElementsByType(getBlackboard().getArchitectureModel().getSystem(), AssemblyContext.class)
+				.stream().filter(ac -> {
+					return ac.getEncapsulatedComponent__AssemblyContext().getId().equals(belComponent.getId())
+							&& !PCMUtils.getElementsByType(getBlackboard().getArchitectureModel().getAllocationModel(),
+									AllocationContext.class).stream().anyMatch(r -> {
+										return r.getAssemblyContext_AllocationContext().getId().equals(ac.getId());
+									});
+				}).findFirst().orElse(null);
+	}
+
 	private AssemblyContext resolveAssemblyOnContainer(BasicComponent belComponent,
 			ResourceContainer belongingContainer) {
 		// here we use the assumption that only one assembly of one component can be
@@ -140,12 +159,20 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		List<AssemblyContext> matches = PCMUtils
 				.getElementsByType(getBlackboard().getArchitectureModel().getAllocationModel(), AllocationContext.class)
 				.stream().filter(a -> {
-					return a.getResourceContainer_AllocationContext().getId().equals(belongingContainer.getId())
+					return belongingContainer != null
+							&& a.getResourceContainer_AllocationContext().getId().equals(belongingContainer.getId())
 							&& a.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext()
 									.getId().equals(belComponent.getId());
 				}).map(a -> a.getAssemblyContext_AllocationContext()).collect(Collectors.toList());
 
 		if (matches.size() == 0) {
+			AssemblyContext freeAlternative = resolveFreeAssembly(belComponent);
+			if (freeAlternative != null) {
+				PCMAllocationUtil.deployAssemblyOnContainer(getBlackboard().getArchitectureModel().getAllocationModel(),
+						freeAlternative, belongingContainer);
+				return freeAlternative;
+			}
+
 			return null;
 		} else if (matches.size() == 1) {
 			return matches.get(0);

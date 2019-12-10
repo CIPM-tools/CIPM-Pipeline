@@ -90,7 +90,6 @@ public class SimpleSystemTransformationTest extends AbstractBaseSystemTransforma
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
@@ -128,7 +127,6 @@ public class SimpleSystemTransformationTest extends AbstractBaseSystemTransforma
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		// system should have changed
 		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
@@ -172,7 +170,6 @@ public class SimpleSystemTransformationTest extends AbstractBaseSystemTransforma
 		// check models after
 		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
 		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
-		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_aZ5BYBHqEeqXP_Rw8ZOxlQ"));
 		assertEquals(1, countAssembly(blackboard.getArchitectureModel().getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ"));

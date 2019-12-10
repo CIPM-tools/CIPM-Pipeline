@@ -9,6 +9,7 @@ import dmodel.pipeline.rt.validation.data.DistributionMetric;
 import dmodel.pipeline.rt.validation.data.ValidationMetricType;
 
 public class KSTestMetric extends DistributionMetric {
+	// >0 if this object is better, < 0 if the other one is better
 	@Override
 	public double compare(Object other) {
 		if (other instanceof KSTestMetric) {

@@ -9,6 +9,7 @@ import org.pcm.headless.shared.data.results.PlainMetricMeasuringPointBundle;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
@@ -19,12 +20,14 @@ import dmodel.pipeline.rt.validation.eval.IAnalysisDataProcessor;
 import dmodel.pipeline.rt.validation.eval.IMonitoringDataProcessor;
 
 @Component
-public class ServiceResponseTimeKSTestProcessor implements IAnalysisDataProcessor, IMonitoringDataProcessor, InitializingBean {
+public class ServiceResponseTimeKSTestProcessor
+		implements IAnalysisDataProcessor, IMonitoringDataProcessor, InitializingBean {
 	private Map<String, KSTestMetric> metricMapping;
 
 	@Override
 	public List<ValidationMetric> getValidationMetrics() {
-		return metricMapping.entrySet().stream().map(e -> new ValidationMetric(e.getKey(), e.getValue()))
+		return metricMapping.entrySet().stream()
+				.map(e -> new ValidationMetric(Lists.newArrayList(e.getKey()), e.getValue()))
 				.collect(Collectors.toList());
 	}
 

@@ -35,6 +35,8 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 	private ITransitionTreeExtractor treeExtractor;
 	private IPathExtractor pathExtractor;
 
+	private int currentGroupId;
+
 	public TreeBranchExtractor() {
 		this.treeExtractor = new ReferenceTransitionTreeExtractor();
 		this.pathExtractor = new SimpleComparisonPathExtractor();
@@ -43,6 +45,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 	@Override
 	public List<UsageScenario> extract(List<Tree<ServiceCallRecord>> callSequences, Repository repository,
 			System system) {
+		currentGroupId = 0;
 		// 1. create entry call tree
 		List<ServiceCallRecord> entryCalls = callSequences.parallelStream().map(e -> e.getRoot().getData())
 				.collect(Collectors.toList());
@@ -81,8 +84,8 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		}).filter(f -> f != null).collect(Collectors.toList());
 	}
 
-	private UsageGroup buildUserGroup(Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree) {
-		UsageGroup nGroup = new UsageGroup();
+	private synchronized UsageGroup buildUserGroup(Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree) {
+		UsageGroup nGroup = new UsageGroup(currentGroupId++);
 		buildUserGroupRecursive(nGroup.getDescriptors(), relevantTree.getRoot().getChildren());
 		return nGroup;
 	}

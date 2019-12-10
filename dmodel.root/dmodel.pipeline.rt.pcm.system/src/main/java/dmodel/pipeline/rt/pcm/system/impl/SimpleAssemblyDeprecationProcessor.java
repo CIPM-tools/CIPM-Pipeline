@@ -46,4 +46,9 @@ public class SimpleAssemblyDeprecationProcessor implements IAssemblyDeprecationP
 		this.iteration.clear();
 	}
 
+	@Override
+	public boolean isCurrentlyDeprecated(AssemblyContext ctx) {
+		return this.absences.keySet().contains(ctx.getId());
+	}
+
 }
