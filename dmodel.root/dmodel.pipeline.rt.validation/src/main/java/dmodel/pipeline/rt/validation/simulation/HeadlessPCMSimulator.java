@@ -29,7 +29,7 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 
 	private boolean reachable;
 
-	@Scheduled(fixedRate = 5000L)
+	@Scheduled(fixedRate = 30000L)
 	public void checkAvailability() {
 		if (client != null) {
 			this.reachable = client.isReachable(TIMEOUT_VFL);
@@ -58,11 +58,14 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 		simulationClient.sync();
 
 		// start simulation
-		simulationClient.executeSimulation(listener, TIMEOUT_VFL);
+		simulationClient.executeSimulation(listener, TIMEOUT_VFL * 20);
 	}
 
 	@Override
 	public InMemoryResultRepository simulateBlocking(InMemoryPCM pcm, String name) {
+		if (!client.isReachable(TIMEOUT_VFL)) {
+			return null;
+		}
 		// start simulation
 		CountDownLatch signal = new CountDownLatch(1);
 		ResultValueWrapper wrapper = new ResultValueWrapper();
@@ -124,6 +127,12 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 
 		boolean isSet() {
 			return res != null;
+		}
+	}
+
+	public void clearAllSimulationData() {
+		if (client.isReachable(TIMEOUT_VFL)) {
+			client.clear();
 		}
 	}
 

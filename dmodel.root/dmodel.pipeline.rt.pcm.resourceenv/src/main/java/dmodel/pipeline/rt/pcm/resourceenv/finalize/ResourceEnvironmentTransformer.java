@@ -123,7 +123,7 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 				.createProcessingResourceSpecification();
 		spec.setMTTF(0);
 		spec.setMTTR(0);
-		spec.setNumberOfReplicas(0);
+		spec.setNumberOfReplicas(1);
 		spec.setProcessingRate_ProcessingResourceSpecification(PCMUtils.createRandomVariableFromString("1"));
 		spec.setActiveResourceType_ActiveResourceSpecification(CPU_PROC_TYPE);
 		spec.setSchedulingPolicy(CPU_SHARING_POLICY);

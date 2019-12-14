@@ -22,6 +22,8 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
+import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
@@ -39,6 +41,8 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_ALLOCATION))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
 		log.info("Deriving resource environment.");
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
+				ETransformationState.RUNNING);
 
 		Set<String> hostIds = new HashSet<>();
 		Map<String, String> hostIdMapping = new HashMap<>();
@@ -61,6 +65,9 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 		// trigger deduction
 		transformer.processEnvironmentData(getBlackboard().getArchitectureModel(),
 				getBlackboard().getBorder().getRuntimeMapping(), data);
+
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
+				ETransformationState.FINISHED);
 	}
 
 	private void traverseNode(TreeNode<ServiceCallRecord> node, Set<String> hosts, Map<String, String> mapping,

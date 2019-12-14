@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
 import dmodel.pipeline.rt.pipeline.blackboard.validation.ValidationResultContainer;
 import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.rt.validation.ValidationFeedbackComponent;
@@ -36,6 +37,9 @@ public class RuntimePipelineBlackboard {
 
 	@Autowired
 	private ValidationResultContainer validationResultContainer;
+
+	@Autowired
+	private PipelineUIState pipelineState;
 
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
@@ -73,6 +77,7 @@ public class RuntimePipelineBlackboard {
 
 	public void reset() {
 		// delete previous validation results
+		pipelineState.reset();
 		validationResultContainer.reset();
 	}
 

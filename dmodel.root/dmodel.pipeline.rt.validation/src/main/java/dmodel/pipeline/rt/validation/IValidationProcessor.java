@@ -2,12 +2,14 @@ package dmodel.pipeline.rt.validation;
 
 import java.util.List;
 
-import dmodel.pipeline.monitoring.records.ServiceContextRecord;
-import dmodel.pipeline.rt.validation.data.ValidationMetric;
+import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
+import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 public interface IValidationProcessor {
 
-	List<ValidationMetric> process(InMemoryPCM instance, List<ServiceContextRecord> monitoringData, String taskName);
+	ValidationData process(InMemoryPCM instance, PalladioRuntimeMapping mapping, List<RecordWithSession> monitoringData,
+			String taskName);
 
 }

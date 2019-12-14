@@ -33,6 +33,8 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
+import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.pcm.util.allocation.PCMAllocationUtil;
@@ -63,13 +65,20 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_ALLOCATION_PCM_SYSTEM) })
 	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);
+
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();
+		cache.clear();
+		cacheResEnv.clear();
 
 		List<ServiceCallGraph> runtimeGraph = buildGraphsFromMonitoringData(entryCalls);
 		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraphs(runtimeGraph);
 		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getAllocationModel(),
 				getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
+
+		// finish
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.FINISHED);
 	}
 
 	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraphs(

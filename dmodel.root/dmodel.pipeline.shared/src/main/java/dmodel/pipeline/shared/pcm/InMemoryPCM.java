@@ -1,7 +1,13 @@
 package dmodel.pipeline.shared.pcm;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.palladiosimulator.pcm.allocation.Allocation;
+import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
+import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryFactory;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
@@ -13,11 +19,13 @@ import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
 import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 public class InMemoryPCM {
+
 	private Repository repository;
 	private System system;
 	private UsageModel usageModel;
@@ -151,6 +159,30 @@ public class InMemoryPCM {
 		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
 	}
 
+	public void swapRepository(Repository other) {
+		FileBackedModelUtil.clear(this.repository);
+		if (reflected != null) {
+			this.repository = FileBackedModelUtil.synchronize(other, reflected.getRepositoryFile(), Repository.class,
+					n -> updatedRepository(), null);
+			this.updatedRepository();
+		} else {
+			this.repository = other;
+			this.updatedRepository();
+		}
+	}
+
+	public void swapUsageModel(UsageModel other) {
+		FileBackedModelUtil.clear(this.system);
+		if (reflected != null) {
+			this.usageModel = FileBackedModelUtil.synchronize(other, reflected.getUsageModelFile(), UsageModel.class,
+					n -> updatedUsage(), null);
+			this.updatedSystem();
+		} else {
+			this.usageModel = other;
+			this.updatedSystem();
+		}
+	}
+
 	public void swapSystem(System currentSystem) {
 		FileBackedModelUtil.clear(this.system);
 		if (reflected != null) {
@@ -161,6 +193,14 @@ public class InMemoryPCM {
 			this.system = currentSystem;
 			this.updatedSystem();
 		}
+
+		// update link to system
+		this.allocationModel.setSystem_Allocation(this.system);
+		Set<String> containedIds = PCMUtils.getElementsByType(this.system, AssemblyContext.class).stream()
+				.map(ac -> ac.getId()).collect(Collectors.toSet());
+		List<AllocationContext> toRemoveCtxs = PCMUtils.getElementsByType(this.allocationModel, AllocationContext.class)
+				.stream().filter(ac -> !containedIds.contains(ac.getId())).collect(Collectors.toList());
+		toRemoveCtxs.forEach(ac -> this.allocationModel.getAllocationContexts_Allocation().remove(ac));
 	}
 
 	public void clearListeners() {

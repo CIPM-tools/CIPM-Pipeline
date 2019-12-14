@@ -1,22 +1,19 @@
 package dmodel.pipeline.rt.pipeline.blackboard.validation;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
-import dmodel.pipeline.rt.validation.data.ValidationMetric;
+import dmodel.pipeline.rt.validation.data.ValidationData;
 import lombok.Data;
 
 @Service
 @Data
 public class ValidationResultContainer {
+	private ValidationData preValidationResults;
 
-	private List<ValidationMetric> preValidationResults;
+	private ValidationData afterUsageModelResults;
+	private ValidationData afterRepositoryResults;
 
-	private List<ValidationMetric> afterUsageModelResults;
-	private List<ValidationMetric> afterRepositoryResults;
-
-	private List<ValidationMetric> finalResults;
+	private ValidationData finalResults;
 
 	public void reset() {
 		preValidationResults = afterUsageModelResults = afterRepositoryResults = finalResults = null;

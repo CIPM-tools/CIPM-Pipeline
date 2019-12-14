@@ -21,8 +21,11 @@ import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import dmodel.pipeline.rt.validation.eval.IValidationDataGenerator;
-import dmodel.pipeline.rt.validation.eval.impl.ServiceResponseTimeKSTestProcessor;
+import dmodel.pipeline.models.mapping.MappingFactory;
+import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallKSTestMetric;
+import dmodel.pipeline.rt.validation.eval.MonitoringDataEnrichment;
+import dmodel.pipeline.rt.validation.eval.ValidationDataExtractor;
 import dmodel.pipeline.rt.validation.simulation.HeadlessPCMSimulator;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
@@ -50,8 +53,18 @@ public class ValidationProcessorTest {
 		}
 
 		@Bean
-		public IValidationDataGenerator generator() {
-			return new ServiceResponseTimeKSTestProcessor();
+		public ValidationDataExtractor extractor() {
+			return new ValidationDataExtractor();
+		}
+
+		@Bean
+		public MonitoringDataEnrichment enricher() {
+			return new MonitoringDataEnrichment();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator() {
+			return new ServiceCallKSTestMetric();
 		}
 
 		@Bean
@@ -73,7 +86,8 @@ public class ValidationProcessorTest {
 
 	@Test
 	public void testSimulation() {
-		feedback.process(pcm, Lists.newArrayList(), "TestAnalysis");
+		feedback.process(pcm, MappingFactory.eINSTANCE.createPalladioRuntimeMapping(), Lists.newArrayList(),
+				"TestAnalysis");
 	}
 
 	@Before

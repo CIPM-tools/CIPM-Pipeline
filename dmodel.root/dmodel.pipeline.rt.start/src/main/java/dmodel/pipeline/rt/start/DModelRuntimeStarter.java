@@ -15,6 +15,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -34,7 +37,7 @@ import dmodel.pipeline.shared.pcm.util.PCMUtils;
 @EnableScheduling
 @EnableConfigurationProperties
 @EnableWebMvc
-public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer {
+public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer, SchedulingConfigurer {
 
 	@Value("${config}")
 	private String configPath;
@@ -63,6 +66,18 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer 
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS)
 				.setCacheControl(CacheControl.noCache());
+	}
+
+	@Override
+	public void configureTasks(ScheduledTaskRegistrar scheduledTaskRegistrar) {
+		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+
+		threadPoolTaskScheduler.setDaemon(true);
+		threadPoolTaskScheduler.setPoolSize(2);
+		threadPoolTaskScheduler.setThreadNamePrefix("springboot-threadpool");
+		threadPoolTaskScheduler.initialize();
+
+		scheduledTaskRegistrar.setTaskScheduler(threadPoolTaskScheduler);
 	}
 
 	@Bean

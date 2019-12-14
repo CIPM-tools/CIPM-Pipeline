@@ -19,6 +19,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.system.System;
 
 import dmodel.pipeline.rt.pipeline.AbstractTransformationTest;
+import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
 import dmodel.pipeline.shared.ModelUtil;
 
 public abstract class AbstractBaseSystemTransformationTest extends AbstractTransformationTest {
@@ -55,6 +56,8 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 		this.addHostMapping("_nyc2kRHtEeqXP_Rw8ZOxlQ", HOSTID_LOGIC);
 		this.addHostMapping("_pvtNcRHtEeqXP_Rw8ZOxlQ", HOSTID_DB);
 		this.addHostMapping("_DJuGYRXjEeqKY-U3QOe1UQ", HOSTID_DB2);
+
+		blackboard.setPipelineState(new PipelineUIState());
 	}
 
 	@Test

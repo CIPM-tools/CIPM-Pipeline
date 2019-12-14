@@ -116,7 +116,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 						// add object entry
 						instanceMapping.put(method.getDeclaringClass(), entry);
 
-						NodeInformation nodeInfo = new NodeInformation(method, Executors.newSingleThreadExecutor(),
+						NodeInformation nodeInfo = new NodeInformation(method, Executors.newFixedThreadPool(1),
 								new PartInputProxy(1));
 
 						// build tree
@@ -181,8 +181,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 							currentInfo = nodeInformationMapping.get(method);
 						} else {
 							PartInputProxy proxy = new PartInputProxy(inputPorts.value().length);
-							ExecutorService executor = sub.async() ? Executors.newSingleThreadExecutor()
-									: parent.executor;
+							ExecutorService executor = sub.async() ? Executors.newFixedThreadPool(1) : parent.executor;
 							currentInfo = new NodeInformation(method, executor, proxy);
 							nodeInformationMapping.put(method, currentInfo);
 						}

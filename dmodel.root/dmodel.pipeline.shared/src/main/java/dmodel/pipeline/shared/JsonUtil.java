@@ -41,4 +41,8 @@ public class JsonUtil {
 		return "{}";
 	}
 
+	public static String emptyArray() {
+		return "[]";
+	}
+
 }

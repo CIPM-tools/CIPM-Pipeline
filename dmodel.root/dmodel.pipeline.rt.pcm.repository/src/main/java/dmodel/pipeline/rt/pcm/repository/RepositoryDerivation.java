@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.rt.validation.data.ValidationMetric;
+import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.structure.Tree;
 
@@ -13,7 +13,7 @@ import dmodel.pipeline.shared.structure.Tree;
 public class RepositoryDerivation {
 
 	public void calibrateRepository(List<Tree<ServiceCallRecord>> callTrees, InMemoryPCM pcm,
-			List<ValidationMetric> validation) {
+			ValidationData validation) {
 	}
 
 }

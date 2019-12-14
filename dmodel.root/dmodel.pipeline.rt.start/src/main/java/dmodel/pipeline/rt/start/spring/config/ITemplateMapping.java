@@ -22,6 +22,9 @@ public interface ITemplateMapping {
 
 	String CONFIG_RUNTIME_FRAGMENT = "fragments/runtime/index";
 	String CONFIG_RUNTIME_FRAGMENT_JS = "fragments/runtime/js/index";
-	Object CONFIG_RUNTIME_FRAGMENT_FOOTER = "fragments/runtime/runtime_footer";
+	String CONFIG_RUNTIME_FRAGMENT_FOOTER = "fragments/runtime/runtime_footer";
+
+	String CONFIG_MODELS_VALIDATION_FRAGMENT = "fragments/validation/index";
+	String CONFIG_MODELS_VALIDATION_FRAGMENT_JS = "fragments/validation/js/index";
 
 }

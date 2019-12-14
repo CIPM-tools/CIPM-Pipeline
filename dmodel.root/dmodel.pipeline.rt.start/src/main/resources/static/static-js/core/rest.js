@@ -52,6 +52,16 @@ var rest = {
 			status : "/design/system/build/status",
 			get : "/design/system/build/get"
 		}
+	},
+	
+	runtime : {
+		pipeline : {
+			status : "/runtime/pipeline/status"
+		},
+		validation : {
+			points : "/runtime/validation/points",
+			data : "/runtime/validation/data"
+		}
 	}
 		
 };

@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.entry.core;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import dmodel.pipeline.monitoring.records.RecordWithSession;
 import dmodel.pipeline.monitoring.records.ServiceContextRecord;
 import dmodel.pipeline.rt.pcm.validation.PrePipelineValidationTask;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
@@ -23,9 +24,9 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 	@EntryInputPort
 	@OutputPorts({ @OutputPort(id = PortIDs.T_VAL_PRE, to = PrePipelineValidationTask.class, async = false),
 			@OutputPort(id = PortIDs.T_RAW_ROUTER, to = AccuracySwitch.class, async = false) })
-	public List<ServiceContextRecord> filterMonitoringData(List<IMonitoringRecord> records) {
+	public List<RecordWithSession> filterMonitoringData(List<IMonitoringRecord> records) {
 		log.info("Reached entry (size = " + records.size() + ").");
-		return records.stream().filter(r -> r instanceof ServiceContextRecord).map(ServiceContextRecord.class::cast)
+		return records.stream().filter(r -> r instanceof RecordWithSession).map(ServiceContextRecord.class::cast)
 				.collect(Collectors.toList());
 	}
 

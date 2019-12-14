@@ -15,4 +15,7 @@ public interface PortIDs {
 	String T_SYSTEM_ROUTER = "system->router";
 	String T_SC_ROUTER = "sc->router";
 	String T_RAW_ROUTER = "raw->router";
+
+	String T_FINAL_VALIDATION = "model->final";
+	String T_RAW_FINAL_VALIDATION = "raw->final";
 }

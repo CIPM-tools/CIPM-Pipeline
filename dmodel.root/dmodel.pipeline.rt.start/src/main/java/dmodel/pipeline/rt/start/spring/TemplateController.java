@@ -101,6 +101,15 @@ public class TemplateController {
 		return "index";
 	}
 
+	@RequestMapping(value = { "/validation/", "/validation/index" }, method = RequestMethod.GET)
+	public String validationData(Model model) {
+		this.prepareModel(model, "validation");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_MODELS_VALIDATION_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_MODELS_VALIDATION_FRAGMENT_JS);
+
+		return "index";
+	}
+
 	private void prepareModel(Model model, String page) {
 		model.addAttribute("runtime_available", blackboard.isApplicationRunning());
 		model.addAttribute("headless_available", simulator.isReachable());

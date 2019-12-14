@@ -30,6 +30,7 @@ public class IterativeRuntimePipeline extends
 	@Override
 	public void initBlackboard() {
 		blackboard.reset();
+		blackboard.getValidationFeedbackComponent().clearSimulationData();
 	}
 
 	@Override

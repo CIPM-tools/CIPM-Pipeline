@@ -13,6 +13,8 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
+import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 
@@ -22,7 +24,12 @@ public class AllocationDerivation extends AbstractIterativePipelinePart<RuntimeP
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_ALLOCATION), @InputPort(PortIDs.T_RESENV_PCM_ALLOCATION) })
 	@OutputPorts(@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_ALLOCATION_PCM_SYSTEM))
 	public void deriveAllocationData(List<Tree<ServiceCallRecord>> entryCalls) {
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_ALLOCATION,
+				ETransformationState.RUNNING);
 		LOG.info("Deriving allocations.");
+
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_ALLOCATION,
+				ETransformationState.FINISHED);
 	}
 
 }
