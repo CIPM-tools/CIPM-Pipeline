@@ -4,9 +4,9 @@ import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.springframework.stereotype.Service;
 
-import dmodel.pipeline.rt.validation.data.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
+import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
 
 @Service

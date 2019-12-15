@@ -1,6 +1,7 @@
 package dmodel.pipeline.rt.validation;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.models.mapping.MappingFactory;
+import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
 import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallKSTestMetric;
 import dmodel.pipeline.rt.validation.eval.MonitoringDataEnrichment;
@@ -86,8 +88,12 @@ public class ValidationProcessorTest {
 
 	@Test
 	public void testSimulation() {
-		feedback.process(pcm, MappingFactory.eINSTANCE.createPalladioRuntimeMapping(), Lists.newArrayList(),
-				"TestAnalysis");
+		for (int i = 0; i < 25; i++) {
+			ValidationData data = feedback.process(pcm, MappingFactory.eINSTANCE.createPalladioRuntimeMapping(),
+					Lists.newArrayList(), "TestAnalysis");
+			assertNotNull(data);
+			assertTrue(data.getValidationPoints().size() > 2);
+		}
 	}
 
 	@Before

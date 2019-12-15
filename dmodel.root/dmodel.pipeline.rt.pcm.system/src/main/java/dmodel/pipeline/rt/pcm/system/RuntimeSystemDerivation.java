@@ -25,6 +25,7 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
+import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.system.impl.SimpleAssemblyDeprecationProcessor;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
@@ -292,28 +293,35 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		if (cacheResEnv.containsKey(hostId)) {
 			return cacheResEnv.get(hostId);
 		} else {
-			Optional<String> pcmContainerId = getMappedResourceContainerId(hostId);
+			boolean present = true;
+			while (present) {
+				Optional<HostIDMapping> pcmContainerId = getMappedResourceContainerId(hostId);
+				if (pcmContainerId.isPresent()) {
+					ResourceContainer container = PCMUtils.getElementById(
+							this.getBlackboard().getArchitectureModel().getResourceEnvironmentModel(),
+							ResourceContainer.class, pcmContainerId.get().getPcmContainerID());
+					if (container != null) {
+						cacheResEnv.put(hostId, container);
+						return container;
+					} else {
+						log.warning("Failed to resolve container with ID '" + pcmContainerId.get()
+								+ "'. The resource environment model seems to be inconsistent.");
 
-			if (pcmContainerId.isPresent()) {
-				ResourceContainer container = PCMUtils.getElementById(
-						this.getBlackboard().getArchitectureModel().getResourceEnvironmentModel(),
-						ResourceContainer.class, pcmContainerId.get());
-				if (container != null) {
-					cacheResEnv.put(hostId, container);
+						// remove this mapping
+						getBlackboard().getBorder().getRuntimeMapping().getHostMappings().remove(pcmContainerId.get());
+					}
 				} else {
-					log.warning("Failed to resolve container with ID '" + pcmContainerId.get()
-							+ "'. The resource environment model seems to be inconsistent.");
+					present = false;
 				}
-				return container;
 			}
 			return null;
 		}
 	}
 
-	private Optional<String> getMappedResourceContainerId(String hostId) {
+	private Optional<HostIDMapping> getMappedResourceContainerId(String hostId) {
 		return getBlackboard().getBorder().getRuntimeMapping().getHostMappings().stream().filter(m -> {
 			return m.getHostID().equals(hostId);
-		}).map(m -> m.getPcmContainerID()).findFirst();
+		}).findFirst();
 	}
 
 }

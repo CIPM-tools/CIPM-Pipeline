@@ -9,7 +9,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
-import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
+import org.pcm.headless.shared.data.results.MeasuringPointType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
@@ -21,8 +22,9 @@ import dmodel.pipeline.monitoring.records.ResourceUtilizationRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.validation.data.TimeValueDistribution;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
+import dmodel.pipeline.rt.validation.eval.util.PCMValidationPointMatcher;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.PCMElementIDCache;
 
 @Service
 public class MonitoringDataEnrichment {
@@ -32,8 +34,10 @@ public class MonitoringDataEnrichment {
 	private Cache<Pair<String, String>, List<ValidationPoint>> serviceCallCache = new Cache2kBuilder<Pair<String, String>, List<ValidationPoint>>() {
 	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
-	private Cache<String, ResourceContainer> cacheResEnv = new Cache2kBuilder<String, ResourceContainer>() {
-	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
+	private PCMElementIDCache<ResourceContainer> cacheResEnv = new PCMElementIDCache<>(ResourceContainer.class);
+
+	@Autowired
+	private PCMValidationPointMatcher pcmValidationPointMatcher;
 
 	public void enrichWithMonitoringData(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
 			List<RecordWithSession> monitoring) {
@@ -41,6 +45,7 @@ public class MonitoringDataEnrichment {
 		resourceUtilCache.clear();
 		serviceCallCache.clear();
 		cacheResEnv.clear();
+		pcmValidationPointMatcher.clear();
 
 		monitoring.stream().forEach(rec -> {
 			processRecord(pcm, mapping, points, rec);
@@ -89,9 +94,18 @@ public class MonitoringDataEnrichment {
 				if (resolvedTargetIds == null) {
 					return;
 				}
-				assignedPoints = points.stream()
-						.filter(p -> listEqualUnordered(resolvedTargetIds, p.getMeasuringPoint().getSourceIds()))
-						.collect(Collectors.toList());
+
+				assignedPoints = points.stream().filter(p -> {
+					if (p.getMeasuringPoint().getType() == MeasuringPointType.ASSEMBLY_OPERATION) {
+						return pcmValidationPointMatcher.belongTogetherAssemblyOperation(pcm, resolvedTargetIds.get(0),
+								resolvedTargetIds.get(1), p.getMeasuringPoint().getSourceIds().get(0),
+								p.getMeasuringPoint().getSourceIds().get(1));
+					} else if (p.getMeasuringPoint().getType() == MeasuringPointType.ENTRY_LEVEL_CALL) {
+						return pcmValidationPointMatcher.belongTogetherEntryCall(pcm, resolvedTargetIds.get(0),
+								resolvedTargetIds.get(1), p.getMeasuringPoint().getSourceIds().get(0));
+					}
+					return false;
+				}).collect(Collectors.toList());
 			}
 
 			if (assignedPoints.size() > 0) {
@@ -99,8 +113,9 @@ public class MonitoringDataEnrichment {
 					if (ap.getMonitoringDistribution() == null) {
 						ap.setMonitoringDistribution(new TimeValueDistribution());
 					}
-					ap.getMonitoringDistribution().addValueX(serviceRec.getEntryTime());
-					ap.getMonitoringDistribution().addValueY(serviceRec.getExitTime() - serviceRec.getEntryTime());
+					ap.getMonitoringDistribution().addValueX(serviceRec.getEntryTime() / 1000000000.0D);
+					ap.getMonitoringDistribution()
+							.addValueY((serviceRec.getExitTime() - serviceRec.getEntryTime()) / 1000000.0D);
 				});
 			}
 		} else {
@@ -108,23 +123,12 @@ public class MonitoringDataEnrichment {
 		}
 	}
 
-	private boolean listEqualUnordered(List<String> as, List<String> bs) {
-		if (as.size() != bs.size())
-			return false;
-		for (String a : as) {
-			if (!bs.contains(a)) {
-				return false;
-			}
-		}
-		return false;
-	}
-
 	private List<String> resolveServiceCallTargetIds(InMemoryPCM pcm, PalladioRuntimeMapping mapping, String hostId,
 			String serviceId) {
 		Optional<HostIDMapping> containerId = mapping.getHostMappings().stream()
 				.filter(mp -> mp.getHostID().equals(hostId)).findFirst();
 		if (containerId.isPresent()) {
-			ResourceContainer container = resolveContainerWithCache(pcm.getResourceEnvironmentModel(),
+			ResourceContainer container = cacheResEnv.resolve(pcm.getResourceEnvironmentModel(),
 					containerId.get().getPcmContainerID());
 			if (container != null) {
 				return Lists.newArrayList(container.getId(), serviceId);
@@ -138,7 +142,7 @@ public class MonitoringDataEnrichment {
 		Optional<HostIDMapping> containerId = mapping.getHostMappings().stream()
 				.filter(mp -> mp.getHostID().equals(hostId)).findFirst();
 		if (containerId.isPresent()) {
-			ResourceContainer container = resolveContainerWithCache(pcm.getResourceEnvironmentModel(),
+			ResourceContainer container = cacheResEnv.resolve(pcm.getResourceEnvironmentModel(),
 					containerId.get().getPcmContainerID());
 			if (container != null) {
 				return container.getActiveResourceSpecifications_ResourceContainer().stream()
@@ -147,17 +151,5 @@ public class MonitoringDataEnrichment {
 			}
 		}
 		return null;
-	}
-
-	private ResourceContainer resolveContainerWithCache(ResourceEnvironment env, String containerId) {
-		if (cacheResEnv.containsKey(containerId)) {
-			return cacheResEnv.get(containerId);
-		} else {
-			ResourceContainer result = PCMUtils.getElementById(env, ResourceContainer.class, containerId);
-			if (result != null) {
-				cacheResEnv.put(containerId, result);
-			}
-			return result;
-		}
 	}
 }

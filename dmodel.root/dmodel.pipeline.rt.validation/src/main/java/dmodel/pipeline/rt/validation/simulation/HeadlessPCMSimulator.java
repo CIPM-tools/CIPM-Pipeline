@@ -2,6 +2,8 @@ package dmodel.pipeline.rt.validation.simulation;
 
 import java.util.concurrent.CountDownLatch;
 
+import javax.swing.JOptionPane;
+
 import org.pcm.headless.api.client.ISimulationResultListener;
 import org.pcm.headless.api.client.PCMHeadlessClient;
 import org.pcm.headless.api.client.SimulationClient;
@@ -63,16 +65,16 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 
 	@Override
 	public InMemoryResultRepository simulateBlocking(InMemoryPCM pcm, String name) {
-		if (!client.isReachable(TIMEOUT_VFL)) {
-			return null;
-		}
 		// start simulation
 		CountDownLatch signal = new CountDownLatch(1);
 		ResultValueWrapper wrapper = new ResultValueWrapper();
 
 		this.simulate(pcm, name, res -> {
-			signal.countDown();
+			if (res == null) {
+				JOptionPane.showMessageDialog(null, "Simulation results are null.");
+			}
 			wrapper.setValue(res);
+			signal.countDown();
 		});
 
 		try {

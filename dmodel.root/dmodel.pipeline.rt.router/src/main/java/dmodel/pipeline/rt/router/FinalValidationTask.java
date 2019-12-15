@@ -25,7 +25,7 @@ public class FinalValidationTask extends AbstractIterativePipelinePart<RuntimePi
 		// simulate
 		ValidationData metrics = getBlackboard().getValidationFeedbackComponent().process(
 				getBlackboard().getArchitectureModel(), getBlackboard().getBorder().getRuntimeMapping(), recs,
-				"Pipeline-PreValidation");
+				"Pipeline-FinalValidation");
 
 		// set results
 		getBlackboard().getValidationResultContainer().setFinalResults(metrics);

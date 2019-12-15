@@ -22,6 +22,20 @@ $(document).ready(function() {
 	});
 
 	registerCloseEvent();
+
+	// check for get parameters
+	var predefined = getQueryVariable("data");
+	if (predefined !== null) {
+		if (predefined === "pre") {
+			$("#list-v1-list").click();
+		} else if (predefined === "afterusage") {
+			$("#list-v2-list").click();
+		} else if (predefined === "afterrepo") {
+			$("#list-v3-list").click();
+		} else if (predefined === "final") {
+			$("#list-v4-list").click();
+		}
+	}
 });
 
 function switchData(point) {
@@ -83,7 +97,7 @@ function createVisualizationTab(type, data) {
 
 	// recreate events
 	registerCloseEvent();
-	
+
 	// open tab
 	$("#" + genId).tab('show');
 }
@@ -123,14 +137,117 @@ function insertContent(type, data, container) {
 		// align data
 		var datasets = alignAndSortDistributions(data.monitoringDistribution,
 				data.analysisDistribution);
-		
+
 		// calculate cdfs
-		// TODO
+		var cdf1 = buildCDF(datasets.monitoring);
+		var cdf2 = buildCDF(datasets.analysis);
+
+		// sets
+		chart.data.datasets
+				.push(createDataset("Monitoring", "red", cdf1, true));
+		chart.data.datasets.push(createDataset("Analysis", "blue", cdf2, true));
+
+		// You update the chart to take into account the new dataset
+		chart.update();
 	} else if (type === "Histogram") {
-		// TODO
+		// print xy chart
+		var canvas = $('<canvas id="' + genId + '"></canvas>');
+		container.append(canvas);
+
+		// print chart
+		var ctx = $(canvas)[0].getContext('2d');
+		var chart = new Chart(ctx, generateDefaultBarChart());
+
+		// align data
+		var datasets = alignAndSortDistributions(data.monitoringDistribution,
+				data.analysisDistribution);
+
+		var histo1 = buildHistogram(datasets.monitoring);
+		var histo2 = buildHistogram(datasets.analysis);
+
+		// sets
+		chart.data.datasets.push(createDatasetBar(chart, "Monitoring", "red",
+				histo1));
+		chart.data.datasets.push(createDatasetBar(chart, "Analysis", "blue",
+				histo2));
+
+		// You update the chart to take into account the new dataset
+		chart.update();
 	} else if (type === "Metrics") {
-		// TODO
+		var tableProto = $('<table class="table"><thead><tr><th scope="col">#</th><th scope="col">Metric name</th><th scope="col">Metric value</th></thead></table>');
+		var tableBody = $('<tbody></tbody>');
+
+		if (data.metricValues !== undefined) {
+			for (var i = 0; i < data.metricValues.length; i++) {
+				var nRow = $('<tr><td>#' + (i + 1) + '</td><td>'
+						+ data.metricValues[i].type + '</td><td>'
+						+ data.metricValues[i].value + '</td><tr>');
+				tableBody.append(nRow);
+			}
+		}
+
+		tableProto.append(tableBody);
+		container.append(tableProto);
 	}
+}
+
+function buildHistogram(dataset) {
+	if (dataset === null || dataset === undefined) {
+		return [];
+	}
+
+	// extract & sort
+	var yExtract = [];
+	dataset.forEach(function(d) {
+		yExtract.push(d.y);
+	});
+	yExtract.sort(function(a, b) {
+		return a - b;
+	});
+
+	var output = [];
+	var last_i = 0;
+	for (var i = 0; i < yExtract.length; i++) {
+		if (i > 0) {
+			if (yExtract[i] != yExtract[i - 1]) {
+				// add old
+				output.push({
+					x : yExtract[i - 1],
+					y : i - last_i + 1
+				});
+			}
+		}
+	}
+	output.push({
+		x : yExtract[yExtract.length - 1],
+		y : yExtract.length - last_i
+	});
+	return output;
+}
+
+function buildCDF(dataset) {
+	if (dataset === null || dataset === undefined) {
+		return [];
+	}
+
+	// extract & sort
+	var yExtract = [];
+	dataset.forEach(function(d) {
+		yExtract.push(d.y);
+	});
+	yExtract.sort(function(a, b) {
+		return a - b;
+	});
+
+	// generate points
+	var output = [];
+	for (var i = 0; i < yExtract.length; i++) {
+		output.push({
+			x : yExtract[i],
+			y : (i + 1) / yExtract.length
+		});
+	}
+	return output;
 }
 
 // this method will register event on close icon on the tab..
@@ -149,12 +266,36 @@ function registerCloseEvent() {
 	});
 }
 
-function createDataset(label, color, values) {
+function createDatasetBar(chart, label, color, values) {
+	if (values.length == 0) {
+		return null;
+	}
+
+	var labels = [];
+	var data = [];
+	for (var i = 0; i < values.length; i++) {
+		labels.push(values[i].x);
+		data.push(values[i].y);
+	}
+
+	chart.data.labels = data;
+
+	return {
+		borderColor : window.chartColors[color],
+		data : data,
+		label : label
+	};
+}
+
+function createDataset(label, color, values, connect) {
+	if (connect === undefined) {
+		connect = false;
+	}
 	return {
 		label : label,
 		data : values,
 		tension : 0,
-		showLine : false,
+		showLine : connect,
 		fill : false,
 		borderWidth : 2,
 		borderColor : window.chartColors[color]
@@ -165,13 +306,14 @@ function alignAndSortDistributions(monitoring, analysis) {
 	// align
 	if (monitoring !== null && analysis !== null && monitoring !== undefined
 			&& analysis !== undefined) {
-		var minBoth = Math.min(Math.min(monitoring.xvalues), Math
-				.min(analysis.xvalues));
+		var minMonitoring = minOfArrayWorkaround(monitoring.xvalues);
+		var minAnalysis = minOfArrayWorkaround(analysis.xvalues);
+
 		for (var i = 0; i < monitoring.xvalues.length; i++) {
-			monitoring.xvalues[i] -= minBoth;
+			monitoring.xvalues[i] -= minMonitoring;
 		}
 		for (var i = 0; i < analysis.xvalues.length; i++) {
-			analysis.xvalues[i] -= minBoth;
+			analysis.xvalues[i] -= minAnalysis;
 		}
 	}
 
@@ -210,9 +352,75 @@ function alignAndSortDistributions(monitoring, analysis) {
 		return a.x - b.x;
 	});
 
+	console.log(analysis_data);
+
 	return {
 		monitoring : monitoring_data,
 		analysis : analysis_data
+	};
+}
+
+function minOfArrayWorkaround(arr) {
+	if (arr.length == 0) {
+		return 0;
+	}
+
+	var kMin = arr[0];
+	for (var k = 1; k < arr.length; k++) {
+		if (arr[k] < kMin) {
+			kMin = arr[k];
+		}
+	}
+	;
+	return kMin;
+}
+
+function removeNaNs(distr) {
+	if (distr !== null && distr !== undefined && distr.xvalues !== undefined) {
+		for (var i = 0; i < distr.xvalues.length; i++) {
+			if (isNaN(distr.xvalues[i])) {
+				distr.xvalues[i] = 0;
+			}
+			if (isNaN(distr.yvalues[i])) {
+				distr.yvalues[i] = 0;
+			}
+		}
+	}
+}
+
+function generateDefaultBarChart() {
+	return {
+		type : 'bar',
+		data : {
+			datasets : []
+		},
+		options : {
+			responsive : true,
+			legend : {
+				position : 'bottom',
+			},
+			tooltips : {
+				enabled : false
+			},
+			animation : {
+				duration : 0
+			// general animation time
+			},
+			scales : {
+				xAxes : [ {
+					type : 'linear',
+					position : 'bottom',
+					ticks : {
+						suggestedMin : 0
+					}
+				} ],
+				yAxes : [ {
+					ticks : {
+						suggestedMin : 0
+					}
+				} ]
+			}
+		}
 	};
 }
 
@@ -250,4 +458,15 @@ function generateDefaultScatter() {
 			}
 		}
 	};
+}
+
+function getQueryVariable(variable) {
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i = 0; i < vars.length; i++) {
+		var pair = vars[i].split("=");
+		if (pair[0] == variable) {
+			return pair[1];
+		}
+	}
 }

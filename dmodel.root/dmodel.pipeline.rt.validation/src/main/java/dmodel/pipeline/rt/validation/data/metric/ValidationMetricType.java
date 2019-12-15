@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.validation.data;
+package dmodel.pipeline.rt.validation.data.metric;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

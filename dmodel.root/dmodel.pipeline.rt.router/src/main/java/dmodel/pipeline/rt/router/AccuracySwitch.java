@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.tuple.Triple;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +25,9 @@ import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
 import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.validation.data.ValidationData;
-import dmodel.pipeline.rt.validation.data.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
+import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
@@ -57,14 +56,11 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<RecordWithSession> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
 
-		InMemoryPCM copyForUsage = getBlackboard().getArchitectureModel().copyReference();
-		InMemoryPCM copyForRepository = getBlackboard().getArchitectureModel().copyReference();
-
-		// we assume here that these two transformations only change one model part
-		// for the usage transformation only the usage model is duplicated and for the
-		// repository only the repo
-		copyForUsage.setUsageModel(EcoreUtil.copy(copyForUsage.getUsageModel()));
-		copyForRepository.setRepository(EcoreUtil.copy(copyForRepository.getRepository()));
+		// create deep copies
+		InMemoryPCM copyForUsage = getBlackboard().getArchitectureModel().copyDeep();
+		InMemoryPCM copyForRepository = getBlackboard().getArchitectureModel().copyDeep();
+		copyForRepository.clearListeners();
+		copyForUsage.clearListeners();
 
 		// 1. invoke the transformations
 		CountDownLatch waitLatch = new CountDownLatch(2);
@@ -144,7 +140,6 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL2,
 					ETransformationState.RUNNING);
 
-			copyForRepository.saveToFilesystem(getBlackboard().getFilesystemPCM());
 			// repository was better
 			usageDataTransformation.deriveUsageData(entryCalls, copyForRepository, pathRepository);
 
@@ -154,7 +149,6 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
 					ETransformationState.RUNNING);
 
-			copyForUsage.saveToFilesystem(getBlackboard().getFilesystemPCM());
 			// usagemodel was better
 			repositoryTransformation.calibrateRepository(entryCalls, copyForUsage, pathUsageModel);
 
@@ -163,16 +157,15 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		}
 
 		// 5. set it as final
+		getBlackboard().getArchitectureModel().clearListeners();
 		if (sum >= 0) {
-			getBlackboard().getArchitectureModel().swapRepository(copyForRepository.getRepository());
-			getBlackboard().getArchitectureModel().swapUsageModel(copyForRepository.getUsageModel());
+			// TODO debug
+			getBlackboard().setArchitectureModel(copyForRepository);
+			copyForRepository.syncWithFilesystem(getBlackboard().getFilesystemPCM());
 		} else {
-			getBlackboard().getArchitectureModel().swapRepository(copyForUsage.getRepository());
-			getBlackboard().getArchitectureModel().swapUsageModel(copyForUsage.getUsageModel());
+			getBlackboard().setArchitectureModel(copyForUsage);
+			copyForUsage.syncWithFilesystem(getBlackboard().getFilesystemPCM());
 		}
-
-		// save finally (this is done automatically)
-		// getBlackboard().getArchitectureModel().saveToFilesystem(getBlackboard().getFilesystemPCM());
 	}
 
 }

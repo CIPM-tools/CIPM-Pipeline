@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Data
 public class UsageGroup implements IPCMAnalogue<UsageScenario> {
-	private long interarrivalTime;
+	private long interarrivalTime = 1500; // quick fix
 	private List<IAbstractUsageDescriptor> descriptors;
 	private int id;
 

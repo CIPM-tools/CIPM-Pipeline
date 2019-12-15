@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
@@ -16,6 +17,9 @@ import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.system.SystemFactory;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
+import org.pcm.headless.api.client.transform.TransitiveModelTransformerUtil;
+
+import com.google.common.collect.Lists;
 
 import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
@@ -62,6 +66,20 @@ public class InMemoryPCM {
 		this.updatedResourceEnv();
 		this.updatedSystem();
 		this.updatedUsage();
+	}
+
+	public void syncWithFilesystem(LocalFilesystemPCM pcm) {
+		FileBackedModelUtil.synchronize(this.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
+				n -> this.updatedAllocation(), null);
+		FileBackedModelUtil.synchronize(this.getRepository(), pcm.getRepositoryFile(), Repository.class,
+				n -> this.updatedRepository(), null);
+		FileBackedModelUtil.synchronize(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
+				ResourceEnvironment.class, n -> this.updatedResourceEnv(), null);
+		FileBackedModelUtil.synchronize(this.getSystem(), pcm.getSystemFile(), System.class, n -> this.updatedSystem(),
+				null);
+		FileBackedModelUtil.synchronize(this.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
+				n -> this.updatedUsage(), null);
+		this.reflected = pcm;
 	}
 
 	public static InMemoryPCM createFromFilesystemSynced(LocalFilesystemPCM pcm) {
@@ -215,5 +233,26 @@ public class InMemoryPCM {
 		return InMemoryPCM.builder().repository(getRepository()).system(getSystem())
 				.resourceEnvironmentModel(getResourceEnvironmentModel()).allocationModel(getAllocationModel())
 				.usageModel(getUsageModel()).build();
+	}
+
+	public InMemoryPCM copyDeep() {
+		TransitiveModelTransformerUtil transformer = new TransitiveModelTransformerUtil();
+		List<EObject> orgs = Lists.newArrayList(allocationModel, repository, resourceEnvironmentModel, usageModel,
+				system);
+		List<EObject> copies = transformer.copyObjects(orgs);
+
+		Repository repo = copies.stream().filter(f -> f instanceof Repository).map(Repository.class::cast).findFirst()
+				.orElse(null);
+		System system = copies.stream().filter(f -> f instanceof System).map(System.class::cast).findFirst()
+				.orElse(null);
+		ResourceEnvironment env = copies.stream().filter(f -> f instanceof ResourceEnvironment)
+				.map(ResourceEnvironment.class::cast).findFirst().orElse(null);
+		Allocation alloc = copies.stream().filter(f -> f instanceof Allocation).map(Allocation.class::cast).findFirst()
+				.orElse(null);
+		UsageModel usage = copies.stream().filter(f -> f instanceof UsageModel).map(UsageModel.class::cast).findFirst()
+				.orElse(null);
+
+		return InMemoryPCM.builder().repository(repo).system(system).resourceEnvironmentModel(env)
+				.allocationModel(alloc).usageModel(usage).build();
 	}
 }

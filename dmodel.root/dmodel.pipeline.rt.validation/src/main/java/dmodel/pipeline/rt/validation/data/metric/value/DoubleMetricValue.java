@@ -1,7 +1,7 @@
 package dmodel.pipeline.rt.validation.data.metric.value;
 
-import dmodel.pipeline.rt.validation.data.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
+import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 
 public class DoubleMetricValue extends ValidationMetricValue {
 	private double value;
