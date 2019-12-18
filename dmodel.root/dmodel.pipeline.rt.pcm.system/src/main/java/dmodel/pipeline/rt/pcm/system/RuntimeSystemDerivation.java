@@ -27,7 +27,6 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.rt.pcm.system.impl.SimpleAssemblyDeprecationProcessor;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -39,6 +38,7 @@ import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.pcm.util.allocation.PCMAllocationUtil;
+import dmodel.pipeline.shared.pcm.util.deprecation.SimpleDeprecationProcessor;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
@@ -59,7 +59,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	private Map<Pair<String, String>, AssemblyContext> creationCache;
 
 	public RuntimeSystemDerivation() {
-		this.runtimeSystemBuilder = new RuntimeSystemBuilder(new SimpleAssemblyDeprecationProcessor(2));
+		this.runtimeSystemBuilder = new RuntimeSystemBuilder(new SimpleDeprecationProcessor(2));
 		this.creationCache = new HashMap<>();
 	}
 

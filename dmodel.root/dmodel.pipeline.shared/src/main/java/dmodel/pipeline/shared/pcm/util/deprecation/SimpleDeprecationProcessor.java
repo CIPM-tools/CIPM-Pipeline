@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.pcm.system.impl;
+package dmodel.pipeline.shared.pcm.util.deprecation;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,24 +6,22 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.palladiosimulator.pcm.core.composition.AssemblyContext;
+import de.uka.ipd.sdq.identifier.Identifier;
 
-import dmodel.pipeline.rt.pcm.system.IAssemblyDeprecationProcessor;
-
-public class SimpleAssemblyDeprecationProcessor implements IAssemblyDeprecationProcessor {
+public class SimpleDeprecationProcessor implements IDeprecationProcessor {
 	private int consecutives;
 
 	private Map<String, Integer> absences;
 	private Set<String> iteration;
 
-	public SimpleAssemblyDeprecationProcessor(int maxConsecutiveAbsences) {
+	public SimpleDeprecationProcessor(int maxConsecutiveAbsences) {
 		this.consecutives = maxConsecutiveAbsences;
 		this.absences = new HashMap<>();
 		this.iteration = new HashSet<>();
 	}
 
 	@Override
-	public boolean shouldDelete(AssemblyContext ctx) {
+	public boolean shouldDelete(Identifier ctx) {
 		this.iteration.add(ctx.getId());
 		if (absences.containsKey(ctx.getId())) {
 			absences.put(ctx.getId(), absences.get(ctx.getId()) + 1);
@@ -47,7 +45,7 @@ public class SimpleAssemblyDeprecationProcessor implements IAssemblyDeprecationP
 	}
 
 	@Override
-	public boolean isCurrentlyDeprecated(AssemblyContext ctx) {
+	public boolean isCurrentlyDeprecated(Identifier ctx) {
 		return this.absences.keySet().contains(ctx.getId());
 	}
 

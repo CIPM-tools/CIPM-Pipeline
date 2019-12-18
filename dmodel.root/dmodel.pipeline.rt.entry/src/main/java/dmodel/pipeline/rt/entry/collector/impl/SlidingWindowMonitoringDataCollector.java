@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
@@ -19,7 +19,7 @@ import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.MonitoringDataEntryConfiguration;
 import kieker.common.record.IMonitoringRecord;
 
-@Service
+@Component
 public class SlidingWindowMonitoringDataCollector implements IMonitoringDataCollector, InitializingBean {
 
 	private MonitoringDataEntryConfiguration config;

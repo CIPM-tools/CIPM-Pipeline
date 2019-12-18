@@ -42,7 +42,7 @@ public class ValidationProcessorTest {
 	private InMemoryPCM pcm;
 
 	@TestConfiguration
-	static class EmployeeServiceImplTestContextConfiguration {
+	static class TestContextConfiguration {
 
 		@Bean
 		public ValidationFeedbackComponent vfc() {

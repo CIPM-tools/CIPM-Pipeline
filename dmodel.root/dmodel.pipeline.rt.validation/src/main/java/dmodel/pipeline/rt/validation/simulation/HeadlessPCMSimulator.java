@@ -2,8 +2,6 @@ package dmodel.pipeline.rt.validation.simulation;
 
 import java.util.concurrent.CountDownLatch;
 
-import javax.swing.JOptionPane;
-
 import org.pcm.headless.api.client.ISimulationResultListener;
 import org.pcm.headless.api.client.PCMHeadlessClient;
 import org.pcm.headless.api.client.SimulationClient;
@@ -44,23 +42,27 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 
 	@Override
 	public void simulate(InMemoryPCM pcm, String name, ISimulationResultListener listener) {
-		// set properties
-		SimulationClient simulationClient = client.prepareSimulation();
-		simulationClient.setSimulationConfig(HeadlessSimulationConfig.builder().type(ESimulationType.SIMUCOM)
-				.experimentName(name).repetitions(1).maximumMeasurementCount(config.getVfl().getMeasurements())
-				.simulationTime(config.getVfl().getSimulationTime()).build());
-		simulationClient.setRepository(pcm.getRepository());
-		simulationClient.setSystem(pcm.getSystem());
-		simulationClient.setResourceEnvironment(pcm.getResourceEnvironmentModel());
-		simulationClient.setAllocation(pcm.getAllocationModel());
-		simulationClient.setUsageModel(pcm.getUsageModel());
+		try {
+			// set properties
+			SimulationClient simulationClient = client.prepareSimulation();
+			simulationClient.setSimulationConfig(HeadlessSimulationConfig.builder().type(ESimulationType.SIMUCOM)
+					.experimentName(name).repetitions(1).maximumMeasurementCount(config.getVfl().getMeasurements())
+					.simulationTime(config.getVfl().getSimulationTime()).build());
+			simulationClient.setRepository(pcm.getRepository());
+			simulationClient.setSystem(pcm.getSystem());
+			simulationClient.setResourceEnvironment(pcm.getResourceEnvironmentModel());
+			simulationClient.setAllocation(pcm.getAllocationModel());
+			simulationClient.setUsageModel(pcm.getUsageModel());
 
-		// transitive closure & sync
-		simulationClient.createTransitiveClosure();
-		simulationClient.sync();
+			// transitive closure & sync
+			simulationClient.createTransitiveClosure();
+			simulationClient.sync();
 
-		// start simulation
-		simulationClient.executeSimulation(listener, TIMEOUT_VFL * 20);
+			// start simulation
+			simulationClient.executeSimulation(listener, TIMEOUT_VFL * 20);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -70,9 +72,6 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 		ResultValueWrapper wrapper = new ResultValueWrapper();
 
 		this.simulate(pcm, name, res -> {
-			if (res == null) {
-				JOptionPane.showMessageDialog(null, "Simulation results are null.");
-			}
 			wrapper.setValue(res);
 			signal.countDown();
 		});

@@ -1,10 +1,14 @@
 package dmodel.pipeline.monitoring.records
 
-template RecordWithSession {
+// overall type for all of our records
+template PCMContextRecord {
+}
+
+template RecordWithSession : PCMContextRecord {
    string sessionId = "<not set>"
 }
 
-template HostContextRecord {
+template HostContextRecord : PCMContextRecord {
 	string hostId = "<not set>"
 	string hostName = "<not set>"
 }
@@ -13,7 +17,7 @@ template ServiceContextRecord : RecordWithSession {
 	string serviceExecutionId = "<not set>"
 }
 
-entity ResourceUtilizationRecord : RecordWithSession, HostContextRecord {
+entity ResourceUtilizationRecord : HostContextRecord {
    string resourceId = "<not set>"
    double utilization
    long timestamp

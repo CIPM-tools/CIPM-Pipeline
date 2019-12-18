@@ -24,6 +24,7 @@ import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Sets;
 
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.deprecation.IDeprecationProcessor;
 import dmodel.pipeline.shared.pcm.util.system.PCMSystemUtil;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 import dmodel.pipeline.shared.structure.Tree;
@@ -40,9 +41,9 @@ public class RuntimeSystemBuilder {
 	private Set<String> currentlyContainingAssemblyIds;
 	private Set<String> addedAssemblyIds;
 
-	private IAssemblyDeprecationProcessor deprecationProcessor;
+	private IDeprecationProcessor deprecationProcessor;
 
-	public RuntimeSystemBuilder(IAssemblyDeprecationProcessor deprecationProcessor) {
+	public RuntimeSystemBuilder(IDeprecationProcessor deprecationProcessor) {
 		this.deprecationProcessor = deprecationProcessor;
 	}
 
@@ -317,6 +318,9 @@ public class RuntimeSystemBuilder {
 							addedAssemblys.add(addedAssembly.getId());
 						}
 
+					} else if (newChild && newParent) {
+						addedAssemblys.add(parentData.getLeft().getId());
+						addedAssemblys.add(child.getData().getLeft().getId());
 					}
 
 					log.fine("Create new connector.");

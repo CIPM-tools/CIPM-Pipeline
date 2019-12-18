@@ -32,6 +32,9 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 	protected static final String HOSTID_LOGIC = "logic";
 	protected static final String HOSTID_DB = "db";
 	protected static final String HOSTID_DB2 = "db2";
+	protected static final String HOSTID_CLIENTNEW = "clientnew";
+	protected static final String HOSTID_LOGICNEW = "logicnew";
+	protected static final String HOSTID_DBNEW = "dbnew";
 
 	@BeforeClass
 	public static void loadInitModels() {
@@ -57,6 +60,10 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 		this.addHostMapping("_pvtNcRHtEeqXP_Rw8ZOxlQ", HOSTID_DB);
 		this.addHostMapping("_DJuGYRXjEeqKY-U3QOe1UQ", HOSTID_DB2);
 
+		this.addHostMapping("_ZnZ_gSAXEeqyhbeF8kzVUQ", HOSTID_CLIENTNEW);
+		this.addHostMapping("_bvzPYSAXEeqyhbeF8kzVUQ", HOSTID_LOGICNEW);
+		this.addHostMapping("_dsSxQSAXEeqyhbeF8kzVUQ", HOSTID_DBNEW);
+
 		blackboard.setPipelineState(new PipelineUIState());
 	}
 
@@ -67,7 +74,7 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 		assertNotNull(blackboard.getArchitectureModel().getResourceEnvironmentModel());
 		assertNotNull(blackboard.getArchitectureModel().getAllocationModel());
 
-		assertEquals(blackboard.getBorder().getRuntimeMapping().getHostMappings().size(), 4);
+		assertEquals(blackboard.getBorder().getRuntimeMapping().getHostMappings().size(), 7);
 	}
 
 	protected long countAssembly(System system, String comp) {

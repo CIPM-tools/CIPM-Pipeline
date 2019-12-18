@@ -1,48 +1,48 @@
 package dmodel.pipeline.rt.entry;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
+import dmodel.pipeline.rt.entry.monitoring.MultiChannelTcpReader;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import kieker.analysis.plugin.reader.tcp.util.SingleSocketRecordReader;
 import kieker.analysis.plugin.reader.util.IRecordReceivedListener;
-import kieker.common.logging.Log;
-import kieker.common.logging.LogFactory;
 import kieker.common.record.IMonitoringRecord;
 
 @Service
 @lombok.extern.java.Log
 public class MonitoringEntryPoint implements InitializingBean, IRecordReceivedListener {
-	private static final Log KIEKER_LOGGER = LogFactory.getLog(MonitoringEntryPoint.class);
-
-	private SingleSocketRecordReader monitoringReader;
-
 	@Autowired
 	private List<IMonitoringDataCollector> collectors;
 
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;
 
+	private MultiChannelTcpReader tcpReader;
+	private ExecutorService clientHandlingExecutorService;
+
 	public MonitoringEntryPoint() {
-		monitoringReader = new SingleSocketRecordReader(10133, 65535, KIEKER_LOGGER, this);
+		clientHandlingExecutorService = Executors.newFixedThreadPool(10); // max 10 concurrent
+		tcpReader = new MultiChannelTcpReader(10133, 65535, this, clientHandlingExecutorService);
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		new Thread(new ReRunRunnableWrapper(monitoringReader)).start();
+		new Thread(new ReRunRunnableWrapper(tcpReader)).start();
 	}
 
 	@Override
-	public void onRecordReceived(IMonitoringRecord record) {
+	public synchronized void onRecordReceived(IMonitoringRecord record) {
 		// tell it the blackboard
 		blackboard.receivedMonitoringData();
 		blackboard.setApplicationRunning(true);
 
-		log.fine("Received a monitoring record of type \"" + record.getClass().getName() + "\".");
+		log.finer("Received a monitoring record of type \"" + record.getClass().getName() + "\".");
 		for (IMonitoringDataCollector collector : collectors) {
 			collector.collect(record);
 		}

@@ -3,6 +3,8 @@ package dmodel.pipeline.rt.pcm.resourceenv.finalize;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.palladiosimulator.pcm.resourceenvironment.CommunicationLinkResourceSpecification;
 import org.palladiosimulator.pcm.resourceenvironment.LinkingResource;
@@ -14,6 +16,8 @@ import org.palladiosimulator.pcm.resourcetype.ProcessingResourceType;
 import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.SchedulingPolicy;
 
+import com.google.common.collect.Sets;
+
 import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
@@ -22,6 +26,7 @@ import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
 import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.shared.pcm.util.deprecation.SimpleDeprecationProcessor;
 import lombok.extern.java.Log;
 
 @Log
@@ -32,13 +37,22 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 	private static final SchedulingPolicy CPU_SHARING_POLICY = PCMUtils.getElementById(DEFAULT_RESOURCE_REPO,
 			SchedulingPolicy.class, "ProcessorSharing");
 
+	private SimpleDeprecationProcessor deprecationProcessor;
+
+	public ResourceEnvironmentTransformer() {
+		this.deprecationProcessor = new SimpleDeprecationProcessor(3);
+	}
+
 	@Override
 	public void processEnvironmentData(InMemoryPCM pcm, PalladioRuntimeMapping mapping, EnvironmentData data) {
 		processHosts(pcm, mapping, data.getHosts());
 		processLinks(pcm, mapping, data.getConnections());
+
+		deprecationProcessor.iterationFinished();
 	}
 
 	private void processLinks(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<HostLink> links) {
+		// create links
 		links.stream().forEach(link -> {
 			Optional<HostIDMapping> hostFrom = mapping.getHostMappings().stream()
 					.filter(mp -> mp.getHostID().equals(link.getFromId())).findFirst();
@@ -57,9 +71,22 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 				log.warning("Updating the Resource Environment failed due to mapping problems.");
 			}
 		});
+
+		// remove all that are unused
+		Set<String> usedContainerIds = pcm.getAllocationModel().getAllocationContexts_Allocation().stream()
+				.map(ac -> ac.getResourceContainer_AllocationContext().getId()).collect(Collectors.toSet());
+		List<LinkingResource> unusedLinks = pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment()
+				.stream().filter(l -> l.getConnectedResourceContainers_LinkingResource().stream()
+						.anyMatch(r -> !usedContainerIds.contains(r.getId())))
+				.collect(Collectors.toList());
+		unusedLinks.forEach(l -> {
+			pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().remove(l);
+		});
 	}
 
 	private void processHosts(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<Host> hosts) {
+		Set<String> presentIds = Sets.newHashSet();
+		// create all hosts
 		hosts.stream().forEach(host -> {
 			Optional<HostIDMapping> refMapping = mapping.getHostMappings().stream()
 					.filter(mp -> mp.getHostID().equals(host.getId())).findFirst();
@@ -73,6 +100,9 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getId(),
 							host.getName());
 					mapping.getHostMappings().add(resMapping);
+					presentIds.add(resMapping.getPcmContainerID());
+				} else {
+					presentIds.add(refContainer.getId());
 				}
 			} else {
 				Optional<ResourceContainer> optContainer = getContainerByName(pcm.getResourceEnvironmentModel(),
@@ -81,13 +111,27 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 					HostIDMapping resMapping = createContainer(pcm.getResourceEnvironmentModel(), host.getId(),
 							host.getName());
 					mapping.getHostMappings().add(resMapping);
+					presentIds.add(resMapping.getPcmContainerID());
 				} else {
 					HostIDMapping nMapping = MappingFactory.eINSTANCE.createHostIDMapping();
 					nMapping.setHostID(host.getId());
 					nMapping.setPcmContainerID(optContainer.get().getId());
+					presentIds.add(nMapping.getPcmContainerID());
 
 					mapping.getHostMappings().add(nMapping);
 				}
+			}
+		});
+
+		// remove all that are unused
+		Set<String> usedContainerIds = pcm.getAllocationModel().getAllocationContexts_Allocation().stream()
+				.map(ac -> ac.getResourceContainer_AllocationContext().getId()).collect(Collectors.toSet());
+		usedContainerIds.addAll(presentIds);
+		List<ResourceContainer> toRemove = pcm.getResourceEnvironmentModel().getResourceContainer_ResourceEnvironment()
+				.stream().filter(r -> !usedContainerIds.contains(r.getId())).collect(Collectors.toList());
+		toRemove.forEach(tr -> {
+			if (deprecationProcessor.shouldDelete(tr)) {
+				pcm.getResourceEnvironmentModel().getResourceContainer_ResourceEnvironment().remove(tr);
 			}
 		});
 	}

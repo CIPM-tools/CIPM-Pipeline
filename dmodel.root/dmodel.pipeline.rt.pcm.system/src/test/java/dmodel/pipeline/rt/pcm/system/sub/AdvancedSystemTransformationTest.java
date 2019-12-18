@@ -60,6 +60,22 @@ public class AdvancedSystemTransformationTest extends AbstractBaseSystemTransfor
 	}
 
 	@Test
+	public void fullEnvironmentChange() {
+		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/environmentchange.dat");
+		assertEquals(records.size(), 2);
+
+		transformation.deriveSystemData(records);
+
+		// check models after
+		assertTrue(modelsEqual(INIT_REPOSITORY, blackboard.getArchitectureModel().getRepository()));
+		assertTrue(modelsEqual(INIT_RESENV, blackboard.getArchitectureModel().getResourceEnvironmentModel()));
+
+		// system & allocation should have changed
+		assertFalse(modelsEqual(INIT_SYSTEM, blackboard.getArchitectureModel().getSystem()));
+		assertFalse(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
+	}
+
+	@Test
 	public void uiChangeTest() {
 		List<Tree<ServiceCallRecord>> records = parseMonitoringResource("/monitoring/uichange.dat");
 		assertEquals(records.size(), 3);

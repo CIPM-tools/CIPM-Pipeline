@@ -68,6 +68,8 @@ public class PCMSystemBuilder {
 	private Map<RequiredRole, ProvidedRole> reqProvMapping;
 	private ComposedStructure currentOuterStructure;
 
+	private int currentAssemblyID;
+
 	public PCMSystemBuilder() {
 		this.assemblySelectionListener = new ArrayList<>();
 		this.connectionConflictListener = new ArrayList<>();
@@ -75,6 +77,7 @@ public class PCMSystemBuilder {
 
 	public boolean startBuildingSystem(ServiceCallGraph serviceCallGraph) {
 		// 0. create output system
+		currentAssemblyID = 1;
 		currentSystem = SystemFactory.eINSTANCE.createSystem();
 		currentOuterStructure = currentSystem;
 
@@ -356,6 +359,7 @@ public class PCMSystemBuilder {
 		}
 
 		AssemblyContext nAssembly = CompositionFactory.eINSTANCE.createAssemblyContext();
+		nAssembly.setEntityName("Assembly" + currentAssemblyID++);
 		nAssembly.setEncapsulatedComponent__AssemblyContext((RepositoryComponent) comp);
 		nAssembly.setParentStructure__AssemblyContext(currentOuterStructure); // TODO
 		currentOuterStructure.getAssemblyContexts__ComposedStructure().add(nAssembly);
