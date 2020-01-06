@@ -13,7 +13,7 @@ public class TestMonitoringController {
 		controller.enterService("1234", "ABCD");
 		controller.logResponseTime("abc", "cdf", start);
 		controller.logResponseTime("abc", "cdf", start);
-		controller.exitService();
+		controller.exitService("1234");
 	}
 
 }

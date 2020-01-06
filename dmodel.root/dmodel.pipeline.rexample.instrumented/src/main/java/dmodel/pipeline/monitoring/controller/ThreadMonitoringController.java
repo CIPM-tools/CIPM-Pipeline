@@ -1,18 +1,29 @@
 package dmodel.pipeline.monitoring.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import dmodel.pipeline.monitoring.records.BranchRecord;
 import dmodel.pipeline.monitoring.records.LoopRecord;
 import dmodel.pipeline.monitoring.records.ResponseTimeRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import kieker.common.configuration.Configuration;
 import kieker.monitoring.core.configuration.ConfigurationFactory;
 import kieker.monitoring.core.controller.IMonitoringController;
 import kieker.monitoring.core.controller.MonitoringController;
 import kieker.monitoring.timer.ITimeSource;
-import kieker.monitoring.writer.filesystem.AsciiFileWriter;
 import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 
 
@@ -21,17 +32,26 @@ public class ThreadMonitoringController {
 
     private static final ThreadMonitoringController instance;
 
+    private static final String serverHostname = "localhost";
+
+    private static final int restPort = 8090;
+
+    private static final String restAddress = "/runtime/pipeline/imm";
+
     static {
         final Configuration configuration = ConfigurationFactory.createDefaultConfiguration();
         configuration.setProperty(ConfigurationFactory.METADATA, "true");
         configuration.setProperty(ConfigurationFactory.AUTO_SET_LOGGINGTSTAMP, "true");
         configuration.setProperty(ConfigurationFactory.WRITER_CLASSNAME, SingleSocketTcpWriter.class.getName());
         // configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
-        configuration.setProperty(AsciiFileWriter.CONFIG_FLUSH, "true");
+        configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
         configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
+        configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, "localhost");
         // configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
         MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);
         instance = new ThreadMonitoringController();
+        ThreadMonitoringController.instance.pollInstrumentationModel();
+        ThreadMonitoringController.instance.registerInstrumentationModelPoll();
     }
 
     private static final ITimeSource TIME_SOURCE = ThreadMonitoringController.MONITORING_CONTROLLER.getTimeSource();
@@ -42,9 +62,48 @@ public class ThreadMonitoringController {
 
     private ThreadLocal<Stack<ThreadMonitoringController.ServiceCallTrack>> serviceCallStack;
 
+    private Set<String> monitoredIds = Sets.newHashSet();
+
+    private boolean monitoredIdsInited = false;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private ScheduledExecutorService execService = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+        public Thread newThread(Runnable r) {
+            Thread t = Executors.defaultThreadFactory().newThread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    });
+
+    private MonitoringAnalysisData analysis = new MonitoringAnalysisData();
+
     private ThreadMonitoringController() {
         this.idFactory = new IDFactory();
         this.serviceCallStack = ThreadLocal.withInitial(Stack::new);
+    }
+
+    private void registerInstrumentationModelPoll() {
+        execService.scheduleAtFixedRate(() -> pollInstrumentationModel(), 15, 15, TimeUnit.SECONDS);
+    }
+
+    private void pollInstrumentationModel() {
+        try {
+            final URL url = new URL(((((ThreadMonitoringController.serverHostname) + ":") + (ThreadMonitoringController.restPort)) + (ThreadMonitoringController.restAddress)));
+            final HttpURLConnection conn = ((HttpURLConnection) (url.openConnection()));
+            conn.setDoOutput(true);
+            conn.setRequestMethod("GET");
+            final BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String output;
+            String all = null;
+            while ((output = br.readLine()) != null) {
+                all = (all == null) ? output : (all + "\n") + output;
+            } 
+            conn.disconnect();
+            monitoredIds = Sets.newHashSet(objectMapper.readValue(all, String[].class));
+            monitoredIdsInited = true;
+        } catch (IOException e) {
+        }
     }
 
     /**
@@ -72,32 +131,40 @@ public class ThreadMonitoringController {
      * 		The service parameter values.
      */
     public synchronized void enterService(final String serviceId, final Object exId, final ServiceParameters serviceParameters) {
-        // value of threadlocal always exists
-        Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
-        ThreadMonitoringController.ServiceCallTrack nTrack;
-        if (trace.empty()) {
-            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), null);
-        } else {
-            nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
+        if ((!(monitoredIdsInited)) || (monitoredIds.contains(serviceId))) {
+            long start = analysis.enterOverhead();
+            // value of threadlocal always exists
+            Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+            ThreadMonitoringController.ServiceCallTrack nTrack;
+            if (trace.empty()) {
+                nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), null);
+            } else {
+                nTrack = new ThreadMonitoringController.ServiceCallTrack(serviceId, ThreadMonitoringController.sessionId, serviceParameters, String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
+            }
+            // push it
+            trace.push(nTrack);
+            analysis.exitServiceCallOverhead(serviceId, start);
         }
-        // push it
-        trace.push(nTrack);
     }
 
     /**
      * Leaves the current service and writes the monitoring record.
      * {@link ThreadMonitoringController#enterService(String)} must be called first.
      */
-    public synchronized void exitService() {
-        long end = ThreadMonitoringController.TIME_SOURCE.getTime();
-        // value of threadlocal always exists
-        Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
-        if (trace.empty()) {
-            throw new RuntimeException("The trace stack should never be empty when 'exitService' is called.");
+    public synchronized void exitService(String serviceId) {
+        if ((!(monitoredIdsInited)) || (monitoredIds.contains(serviceId))) {
+            long start = analysis.enterOverhead();
+            long end = ThreadMonitoringController.TIME_SOURCE.getTime();
+            // value of threadlocal always exists
+            Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+            if (trace.empty()) {
+                throw new RuntimeException("The trace stack should never be empty when 'exitService' is called.");
+            }
+            // exit current trace
+            ThreadMonitoringController.ServiceCallTrack track = trace.pop();
+            ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId, HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId, track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext, track.serviceStartTime, end));
+            analysis.exitServiceCallOverhead(serviceId, start);
         }
-        // exit current trace
-        ThreadMonitoringController.ServiceCallTrack track = trace.pop();
-        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId, HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId, track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext, track.serviceStartTime, end));
     }
 
     /**
@@ -120,13 +187,17 @@ public class ThreadMonitoringController {
      * 		transition.
      */
     public void logBranchExecution(final String branchId, final String executedBranchId) {
-        Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
-        if (trace.empty()) {
-            throw new RuntimeException("The trace stack should never be empty when 'logBranchExecution' is called.");
+        if ((!(monitoredIdsInited)) || (monitoredIds.contains(branchId))) {
+            long start = analysis.enterOverhead();
+            Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+            if (trace.empty()) {
+                throw new RuntimeException("The trace stack should never be empty when 'logBranchExecution' is called.");
+            }
+            ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+            BranchRecord record = new BranchRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, branchId, executedBranchId);
+            ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
+            analysis.exitBranchOverhead(branchId, start);
         }
-        ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
-        BranchRecord record = new BranchRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, branchId, executedBranchId);
-        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
     }
 
     /**
@@ -138,13 +209,17 @@ public class ThreadMonitoringController {
      * 		The executed iterations of the loop.
      */
     public void logLoopIterationCount(final String loopId, final long loopIterationCount) {
-        Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
-        if (trace.empty()) {
-            throw new RuntimeException("The trace stack should never be empty when 'logLoopIterationCount' is called.");
+        if ((!(monitoredIdsInited)) || (monitoredIds.contains(loopId))) {
+            long start = analysis.enterOverhead();
+            Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+            if (trace.empty()) {
+                throw new RuntimeException("The trace stack should never be empty when 'logLoopIterationCount' is called.");
+            }
+            ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+            LoopRecord record = new LoopRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, loopId, loopIterationCount);
+            ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
+            analysis.exitLoopOverhead(loopId, start);
         }
-        ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
-        LoopRecord record = new LoopRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, loopId, loopIterationCount);
-        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
     }
 
     /**
@@ -159,14 +234,18 @@ public class ThreadMonitoringController {
      * 		The start time of the response time.
      */
     public void logResponseTime(final String internalActionId, final String resourceId, final long startTime) {
-        long end = ThreadMonitoringController.TIME_SOURCE.getTime();
-        Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
-        if (trace.empty()) {
-            throw new RuntimeException("The trace stack should never be empty when 'logResponseTime' is called.");
+        if ((!(monitoredIdsInited)) || (monitoredIds.contains(internalActionId))) {
+            long start = analysis.enterOverhead();
+            long end = ThreadMonitoringController.TIME_SOURCE.getTime();
+            Stack<ThreadMonitoringController.ServiceCallTrack> trace = serviceCallStack.get();
+            if (trace.empty()) {
+                throw new RuntimeException("The trace stack should never be empty when 'logResponseTime' is called.");
+            }
+            ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
+            ResponseTimeRecord record = new ResponseTimeRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, internalActionId, resourceId, startTime, end);
+            ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
+            analysis.internalOverhead(internalActionId, start);
         }
-        ThreadMonitoringController.ServiceCallTrack currentTrack = trace.peek();
-        ResponseTimeRecord record = new ResponseTimeRecord(ThreadMonitoringController.sessionId, currentTrack.serviceExecutionId, internalActionId, resourceId, startTime, end);
-        ThreadMonitoringController.MONITORING_CONTROLLER.newMonitoringRecord(record);
     }
 
     public static ThreadMonitoringController getInstance() {

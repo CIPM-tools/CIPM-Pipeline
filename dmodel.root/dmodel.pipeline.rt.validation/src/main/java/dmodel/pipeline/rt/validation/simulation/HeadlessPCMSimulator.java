@@ -45,21 +45,23 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 		try {
 			// set properties
 			SimulationClient simulationClient = client.prepareSimulation();
-			simulationClient.setSimulationConfig(HeadlessSimulationConfig.builder().type(ESimulationType.SIMUCOM)
-					.experimentName(name).repetitions(1).maximumMeasurementCount(config.getVfl().getMeasurements())
-					.simulationTime(config.getVfl().getSimulationTime()).build());
-			simulationClient.setRepository(pcm.getRepository());
-			simulationClient.setSystem(pcm.getSystem());
-			simulationClient.setResourceEnvironment(pcm.getResourceEnvironmentModel());
-			simulationClient.setAllocation(pcm.getAllocationModel());
-			simulationClient.setUsageModel(pcm.getUsageModel());
+			if (simulationClient != null) {
+				simulationClient.setSimulationConfig(HeadlessSimulationConfig.builder().type(ESimulationType.SIMUCOM)
+						.experimentName(name).repetitions(1).maximumMeasurementCount(config.getVfl().getMeasurements())
+						.simulationTime(config.getVfl().getSimulationTime()).build());
+				simulationClient.setRepository(pcm.getRepository());
+				simulationClient.setSystem(pcm.getSystem());
+				simulationClient.setResourceEnvironment(pcm.getResourceEnvironmentModel());
+				simulationClient.setAllocation(pcm.getAllocationModel());
+				simulationClient.setUsageModel(pcm.getUsageModel());
 
-			// transitive closure & sync
-			simulationClient.createTransitiveClosure();
-			simulationClient.sync();
+				// transitive closure & sync
+				simulationClient.createTransitiveClosure();
+				simulationClient.sync();
 
-			// start simulation
-			simulationClient.executeSimulation(listener, TIMEOUT_VFL * 20);
+				// start simulation
+				simulationClient.executeSimulation(listener, TIMEOUT_VFL * 20);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

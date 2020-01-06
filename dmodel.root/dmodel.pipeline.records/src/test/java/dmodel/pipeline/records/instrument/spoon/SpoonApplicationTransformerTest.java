@@ -4,7 +4,12 @@ import java.io.File;
 
 import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.pcm.headless.api.util.PCMUtil;
 
+import InstrumentationMetamodel.InstrumentationModel;
+import InstrumentationMetamodel.InstrumentationModelFactory;
+import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.records.instrument.ApplicationProject;
@@ -14,12 +19,7 @@ import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.Launcher;
 import spoon.compiler.Environment;
-import tools.vitruv.models.im.ImFactory;
-import tools.vitruv.models.im.InstrumentationModel;
-import tools.vitruv.models.im.InstrumentationPoint;
-import tools.vitruv.models.im.InstrumentationType;
 
-// TODO please refactor this soon, otherwise i need to puke
 public class SpoonApplicationTransformerTest {
 
 	@Test
@@ -58,24 +58,24 @@ public class SpoonApplicationTransformerTest {
 				meta.getRepository());
 
 		// build instrumentation model
-		InstrumentationModel iModel = ImFactory.eINSTANCE.createInstrumentationModel();
-		InstrumentationPoint point = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point.setIsActive(true);
-		point.setItype(InstrumentationType.SERVICE);
-		point.setServiceID("_2nvWUKKQEem6I6QlOar_-g");
-		iModel.getProbes().add(point);
+		InstrumentationModel iModel = InstrumentationModelFactory.eINSTANCE.createInstrumentationModel();
+		ServiceInstrumentationPoint point = InstrumentationModelFactory.eINSTANCE.createServiceInstrumentationPoint();
+		point.setActive(true);
+		point.setService(
+				PCMUtil.getElementById(meta.getRepository(), ResourceDemandingSEFF.class, "_2nvWUKKQEem6I6QlOar_-g"));
+		iModel.getPoints().add(point);
 
-		InstrumentationPoint point2 = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point2.setIsActive(true);
-		point2.setItype(InstrumentationType.SERVICE);
-		point2.setServiceID("_PlFlUJYHEempGaXtj6ezAw");
-		iModel.getProbes().add(point2);
+		ServiceInstrumentationPoint point2 = InstrumentationModelFactory.eINSTANCE.createServiceInstrumentationPoint();
+		point2.setActive(true);
+		point2.setService(
+				PCMUtil.getElementById(meta.getRepository(), ResourceDemandingSEFF.class, "_PlFlUJYHEempGaXtj6ezAw"));
+		iModel.getPoints().add(point2);
 
-		InstrumentationPoint point3 = ImFactory.eINSTANCE.createInstrumentationPoint();
-		point3.setIsActive(true);
-		point3.setItype(InstrumentationType.SERVICE);
-		point3.setServiceID("_2RDcwKMhEemdKJpkeqfUZw");
-		iModel.getProbes().add(point3);
+		ServiceInstrumentationPoint point3 = InstrumentationModelFactory.eINSTANCE.createServiceInstrumentationPoint();
+		point3.setActive(true);
+		point3.setService(
+				PCMUtil.getElementById(meta.getRepository(), ResourceDemandingSEFF.class, "_2RDcwKMhEemdKJpkeqfUZw"));
+		iModel.getPoints().add(point3);
 
 		meta.setProbes(iModel);
 

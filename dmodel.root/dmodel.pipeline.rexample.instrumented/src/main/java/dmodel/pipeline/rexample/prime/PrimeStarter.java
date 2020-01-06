@@ -15,6 +15,7 @@ public class PrimeStarter {
                 System.out.println(k);
             }
         }
+        System.out.println("Still running.");
     }
 }
 

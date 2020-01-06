@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Sets;
 
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.validation.data.TimeValueDistribution;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
@@ -30,7 +30,7 @@ public class ValidationDataExtractor {
 	private MonitoringDataEnrichment monitoringEnrichment;
 
 	public ValidationData extractValidationData(InMemoryResultRepository analysis, InMemoryPCM pcm,
-			PalladioRuntimeMapping mapping, List<RecordWithSession> monitoringData) {
+			PalladioRuntimeMapping mapping, List<PCMContextRecord> monitoringData) {
 		ValidationData data = new ValidationData();
 
 		// start with simulation data

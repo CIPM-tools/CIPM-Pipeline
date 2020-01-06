@@ -3,6 +3,7 @@ package dmodel.pipeline.records.instrument.spoon.instrument.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.monitoring.controller.ServiceParameters;
 import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
 import dmodel.pipeline.records.instrument.spoon.instrument.ISpoonInstrumenter;
@@ -17,18 +18,16 @@ import spoon.reflect.declaration.CtParameter;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtTypeReference;
-import tools.vitruv.models.im.InstrumentationPoint;
-import tools.vitruv.models.im.InstrumentationType;
 
 public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> {
 	private static final String SERVICE_PARAMETER_VARIABLE = "serviceParametersMonitoring";
 	private static final String THREAD_MONITORING_CONTROLLER_VARIABLE = "threadMonitoringController";
 
 	@Override
-	public void instrument(Launcher parent, CtMethod<?> target, InstrumentationPoint probe) {
+	public void instrument(Launcher parent, CtMethod<?> target, ServiceInstrumentationPoint probe) {
 		Factory factory = parent.getFactory();
 
-		if (probe.isIsActive() && probe.getItype() == InstrumentationType.SERVICE) {
+		if (probe.isActive()) {
 			// instrument the method
 
 			// 1.0. get thread monitoring controller
@@ -61,7 +60,7 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 					.getMethodsByName("enterService").get(0).getReference();
 			CtInvocation<?> invocEnterService = factory.createInvocation(
 					factory.createVariableRead(threadMonitoringVariable.getReference(), false), enterService,
-					factory.createLiteral(probe.getServiceID()),
+					factory.createLiteral(probe.getService().getId()),
 					factory.createThisAccess(target.getDeclaringType().getReference()),
 					factory.createVariableRead(nVariable.getReference(), false));
 			lastParameterSt.insertAfter(invocEnterService);
@@ -83,7 +82,8 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 			CtExecutableReference<?> exitService = factory.Type().get(ThreadMonitoringController.class)
 					.getMethodsByName("exitService").get(0).getReference();
 			CtInvocation<?> invocExitService = factory.createInvocation(
-					factory.createVariableRead(threadMonitoringVariable.getReference(), false), exitService);
+					factory.createVariableRead(threadMonitoringVariable.getReference(), false), exitService,
+					factory.createLiteral(probe.getService().getId()));
 			nTry.getFinalizer().addStatement(invocExitService);
 
 			// 5. add getting thread monitoring controller at start

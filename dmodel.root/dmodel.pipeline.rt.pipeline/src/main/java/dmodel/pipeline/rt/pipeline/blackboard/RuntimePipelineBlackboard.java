@@ -2,14 +2,25 @@ package dmodel.pipeline.rt.pipeline.blackboard;
 
 import java.io.File;
 
+import org.palladiosimulator.pcm.seff.AbstractAction;
+import org.palladiosimulator.pcm.seff.BranchAction;
+import org.palladiosimulator.pcm.seff.InternalAction;
+import org.palladiosimulator.pcm.seff.LoopAction;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import InstrumentationMetamodel.ActionInstrumentationPoint;
+import InstrumentationMetamodel.InstrumentationModel;
+import InstrumentationMetamodel.InstrumentationModelFactory;
+import InstrumentationMetamodel.InstrumentationType;
+import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
 import dmodel.pipeline.rt.pipeline.blackboard.validation.ValidationResultContainer;
 import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.rt.validation.ValidationFeedbackComponent;
+import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
@@ -25,6 +36,7 @@ public class RuntimePipelineBlackboard {
 
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
+	private InstrumentationModel instrumentationModel;
 
 	@Autowired
 	private DModelConfigurationContainer config;
@@ -69,6 +81,39 @@ public class RuntimePipelineBlackboard {
 			architectureModel.clearListeners();
 		}
 		architectureModel = InMemoryPCM.createFromFilesystemSynced(filesystemPCM);
+
+		// create an initial instrumentation model
+		InstrumentationModel imm = InstrumentationModelFactory.eINSTANCE.createInstrumentationModel();
+		for (ResourceDemandingSEFF service : ModelUtil.getObjects(architectureModel.getRepository(),
+				ResourceDemandingSEFF.class)) {
+			ServiceInstrumentationPoint sip = InstrumentationModelFactory.eINSTANCE.createServiceInstrumentationPoint();
+			sip.setActive(true);
+			sip.setService(service);
+			imm.getPoints().add(sip);
+
+			for (AbstractAction action : service.getSteps_Behaviour()) {
+				if (action instanceof LoopAction) {
+					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+							.createActionInstrumentationPoint();
+					inner.setType(InstrumentationType.LOOP);
+					inner.setAction(action);
+					sip.getActionInstrumentationPoints().add(inner);
+				} else if (action instanceof BranchAction) {
+					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+							.createActionInstrumentationPoint();
+					inner.setType(InstrumentationType.BRANCH);
+					inner.setAction(action);
+					sip.getActionInstrumentationPoints().add(inner);
+				} else if (action instanceof InternalAction) {
+					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+							.createActionInstrumentationPoint();
+					inner.setType(InstrumentationType.INTERNAL);
+					inner.setAction(action);
+					sip.getActionInstrumentationPoints().add(inner);
+				}
+			}
+		}
+		this.instrumentationModel = imm;
 	}
 
 	public void receivedMonitoringData() {

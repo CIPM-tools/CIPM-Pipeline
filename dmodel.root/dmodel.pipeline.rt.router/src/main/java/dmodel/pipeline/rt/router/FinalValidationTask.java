@@ -2,7 +2,7 @@ package dmodel.pipeline.rt.router;
 
 import java.util.List;
 
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -17,7 +17,7 @@ import lombok.extern.java.Log;
 public class FinalValidationTask extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
 	@InputPorts({ @InputPort(PortIDs.T_RAW_FINAL_VALIDATION), @InputPort(PortIDs.T_FINAL_VALIDATION) })
-	public void validateFinal(List<RecordWithSession> recs) {
+	public void validateFinal(List<PCMContextRecord> recs) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION3,
 				ETransformationState.RUNNING);
 

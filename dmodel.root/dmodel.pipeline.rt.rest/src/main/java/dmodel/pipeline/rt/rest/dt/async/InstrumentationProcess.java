@@ -2,6 +2,9 @@ package dmodel.pipeline.rt.rest.dt.async;
 
 import java.io.File;
 
+import InstrumentationMetamodel.InstrumentationModel;
+import InstrumentationMetamodel.InstrumentationModelFactory;
+import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
@@ -15,10 +18,6 @@ import dmodel.pipeline.shared.config.ProjectConfiguration;
 import dmodel.pipeline.shared.util.AbstractObservable;
 import spoon.Launcher;
 import spoon.compiler.Environment;
-import tools.vitruv.models.im.ImFactory;
-import tools.vitruv.models.im.InstrumentationModel;
-import tools.vitruv.models.im.InstrumentationPoint;
-import tools.vitruv.models.im.InstrumentationType;
 
 public class InstrumentationProcess extends AbstractObservable<InstrumentationStatus> implements Runnable {
 
@@ -65,13 +64,13 @@ public class InstrumentationProcess extends AbstractObservable<InstrumentationSt
 				meta.getRepository());
 
 		// create all instrumentation points (for every service)
-		InstrumentationModel iModel = ImFactory.eINSTANCE.createInstrumentationModel();
+		InstrumentationModel iModel = InstrumentationModelFactory.eINSTANCE.createInstrumentationModel();
 		spoonMapping.getServiceMappingEntries().forEach(entry -> {
-			InstrumentationPoint point = ImFactory.eINSTANCE.createInstrumentationPoint();
-			point.setIsActive(true);
-			point.setItype(InstrumentationType.SERVICE);
-			point.setServiceID(entry.getValue().getId());
-			iModel.getProbes().add(point);
+			ServiceInstrumentationPoint point = InstrumentationModelFactory.eINSTANCE
+					.createServiceInstrumentationPoint();
+			point.setActive(true);
+			point.setService(entry.getValue());
+			iModel.getPoints().add(point);
 		});
 		meta.setProbes(iModel);
 

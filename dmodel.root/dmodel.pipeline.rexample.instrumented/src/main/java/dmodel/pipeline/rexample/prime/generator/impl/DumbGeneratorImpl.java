@@ -33,7 +33,7 @@ public class DumbGeneratorImpl implements IPrimeGenerator {
             } 
             return result;
         } finally {
-            threadMonitoringController.exitService();
+            threadMonitoringController.exitService("_2nvWUKKQEem6I6QlOar_-g");
         }
     }
 }

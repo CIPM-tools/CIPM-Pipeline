@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.palladiosimulator.pcm.repository.Repository;
 
+import InstrumentationMetamodel.InstrumentationModel;
+import InstrumentationMetamodel.InstrumentationModelFactory;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
@@ -22,8 +24,6 @@ import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.Launcher;
-import tools.vitruv.models.im.ImFactory;
-import tools.vitruv.models.im.InstrumentationModel;
 
 // TODO please refactor this soon, otherwise i need to puke
 public class SystemDerivationTest {
@@ -63,8 +63,7 @@ public class SystemDerivationTest {
 				meta.getRepository());
 
 		// build instrumentation model
-		InstrumentationModel iModel = ImFactory.eINSTANCE.createInstrumentationModel();
-		meta.setProbes(iModel);
+		InstrumentationModel iModel = InstrumentationModelFactory.eINSTANCE.createInstrumentationModel();
 
 		// analyze it
 		ISystemCompositionAnalyzer systemExtractor = new StaticCodeReferenceAnalyzer();

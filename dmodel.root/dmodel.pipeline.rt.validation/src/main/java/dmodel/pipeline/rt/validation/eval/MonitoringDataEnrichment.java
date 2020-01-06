@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 
 import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ResourceUtilizationRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.validation.data.TimeValueDistribution;
@@ -40,7 +40,7 @@ public class MonitoringDataEnrichment {
 	private PCMValidationPointMatcher pcmValidationPointMatcher;
 
 	public void enrichWithMonitoringData(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
-			List<RecordWithSession> monitoring) {
+			List<PCMContextRecord> monitoring) {
 		// clear caches
 		resourceUtilCache.clear();
 		serviceCallCache.clear();
@@ -53,7 +53,7 @@ public class MonitoringDataEnrichment {
 	}
 
 	private void processRecord(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
-			RecordWithSession rec) {
+			PCMContextRecord rec) {
 		if (rec instanceof ResourceUtilizationRecord) {
 			ResourceUtilizationRecord utilRecord = (ResourceUtilizationRecord) rec;
 			Pair<String, String> key = Pair.of(utilRecord.getHostId(), utilRecord.getResourceId());

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.repository.RepositoryDerivation;
 import dmodel.pipeline.rt.pcm.usagemodel.transformation.UsageDataDerivation;
@@ -53,7 +53,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
-	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<RecordWithSession> rawMonitoringData) {
+	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
 
 		// create deep copies
@@ -79,7 +79,8 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		executorService.submit(() -> {
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
 					ETransformationState.RUNNING);
-			repositoryTransformation.calibrateRepository(entryCalls, copyForRepository,
+			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
+					getBlackboard().getBorder().getRuntimeMapping(),
 					getBlackboard().getValidationResultContainer().getPreValidationResults());
 			waitLatch.countDown();
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
@@ -150,7 +151,8 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					ETransformationState.RUNNING);
 
 			// usagemodel was better
-			repositoryTransformation.calibrateRepository(entryCalls, copyForUsage, pathUsageModel);
+			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForUsage,
+					getBlackboard().getBorder().getRuntimeMapping(), pathUsageModel);
 
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
 					ETransformationState.FINISHED);

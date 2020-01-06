@@ -162,6 +162,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 				}).findFirst().orElse(null);
 	}
 
+	// TODO THAT SHOULD BE A MORE GENERAL METHOD
 	private AssemblyContext resolveAssemblyOnContainer(BasicComponent belComponent,
 			ResourceContainer belongingContainer) {
 		// here we use the assumption that only one assembly of one component can be

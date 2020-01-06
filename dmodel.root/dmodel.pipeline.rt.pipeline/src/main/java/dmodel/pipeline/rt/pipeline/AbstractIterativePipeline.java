@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 	private Set<Method> endPoints;
 	private LinkedList<S> queue;
 	private AtomicInteger reachedEndpoints;
+	private Optional<S> currentData;
 
 	public AbstractIterativePipeline() {
 		this.successorMapping = new HashMap<>();
@@ -54,7 +56,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 
 	public abstract void initBlackboard();
 
-	protected abstract void onIterationFinished();
+	protected abstract void onIterationFinished(S data);
 
 	public void triggerPipeline(S data) {
 		if (!running) {
@@ -62,6 +64,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 			running = true;
 			reachedEndpoints.set(0);
 			this.reset();
+			currentData = Optional.of(data);
 
 			// trigger entries
 			for (NodeInformation entry : entryPoints) {
@@ -76,7 +79,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 		if (reachedEndpoints.incrementAndGet() == this.endPoints.size()) {
 			// we finished
 			running = false;
-			onIterationFinished();
+			onIterationFinished(currentData.get());
 
 			// check queue
 			if (this.queue.size() > 0) {

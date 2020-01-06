@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
@@ -31,7 +31,7 @@ public class ValidationFeedbackComponent implements IValidationProcessor {
 
 	@Override
 	public ValidationData process(InMemoryPCM instance, PalladioRuntimeMapping mapping,
-			List<RecordWithSession> monitoringData, String taskName) {
+			List<PCMContextRecord> monitoringData, String taskName) {
 		// 1. simulate it
 		InMemoryResultRepository analysisResults = simulator.simulateBlocking(instance, taskName);
 		if (analysisResults == null) {

@@ -9,12 +9,14 @@ public class PrimeStarter {
 		PrimeManagerImpl primeManager = new PrimeManagerImpl();
 		// primeManager.setGenerator(new EratosthenesGeneratorImpl());
 		primeManager.setGenerator(new DumbGeneratorImpl());
-		
+
 		for (int i = 500; i < 1000; i++) {
 			for (int k : primeManager.generatePrimes(i)) {
 				System.out.println(k);
 			}
 		}
+
+		System.out.println("Still running.");
 
 	}
 

@@ -2,7 +2,7 @@ package dmodel.pipeline.rt.pcm.validation;
 
 import java.util.List;
 
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -22,7 +22,7 @@ public class PrePipelineValidationTask extends AbstractIterativePipelinePart<Run
 	@InputPorts({ @InputPort(PortIDs.T_VAL_PRE) })
 	@OutputPorts({ @OutputPort(to = ServiceCallTreeBuilder.class, id = PortIDs.T_BUILD_SERVICECALL_TREE, async = false),
 			@OutputPort(to = FinalValidationTask.class, id = PortIDs.T_RAW_FINAL_VALIDATION, async = false) })
-	public List<RecordWithSession> prePipelineValidation(List<RecordWithSession> recs) {
+	public List<PCMContextRecord> prePipelineValidation(List<PCMContextRecord> recs) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.PRE_VALIDATION,
 				ETransformationState.RUNNING);
 

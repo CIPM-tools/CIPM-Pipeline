@@ -1,15 +1,19 @@
 package dmodel.pipeline.monitoring.controller;
 
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import lombok.extern.java.Log;
 import org.apache.commons.codec.digest.DigestUtils;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
-import oshi.hardware.NetworkIF;
 
 
+@Log
 public class HostNameFactory {
     private static Optional<String> CURRENT_HOSTID = Optional.empty();
 
@@ -40,15 +44,22 @@ public class HostNameFactory {
     }
 
     private static void buildHostId() {
+        // TODO check if the id is valid, otherwise use processor
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hw = si.getHardware();
         // Try well known MAC addresses
-        NetworkIF[] nifs = hw.getNetworkIFs();
-        String macAddrConcat = "";
-        for (NetworkIF nif : nifs) {
-            macAddrConcat += nif.getMacaddr();
+        try {
+            HostNameFactory.CURRENT_HOSTID = Optional.of(DigestUtils.md5Hex(HostNameFactory.getMACAddress()));
+        } catch (SocketException | UnknownHostException e) {
+            log.warning((("Failed to calculate the Host ID (" + (e.getMessage())) + ")."));
+            HostNameFactory.CURRENT_HOSTID = Optional.empty();
         }
-        HostNameFactory.CURRENT_HOSTID = Optional.of(DigestUtils.md5Hex(macAddrConcat));
+    }
+
+    private static byte[] getMACAddress() throws SocketException, UnknownHostException {
+        InetAddress address = InetAddress.getLocalHost();
+        NetworkInterface networkInterface = NetworkInterface.getByInetAddress(address);
+        return networkInterface.getHardwareAddress();
     }
 }
 

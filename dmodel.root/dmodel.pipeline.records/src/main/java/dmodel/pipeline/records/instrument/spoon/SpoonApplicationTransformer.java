@@ -10,15 +10,15 @@ import org.apache.commons.io.FileUtils;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.stereotype.Service;
 
+import InstrumentationMetamodel.ActionInstrumentationPoint;
+import InstrumentationMetamodel.InstrumentationModel;
+import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.records.instrument.ApplicationProject;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.records.instrument.InstrumentationMetadata;
 import dmodel.pipeline.records.instrument.spoon.instrument.impl.SpoonMethodInstrumenter;
 import spoon.Launcher;
 import spoon.reflect.declaration.CtMethod;
-import tools.vitruv.models.im.InstrumentationModel;
-import tools.vitruv.models.im.InstrumentationPoint;
-import tools.vitruv.models.im.InstrumentationType;
 
 @Service
 public class SpoonApplicationTransformer implements IApplicationInstrumenter {
@@ -34,11 +34,15 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 
 		// instrument the services coarse grained
 		for (Entry<CtMethod<?>, ResourceDemandingSEFF> serviceEntry : spoonCorr.getServiceMappingEntries()) {
-			Optional<InstrumentationPoint> instrPoint = this.resolveInstrumentationPoint(metadata.getProbes(),
+			Optional<ServiceInstrumentationPoint> instrPoint = this.resolveInstrumentationPoint(metadata.getProbes(),
 					serviceEntry.getValue());
-			if (instrPoint.isPresent() && instrPoint.get().isIsActive()) {
+			if (instrPoint.isPresent() && instrPoint.get().isActive()) {
 				// instrument it
 				methodTransformer.instrument(model, serviceEntry.getKey(), instrPoint.get());
+
+				for (ActionInstrumentationPoint innerInstrPoint : instrPoint.get().getActionInstrumentationPoints()) {
+					// TODO
+				}
 			}
 		}
 
@@ -76,11 +80,9 @@ public class SpoonApplicationTransformer implements IApplicationInstrumenter {
 		return spoon;
 	}
 
-	private Optional<InstrumentationPoint> resolveInstrumentationPoint(InstrumentationModel model,
+	private Optional<ServiceInstrumentationPoint> resolveInstrumentationPoint(InstrumentationModel model,
 			ResourceDemandingSEFF seff) {
-		return model.getProbes().stream()
-				.filter(p -> p.getItype() == InstrumentationType.SERVICE && p.getServiceID().equals(seff.getId()))
-				.findFirst();
+		return model.getPoints().stream().filter(p -> p.getService().getId().equals(seff.getId())).findFirst();
 	}
 
 	private File prepareOutputProject(ApplicationProject project, String outputPath, boolean deletePre) {

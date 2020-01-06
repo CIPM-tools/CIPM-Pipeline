@@ -2,7 +2,7 @@ package dmodel.pipeline.records.instrument;
 
 import org.palladiosimulator.pcm.repository.Repository;
 
-import tools.vitruv.models.im.InstrumentationModel;
+import InstrumentationMetamodel.InstrumentationModel;
 
 public class InstrumentationMetadata {
 	private Repository repository;

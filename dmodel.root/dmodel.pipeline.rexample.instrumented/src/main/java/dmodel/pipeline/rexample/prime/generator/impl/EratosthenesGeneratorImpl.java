@@ -36,7 +36,7 @@ public class EratosthenesGeneratorImpl implements IPrimeGenerator {
             }
             return results;
         } finally {
-            threadMonitoringController.exitService();
+            threadMonitoringController.exitService("_PlFlUJYHEempGaXtj6ezAw");
         }
     }
 
