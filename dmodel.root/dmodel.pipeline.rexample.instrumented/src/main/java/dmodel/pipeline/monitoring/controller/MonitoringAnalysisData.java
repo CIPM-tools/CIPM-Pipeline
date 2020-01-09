@@ -21,30 +21,7 @@ public class MonitoringAnalysisData {
     public MonitoringAnalysisData() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                File overheadFile = new File("overhead.txt");
-                if (!(overheadFile.exists())) {
-                    try {
-                        overheadFile.createNewFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(overheadFile), StandardCharsets.UTF_8)) {
-                    // do stuff
-                    writer.append(String.valueOf(serviceCallOverhead));
-                    writer.append(System.lineSeparator());
-                    writer.append(String.valueOf(branchOverhead));
-                    writer.append(System.lineSeparator());
-                    writer.append(String.valueOf(loopOverhead));
-                    writer.append(System.lineSeparator());
-                    writer.append(String.valueOf(internalOverhead));
-                    writer.flush();
-                    writer.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                writeOverhead();
             }
         });
     }
@@ -67,6 +44,33 @@ public class MonitoringAnalysisData {
 
     public synchronized void internalOverhead(String internalActionId, long start) {
         this.internalOverhead = (System.nanoTime()) - start;
+    }
+
+    public void writeOverhead() {
+        File overheadFile = new File("overhead.txt");
+        if (!(overheadFile.exists())) {
+            try {
+                overheadFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(overheadFile), StandardCharsets.UTF_8)) {
+            // do stuff
+            writer.append(String.valueOf(serviceCallOverhead));
+            writer.append(System.lineSeparator());
+            writer.append(String.valueOf(branchOverhead));
+            writer.append(System.lineSeparator());
+            writer.append(String.valueOf(loopOverhead));
+            writer.append(System.lineSeparator());
+            writer.append(String.valueOf(internalOverhead));
+            writer.flush();
+            writer.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

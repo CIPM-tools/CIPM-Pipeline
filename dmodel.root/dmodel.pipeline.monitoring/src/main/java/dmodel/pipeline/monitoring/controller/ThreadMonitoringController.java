@@ -5,15 +5,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 
 import dmodel.pipeline.monitoring.records.BranchRecord;
 import dmodel.pipeline.monitoring.records.LoopRecord;
@@ -23,9 +25,11 @@ import kieker.common.configuration.Configuration;
 import kieker.monitoring.core.configuration.ConfigurationFactory;
 import kieker.monitoring.core.controller.IMonitoringController;
 import kieker.monitoring.core.controller.MonitoringController;
+import kieker.monitoring.core.sampler.ScheduledSamplerJob;
 import kieker.monitoring.timer.ITimeSource;
 import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 
+// this should be java 7 compatible to be useable with all kinds of applications
 public class ThreadMonitoringController {
 	private static final IMonitoringController MONITORING_CONTROLLER;
 	private static final ThreadMonitoringController instance;
@@ -49,6 +53,7 @@ public class ThreadMonitoringController {
 		instance = new ThreadMonitoringController();
 		instance.pollInstrumentationModel();
 		instance.registerInstrumentationModelPoll();
+		instance.registerCpuSampler();
 	}
 
 	private static final ITimeSource TIME_SOURCE = MONITORING_CONTROLLER.getTimeSource();
@@ -59,7 +64,7 @@ public class ThreadMonitoringController {
 
 	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
 
-	private Set<String> monitoredIds = Sets.newHashSet();
+	private Set<String> monitoredIds = new HashSet<>();
 	private boolean monitoredIdsInited = false;
 	private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -71,16 +76,43 @@ public class ThreadMonitoringController {
 		}
 	});
 	private MonitoringAnalysisData analysis = new MonitoringAnalysisData();
+	private boolean cpuSamplerActive;
+	private ScheduledSamplerJob samplerJob;
 
 	private ThreadMonitoringController() {
 		this.idFactory = new IDFactory();
-		this.serviceCallStack = ThreadLocal.withInitial(Stack::new);
+		this.serviceCallStack = ThreadLocal.withInitial(new Supplier<Stack<ServiceCallTrack>>() {
+			@Override
+			public Stack<ServiceCallTrack> get() {
+				return new Stack<ServiceCallTrack>();
+			}
+		});
+		this.cpuSamplerActive = false;
+	}
+
+	public void registerCpuSampler() {
+		if (!cpuSamplerActive) {
+			CPUSamplingJob job = new CPUSamplingJob();
+
+			samplerJob = MONITORING_CONTROLLER.schedulePeriodicSampler(job, 0, 100, TimeUnit.MILLISECONDS);
+			cpuSamplerActive = true;
+		}
+	}
+
+	public void unregisterCpuSampler() {
+		if (cpuSamplerActive) {
+			MONITORING_CONTROLLER.removeScheduledSampler(samplerJob);
+			cpuSamplerActive = false;
+		}
 	}
 
 	private void registerInstrumentationModelPoll() {
-		execService.scheduleAtFixedRate(() -> {
-			pollInstrumentationModel();
-			analysis.writeOverhead(); // write the overhead to a file
+		execService.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				pollInstrumentationModel();
+				analysis.writeOverhead(); // write the overhead to a file
+			}
 		}, 15, 15, TimeUnit.SECONDS);
 	}
 
@@ -100,7 +132,7 @@ public class ThreadMonitoringController {
 			}
 			conn.disconnect();
 
-			monitoredIds = Sets.newHashSet(objectMapper.readValue(all, String[].class));
+			monitoredIds = new HashSet<>(Arrays.asList(objectMapper.readValue(all, String[].class)));
 			monitoredIdsInited = true;
 		} catch (IOException e) {
 		}
@@ -170,10 +202,13 @@ public class ThreadMonitoringController {
 
 			// exit current trace
 			ServiceCallTrack track = trace.pop();
-			MONITORING_CONTROLLER.newMonitoringRecord(
-					new ServiceCallRecord(track.sessionId, track.serviceExecutionId, HostNameFactory.generateHostId(),
-							HostNameFactory.generateHostName(), track.serviceId, track.serviceParameters.toString(),
-							track.callerServiceExecutionId, track.executionContext, track.serviceStartTime, end));
+			MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId,
+					HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId,
+					track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext,
+					track.serviceStartTime, end - track.cumulatedMonitoringOverhead));
+
+			ServiceCallTrack parent = trace.peek();
+			parent.cumulatedMonitoringOverhead += track.cumulatedMonitoringOverhead;
 
 			analysis.exitServiceCallOverhead(serviceId, start);
 		}
@@ -214,6 +249,7 @@ public class ThreadMonitoringController {
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
 			analysis.exitBranchOverhead(branchId, start);
+			currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
 		}
 	}
 
@@ -238,6 +274,7 @@ public class ThreadMonitoringController {
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
 			analysis.exitLoopOverhead(loopId, start);
+			currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
 		}
 	}
 
@@ -266,6 +303,7 @@ public class ThreadMonitoringController {
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
 			analysis.internalOverhead(internalActionId, start);
+			currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
 		}
 	}
 
@@ -300,6 +338,8 @@ public class ThreadMonitoringController {
 		private String callerServiceExecutionId;
 		private String executionContext;
 
+		private long cumulatedMonitoringOverhead;
+
 		public ServiceCallTrack(String serviceId, String sessionId, ServiceParameters serviceParameters,
 				String executionContext, String parentId) {
 			this.serviceId = serviceId;
@@ -309,6 +349,7 @@ public class ThreadMonitoringController {
 			this.callerServiceExecutionId = parentId;
 			this.executionContext = executionContext;
 			this.serviceExecutionId = ThreadMonitoringController.this.idFactory.createId();
+			this.cumulatedMonitoringOverhead = 0;
 		}
 
 	}

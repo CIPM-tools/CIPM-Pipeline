@@ -3,6 +3,7 @@ package dmodel.pipeline.records.instrument.spoon.instrument.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import InstrumentationMetamodel.InstrumentationPoint;
 import InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.monitoring.controller.ServiceParameters;
 import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
@@ -24,7 +25,11 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 	private static final String THREAD_MONITORING_CONTROLLER_VARIABLE = "threadMonitoringController";
 
 	@Override
-	public void instrument(Launcher parent, CtMethod<?> target, ServiceInstrumentationPoint probe) {
+	public void instrument(Launcher parent, CtMethod<?> target, InstrumentationPoint probe) {
+		if (!(probe instanceof ServiceInstrumentationPoint)) {
+			return;
+		}
+
 		Factory factory = parent.getFactory();
 
 		if (probe.isActive()) {
@@ -60,7 +65,7 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 					.getMethodsByName("enterService").get(0).getReference();
 			CtInvocation<?> invocEnterService = factory.createInvocation(
 					factory.createVariableRead(threadMonitoringVariable.getReference(), false), enterService,
-					factory.createLiteral(probe.getService().getId()),
+					factory.createLiteral(((ServiceInstrumentationPoint) probe).getService().getId()),
 					factory.createThisAccess(target.getDeclaringType().getReference()),
 					factory.createVariableRead(nVariable.getReference(), false));
 			lastParameterSt.insertAfter(invocEnterService);
@@ -83,7 +88,7 @@ public class SpoonMethodInstrumenter implements ISpoonInstrumenter<CtMethod<?>> 
 					.getMethodsByName("exitService").get(0).getReference();
 			CtInvocation<?> invocExitService = factory.createInvocation(
 					factory.createVariableRead(threadMonitoringVariable.getReference(), false), exitService,
-					factory.createLiteral(probe.getService().getId()));
+					factory.createLiteral(((ServiceInstrumentationPoint) probe).getService().getId()));
 			nTry.getFinalizer().addStatement(invocExitService);
 
 			// 5. add getting thread monitoring controller at start
