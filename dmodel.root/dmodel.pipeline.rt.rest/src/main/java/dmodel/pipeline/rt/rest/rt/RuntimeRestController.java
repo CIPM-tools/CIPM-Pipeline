@@ -39,7 +39,7 @@ public class RuntimeRestController {
 
 	@GetMapping("/runtime/pipeline/imm")
 	public String instrumentationModel() {
-		log.info("Instrumentation model has been polled.");
+		log.fine("Instrumentation model has been polled.");
 		try {
 			return objectMapper
 					.writeValueAsString(blackboard.getInstrumentationModel().getPoints().stream().map(sip -> {

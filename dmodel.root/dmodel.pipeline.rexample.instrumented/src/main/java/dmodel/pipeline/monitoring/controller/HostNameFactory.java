@@ -19,7 +19,7 @@ public class HostNameFactory {
 
     private static Optional<String> CURRENT_HOSTNAME = Optional.empty();
 
-    public static synchronized final String generateHostName() {
+    public static final synchronized String generateHostName() {
         if (!(HostNameFactory.CURRENT_HOSTNAME.isPresent())) {
             // build it
             HostNameFactory.buildHostname();
@@ -35,7 +35,7 @@ public class HostNameFactory {
         }
     }
 
-    public static synchronized final String generateHostId() {
+    public static final synchronized String generateHostId() {
         if (!(HostNameFactory.CURRENT_HOSTID.isPresent())) {
             // build it
             HostNameFactory.buildHostId();

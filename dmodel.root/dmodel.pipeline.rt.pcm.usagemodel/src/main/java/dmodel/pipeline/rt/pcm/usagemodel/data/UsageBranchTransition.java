@@ -5,6 +5,8 @@ import java.util.List;
 import org.palladiosimulator.pcm.usagemodel.BranchTransition;
 import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
 
+import com.google.common.collect.Lists;
+
 import dmodel.pipeline.rt.pcm.usagemodel.util.UsageServiceUtil;
 import lombok.Data;
 
@@ -12,6 +14,10 @@ import lombok.Data;
 public class UsageBranchTransition implements IPCMAnalogue<BranchTransition> {
 	private List<IAbstractUsageDescriptor> childs;
 	private double probability;
+
+	public UsageBranchTransition() {
+		this.childs = Lists.newArrayList();
+	}
 
 	public boolean matches(UsageBranchTransition other) {
 		if (childs.size() == other.childs.size()) {

@@ -47,18 +47,22 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 			System system) {
 		currentGroupId = 0;
 		// 1. create entry call tree
+		log.info("Extract entry calls.");
 		List<ServiceCallRecord> entryCalls = callSequences.parallelStream().map(e -> e.getRoot().getData())
 				.collect(Collectors.toList());
 
 		// 2. extract user sessions
+		log.info("Extract sessions.");
 		List<ServiceCallSession> sessions = extractSessions(entryCalls);
 
 		// 3. create probability tree
+		log.info("Extract tree.");
 		Tree<DescriptorTransition<UsageServiceCallDescriptor>> transitionTree = treeExtractor
 				.extractProbabilityCallTree(sessions, repository, system);
 
 		// 4. find loop structures
 		// 4.1. bundle consecutive identical calls
+		log.info("Identify paths.");
 		Tree<DescriptorTransition<IAbstractUsageDescriptor>> treeWithoutLoops = new Tree<>(
 				new DescriptorTransition<>(transitionTree.getRoot().getData().getCall(), 1.0f));
 		copyTree(treeWithoutLoops.getRoot(), transitionTree.getRoot());
@@ -71,10 +75,12 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		// TODO
 
 		// 4.4. collect relevant paths
+		log.info("Collect relevant paths.");
 		List<Tree<DescriptorTransition<IAbstractUsageDescriptor>>> relevantPaths = subTrees.stream()
 				.filter(p -> estimateRelevance(p) >= MIN_RELEVANCE).collect(Collectors.toList());
 
 		// 5. build final groups
+		log.info("Finalize usage scenarios.");
 		return relevantPaths.stream().map(relevantTree -> {
 			if (relevantTree.getRoot().getChildren().size() > 0) {
 				UsageGroup usageGroup = buildUserGroup(relevantTree);

@@ -31,7 +31,7 @@ import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 
 // this should be java 7 compatible to be useable with all kinds of applications
 public class ThreadMonitoringController {
-	private static final IMonitoringController MONITORING_CONTROLLER;
+	private static IMonitoringController MONITORING_CONTROLLER;
 	private static final ThreadMonitoringController instance;
 
 	private static final String serverHostname = "localhost";
@@ -39,17 +39,7 @@ public class ThreadMonitoringController {
 	private static final String restAddress = "/runtime/pipeline/imm";
 
 	static {
-		final Configuration configuration = ConfigurationFactory.createDefaultConfiguration();
-		configuration.setProperty(ConfigurationFactory.METADATA, "true");
-		configuration.setProperty(ConfigurationFactory.AUTO_SET_LOGGINGTSTAMP, "true");
-		configuration.setProperty(ConfigurationFactory.WRITER_CLASSNAME, SingleSocketTcpWriter.class.getName());
-		// configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
-		configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
-		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
-		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, "localhost");
-		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
-
-		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);
+		createMonitoringController();
 		instance = new ThreadMonitoringController();
 		instance.pollInstrumentationModel();
 		instance.registerInstrumentationModelPoll();
@@ -90,6 +80,20 @@ public class ThreadMonitoringController {
 		this.cpuSamplerActive = false;
 	}
 
+	private static void createMonitoringController() {
+		final Configuration configuration = ConfigurationFactory.createDefaultConfiguration();
+		configuration.setProperty(ConfigurationFactory.METADATA, "true");
+		configuration.setProperty(ConfigurationFactory.AUTO_SET_LOGGINGTSTAMP, "true");
+		configuration.setProperty(ConfigurationFactory.WRITER_CLASSNAME, SingleSocketTcpWriter.class.getName());
+		// configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
+		configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
+		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
+		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, "localhost");
+		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
+
+		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);
+	}
+
 	public void registerCpuSampler() {
 		if (!cpuSamplerActive) {
 			CPUSamplingJob job = new CPUSamplingJob();
@@ -112,13 +116,18 @@ public class ThreadMonitoringController {
 			public void run() {
 				pollInstrumentationModel();
 				analysis.writeOverhead(); // write the overhead to a file
+
+				if (MONITORING_CONTROLLER.isMonitoringTerminated()) {
+					// retry
+					createMonitoringController();
+				}
 			}
 		}, 15, 15, TimeUnit.SECONDS);
 	}
 
 	private void pollInstrumentationModel() {
 		try {
-			final URL url = new URL(serverHostname + ":" + restPort + restAddress);
+			final URL url = new URL("http://" + serverHostname + ":" + restPort + restAddress);
 			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("GET");
@@ -135,6 +144,7 @@ public class ThreadMonitoringController {
 			monitoredIds = new HashSet<>(Arrays.asList(objectMapper.readValue(all, String[].class)));
 			monitoredIdsInited = true;
 		} catch (IOException e) {
+			monitoredIdsInited = false;
 		}
 
 	}
@@ -207,8 +217,10 @@ public class ThreadMonitoringController {
 					track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext,
 					track.serviceStartTime, end - track.cumulatedMonitoringOverhead));
 
-			ServiceCallTrack parent = trace.peek();
-			parent.cumulatedMonitoringOverhead += track.cumulatedMonitoringOverhead;
+			if (!trace.isEmpty()) {
+				ServiceCallTrack parent = trace.peek();
+				parent.cumulatedMonitoringOverhead += track.cumulatedMonitoringOverhead;
+			}
 
 			analysis.exitServiceCallOverhead(serviceId, start);
 		}

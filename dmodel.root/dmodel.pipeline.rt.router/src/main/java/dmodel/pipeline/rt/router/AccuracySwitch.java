@@ -66,26 +66,23 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		CountDownLatch waitLatch = new CountDownLatch(2);
 
 		// 1.1 submit usage derivation
-		executorService.submit(() -> {
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-					ETransformationState.RUNNING);
-			usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
-					getBlackboard().getValidationResultContainer().getPreValidationResults());
-			waitLatch.countDown();
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-					ETransformationState.FINISHED);
-		});
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
+				ETransformationState.RUNNING);
+		usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
+				getBlackboard().getValidationResultContainer().getPreValidationResults());
+		waitLatch.countDown();
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
+				ETransformationState.FINISHED);
+
 		// 1.2. submit repository derivation
-		executorService.submit(() -> {
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-					ETransformationState.RUNNING);
-			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
-					getBlackboard().getBorder().getRuntimeMapping(),
-					getBlackboard().getValidationResultContainer().getPreValidationResults());
-			waitLatch.countDown();
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-					ETransformationState.FINISHED);
-		});
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
+				ETransformationState.RUNNING);
+		repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
+				getBlackboard().getBorder().getRuntimeMapping(),
+				getBlackboard().getValidationResultContainer().getPreValidationResults());
+		waitLatch.countDown();
+		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
+				ETransformationState.FINISHED);
 
 		// 2. wait for the transformations to finish
 		try {

@@ -155,9 +155,15 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 										});
 
 										// split up for each
-										parentMapping.entrySet().forEach(et -> {
+										for (Entry<AbstractTimelineObject, List<AbstractTimelineObject>> et : parentMapping
+												.entrySet()) {
 											// get usage for this service
-											double val = usageMapping.get(et.getKey());
+											AbstractTimelineObject sObj = et.getKey();
+											if (!usageMapping.containsKey(sObj)) {
+												continue;
+											}
+
+											double val = usageMapping.get(sObj);
 
 											// split up the usage for all childs
 											Map<AbstractTimelineObject, Double> lastSplit = usageEstimation
@@ -183,7 +189,7 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 													usageAccumulator.put(tlo, usageAccumulator.get(tlo) + scaledUsage);
 												}
 											});
-										});
+										}
 									}
 								}
 

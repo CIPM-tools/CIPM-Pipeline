@@ -12,6 +12,7 @@ import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.shared.FileBackedModelUtil;
+import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import lombok.Data;
 
@@ -41,6 +42,11 @@ public class RunTimeDesignTimeBorder implements InitializingBean {
 
 	private void refreshRuntimeMappingPath() {
 		File rtMappingFile = new File(new File(config.getProject().getRootPath()), RT_MAPPING_PATH);
+		if (!rtMappingFile.exists()) {
+			PalladioRuntimeMapping nMapping = MappingFactory.eINSTANCE.createPalladioRuntimeMapping();
+			ModelUtil.saveToFile(nMapping, rtMappingFile);
+		}
+
 		try {
 			if (currentRuntimeMappingPath != null
 					&& rtMappingFile.getCanonicalPath().equals(currentRuntimeMappingPath.getCanonicalPath())) {

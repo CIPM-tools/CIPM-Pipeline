@@ -24,20 +24,24 @@ public class UsageDataDerivation {
 	}
 
 	public void deriveUsageData(List<Tree<ServiceCallRecord>> callTrees, InMemoryPCM pcm, ValidationData validation) {
-		// 1. derive usage data
-		List<UsageScenario> data = this.treeExtractor.extract(callTrees, pcm.getRepository(), pcm.getSystem());
+		try {
+			// 1. derive usage data
+			List<UsageScenario> data = this.treeExtractor.extract(callTrees, pcm.getRepository(), pcm.getSystem());
 
-		log.info("Extracted " + data.size() + " usage scenario(s).");
+			log.info("Extracted " + data.size() + " usage scenario(s).");
 
-		// 2. deduct
-		if (pcm.getUsageModel() == null) {
-			pcm.setUsageModel(UsagemodelFactory.eINSTANCE.createUsageModel());
+			// 2. deduct
+			if (pcm.getUsageModel() == null) {
+				pcm.setUsageModel(UsagemodelFactory.eINSTANCE.createUsageModel());
+			}
+			if (data.size() > 0) {
+				// remove old
+				pcm.getUsageModel().getUsageScenario_UsageModel().clear();
+			}
+			pcm.getUsageModel().getUsageScenario_UsageModel().addAll(data);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		if (data.size() > 0) {
-			// remove old
-			pcm.getUsageModel().getUsageScenario_UsageModel().clear();
-		}
-		pcm.getUsageModel().getUsageScenario_UsageModel().addAll(data);
 	}
 
 }

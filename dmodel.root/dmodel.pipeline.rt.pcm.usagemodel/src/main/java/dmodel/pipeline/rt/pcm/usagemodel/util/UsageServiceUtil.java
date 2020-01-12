@@ -77,9 +77,11 @@ public class UsageServiceUtil {
 		AbstractUserAction current = startAction;
 		for (IAbstractUsageDescriptor desc : descriptors) {
 			AbstractUserAction conv = desc.toPCM();
-			current.setSuccessor(conv);
-			current = conv;
-			behav.getActions_ScenarioBehaviour().add(current);
+			if (conv != null) {
+				current.setSuccessor(conv);
+				current = conv;
+				behav.getActions_ScenarioBehaviour().add(current);
+			}
 		}
 		current.setSuccessor(stopAction);
 		behav.getActions_ScenarioBehaviour().add(stopAction);

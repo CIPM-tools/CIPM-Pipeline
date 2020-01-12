@@ -5,9 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
+import kieker.analysis.AnalysisController;
+import kieker.analysis.IAnalysisController;
+import kieker.analysis.exception.AnalysisConfigurationException;
+import kieker.analysis.plugin.annotation.InputPort;
+import kieker.analysis.plugin.filter.AbstractFilterPlugin;
+import kieker.analysis.plugin.filter.forward.CountingFilter;
+import kieker.analysis.plugin.reader.filesystem.FSReader;
+import kieker.common.configuration.Configuration;
 
 public class MonitoringDataUtil {
 
@@ -56,6 +67,49 @@ public class MonitoringDataUtil {
 		});
 
 		return callTree;
+	}
+
+	public static List<PCMContextRecord> getMonitoringDataFromFiles(String directory)
+			throws IllegalStateException, AnalysisConfigurationException {
+		// Create Kieker Analysis instance
+		final IAnalysisController analysisInstance = new AnalysisController();
+
+		// Set file system monitoring log input directory for our analysis
+		final Configuration fsReaderConfig = new Configuration();
+		fsReaderConfig.setProperty(FSReader.CONFIG_PROPERTY_NAME_INPUTDIRS, directory);
+		final FSReader reader = new FSReader(fsReaderConfig, analysisInstance);
+
+		final InternalFilter sink = new InternalFilter(new Configuration(), analysisInstance);
+
+		analysisInstance.connect(reader, FSReader.OUTPUT_PORT_NAME_RECORDS, sink,
+				CountingFilter.INPUT_PORT_NAME_EVENTS);
+
+		// Start reading all records.
+		analysisInstance.run();
+
+		return sink.recs;
+	}
+
+	private static class InternalFilter extends AbstractFilterPlugin {
+		private List<PCMContextRecord> recs;
+
+		private static final String INPUT_PORT_NAME_EVENTS = "inputEvents";
+
+		public InternalFilter(Configuration configuration, IAnalysisController analysisInstance) {
+			super(configuration, analysisInstance);
+			recs = Lists.newArrayList();
+		}
+
+		@Override
+		public Configuration getCurrentConfiguration() {
+			return configuration;
+		}
+
+		@InputPort(name = INPUT_PORT_NAME_EVENTS, description = "Input pcm records.", eventTypes = {
+				PCMContextRecord.class })
+		public final void inputEvent(final PCMContextRecord record) {
+			recs.add(record);
+		}
 	}
 
 }

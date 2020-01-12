@@ -12,8 +12,10 @@ import dmodel.pipeline.rt.pcm.repository.loop.impl.LoopEstimationImpl;
 import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import lombok.extern.java.Log;
 
 @Service
+@Log
 public class RepositoryDerivation {
 	private final LoopEstimationImpl loopEstimation;
 	private final BranchEstimationImpl branchEstimation;
@@ -34,10 +36,8 @@ public class RepositoryDerivation {
 			estimation.prepare(monitoringDataSet);
 			estimation.derive();
 
-			this.loopEstimation.update(pcm.getRepository(), monitoringDataSet.getServiceCalls(),
-					monitoringDataSet.getLoops());
-			this.branchEstimation.update(pcm.getRepository(), monitoringDataSet.getServiceCalls(),
-					monitoringDataSet.getBranches());
+			log.info("Finished calibration of internal actions.");
+			log.info("Finished repository calibration.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

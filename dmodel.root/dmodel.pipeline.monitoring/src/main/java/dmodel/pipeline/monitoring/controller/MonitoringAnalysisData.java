@@ -53,16 +53,19 @@ public class MonitoringAnalysisData {
 				e.printStackTrace();
 			}
 		}
-		try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(overheadFile),
+		try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(overheadFile, true),
 				StandardCharsets.UTF_8)) {
 			// do stuff
+			writer.append(String.valueOf(System.currentTimeMillis()));
+			writer.append(";");
 			writer.append(String.valueOf(serviceCallOverhead));
-			writer.append(System.lineSeparator());
+			writer.append(";");
 			writer.append(String.valueOf(branchOverhead));
-			writer.append(System.lineSeparator());
+			writer.append(";");
 			writer.append(String.valueOf(loopOverhead));
-			writer.append(System.lineSeparator());
+			writer.append(";");
 			writer.append(String.valueOf(internalOverhead));
+			writer.append(System.lineSeparator());
 			writer.flush();
 			writer.close();
 		} catch (FileNotFoundException e) {

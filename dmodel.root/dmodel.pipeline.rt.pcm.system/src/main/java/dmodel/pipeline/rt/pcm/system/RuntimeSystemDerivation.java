@@ -188,6 +188,8 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		} else if (matches.size() == 1) {
 			return matches.get(0);
 		} else {
+			log.warning(belComponent.getEntityName() + " on container '" + belongingContainer.getEntityName()
+					+ "' is not unique!");
 			log.warning(
 					"The assumption that only one assembly context per type can be deployed on a container does not seem to be valid.");
 			return null;

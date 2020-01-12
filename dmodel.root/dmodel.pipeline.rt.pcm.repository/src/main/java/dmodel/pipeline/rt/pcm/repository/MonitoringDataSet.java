@@ -29,6 +29,7 @@ import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
 
 public class MonitoringDataSet {
+	private List<PCMContextRecord> rawData;
 
 	private Map<String, Map<String, List<ResponseTimeRecord>>> demandResponseTimes;
 	private List<ResponseTimeRecord> responseTimes;
@@ -56,11 +57,16 @@ public class MonitoringDataSet {
 
 	public MonitoringDataSet(List<PCMContextRecord> records, PalladioRuntimeMapping runtimeMapping,
 			Allocation allocationModel, Repository repositoryModel) {
+		this.rawData = records;
 		this.runtimeMapping = runtimeMapping;
 		this.allocationModel = allocationModel;
 		this.repositoryModel = repositoryModel;
 
 		prepare(records);
+	}
+
+	public List<PCMContextRecord> getRaw() {
+		return rawData;
 	}
 
 	public String getAssemblyContextId(ServiceCallRecord serviceCall) {
@@ -144,7 +150,7 @@ public class MonitoringDataSet {
 				});
 
 		resourceUtilizationMapping.entrySet().stream().forEach(entry -> {
-			if (resourceUtilziationsSorted.containsKey(entry.getKey())) {
+			if (!resourceUtilziationsSorted.containsKey(entry.getKey())) {
 				resourceUtilziationsSorted.put(entry.getKey(), Maps.newHashMap());
 			}
 			entry.getValue().stream().forEach(ru -> {

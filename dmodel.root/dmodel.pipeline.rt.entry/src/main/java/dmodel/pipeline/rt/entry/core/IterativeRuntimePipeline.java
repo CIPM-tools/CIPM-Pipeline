@@ -47,6 +47,11 @@ public class IterativeRuntimePipeline extends
 	public void afterPropertiesSet() throws Exception {
 		super.blackboard = blackboard;
 		this.buildPipeline(IterativePipelineEntryPoint.class, new SpringContextClassProvider(applicationContext));
+
+		if (EVALUATION) {
+			File evaluationBasePath = new File(EVALUATION_PATH);
+			evaluationBasePath.delete();
+		}
 	}
 
 	@Override

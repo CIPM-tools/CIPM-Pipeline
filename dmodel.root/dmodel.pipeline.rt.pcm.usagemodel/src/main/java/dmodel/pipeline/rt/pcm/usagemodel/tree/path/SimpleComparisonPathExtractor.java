@@ -101,13 +101,15 @@ public class SimpleComparisonPathExtractor implements IPathExtractor {
 
 			// for all others recursive with a new tree
 			for (int i = 0; i < children.size(); i++) {
-				// get child
-				TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> child = children.get(i);
 				if (!mergeable.contains(i)) {
-					Pair<Tree<DescriptorTransition<IAbstractUsageDescriptor>>, Map<TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>, TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>>> copy = copyTree(
-							currentTree);
-					recursiveExtractPaths(child, copy.getRight().get(currentTreeNode).addChildren(child.getData()),
-							copy.getLeft(), container, threshold);
+					// get child
+					TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> child = children.get(i);
+					if (!mergeable.contains(i)) {
+						Pair<Tree<DescriptorTransition<IAbstractUsageDescriptor>>, Map<TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>, TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>>> copy = copyTree(
+								currentTree);
+						recursiveExtractPaths(child, copy.getRight().get(currentTreeNode).addChildren(child.getData()),
+								copy.getLeft(), container, threshold);
+					}
 				}
 			}
 		} else {
@@ -216,7 +218,7 @@ public class SimpleComparisonPathExtractor implements IPathExtractor {
 			TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> copy = to.addChildren(
 					new DescriptorTransition<>(child.getData().getCall(), child.getData().getProbability()));
 			mapping.put(child, copy);
-			copyTreeRecursive(copy, child, mapping);
+			copyTreeRecursive(child, copy, mapping);
 		}
 	}
 

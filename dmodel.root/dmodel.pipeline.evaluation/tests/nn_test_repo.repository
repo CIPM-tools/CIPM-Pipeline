@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repository:Repository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2" id="_dRqbIDIoEeq9qZIfLX9XfA" entityName="NeuralNetworkTests">
+  <components__Repository xsi:type="repository:BasicComponent" id="_bwn7kDLrEeq3pdH6W5G85g" entityName="NN">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_gYoBcDLrEeq3pdH6W5G85g" entityName="Provided_process_NN" providedInterface__OperationProvidedRole="_dBP18DLrEeq3pdH6W5G85g"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_gYthADLrEeq3pdH6W5G85g" describedService__SEFF="_eah9EDLrEeq3pdH6W5G85g">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_gYwkUDLrEeq3pdH6W5G85g" entityName="start" successor_AbstractAction="_cbhdQDLsEeq3pdH6W5G85g"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_gYxLYDLrEeq3pdH6W5G85g" entityName="stop" predecessor_AbstractAction="_cbhdQDLsEeq3pdH6W5G85g"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_cbhdQDLsEeq3pdH6W5G85g" entityName="Demand" predecessor_AbstractAction="_gYwkUDLrEeq3pdH6W5G85g" successor_AbstractAction="_gYxLYDLrEeq3pdH6W5G85g">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="size.VALUE ^ 2"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_dBP18DLrEeq3pdH6W5G85g" entityName="process">
+    <signatures__OperationInterface id="_eah9EDLrEeq3pdH6W5G85g" entityName="process">
+      <parameters__OperationSignature parameterName="size">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+</repository:Repository>

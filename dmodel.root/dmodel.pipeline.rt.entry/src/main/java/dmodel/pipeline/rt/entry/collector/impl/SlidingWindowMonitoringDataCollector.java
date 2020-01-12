@@ -18,8 +18,10 @@ import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.MonitoringDataEntryConfiguration;
 import kieker.common.record.IMonitoringRecord;
+import lombok.extern.java.Log;
 
 @Component
+@Log
 public class SlidingWindowMonitoringDataCollector implements IMonitoringDataCollector, InitializingBean {
 
 	private MonitoringDataEntryConfiguration config;
@@ -63,6 +65,9 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 	}
 
 	private void execTrigger() {
+		// log
+		log.info("Triggering the runtime pipeline.");
+
 		long currentTime = System.currentTimeMillis();
 		// get subset
 		List<IMonitoringRecord> collected = this.recordMap

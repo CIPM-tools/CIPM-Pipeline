@@ -211,10 +211,12 @@ public class ParametricLinearRegression {
 			double[] arr1 = entry.getValue().stream().mapToDouble(d -> d.getLeft()).toArray();
 			double[] arr2 = entry.getValue().stream().mapToDouble(d -> d.getRight()).toArray();
 
-			double corr = spCorr.correlation(arr1, arr2);
-			if (!Double.isNaN(corr) && Math.abs(corr) >= thres) {
-				// it is NaN when one variable is constant
-				retList.add(entry.getKey());
+			if (arr1.length > 1 && arr2.length > 1) {
+				double corr = spCorr.correlation(arr1, arr2);
+				if (!Double.isNaN(corr) && Math.abs(corr) >= thres) {
+					// it is NaN when one variable is constant
+					retList.add(entry.getKey());
+				}
 			}
 		}
 

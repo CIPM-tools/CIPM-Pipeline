@@ -73,13 +73,14 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 
 		for (ServiceCallRecord call : sortedServiceCalls) {
 			if (!call.getCallerServiceExecutionId().equals("<not set>")) {
-				// TODO fix for sliding window
 				// get parent
 				TreeNode<ServiceCallRecord> parent = idMapping.get(call.getCallerServiceExecutionId());
 				TreeNode<ServiceCallRecord> cNode = idMapping.get(call.getServiceExecutionId());
 
-				cNode.parent = parent;
-				parent.children.add(cNode);
+				if (parent != null) {
+					cNode.parent = parent;
+					parent.children.add(cNode);
+				}
 			}
 		}
 

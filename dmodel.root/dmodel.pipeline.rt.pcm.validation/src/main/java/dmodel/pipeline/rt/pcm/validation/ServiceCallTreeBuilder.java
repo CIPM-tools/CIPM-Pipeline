@@ -3,7 +3,7 @@ package dmodel.pipeline.rt.pcm.validation;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dmodel.pipeline.monitoring.records.RecordWithSession;
+import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pcm.allocation.AllocationDerivation;
@@ -33,7 +33,7 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 		@OutputPort(to = AccuracySwitch.class, async = false, id = PortIDs.T_SC_ROUTER)
 	})
 	/* @formatter:on */
-	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<RecordWithSession> records) {
+	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<PCMContextRecord> records) {
 		log.info("Start building of service call trees.");
 		return MonitoringDataUtil.buildServiceCallTree(records.stream().filter(f -> f instanceof ServiceCallRecord)
 				.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));

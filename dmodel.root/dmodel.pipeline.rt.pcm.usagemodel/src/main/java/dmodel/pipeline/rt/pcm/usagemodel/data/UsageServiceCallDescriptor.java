@@ -71,6 +71,10 @@ public class UsageServiceCallDescriptor implements IAbstractUsageDescriptor {
 	@SuppressWarnings("unchecked")
 	@Override
 	public AbstractUserAction toPCM() {
+		if (providedRole == null) {
+			return null;
+		}
+
 		EntryLevelSystemCall call = UsagemodelFactory.eINSTANCE.createEntryLevelSystemCall();
 		call.setOperationSignature__EntryLevelSystemCall(signature);
 		call.setProvidedRole_EntryLevelSystemCall(providedRole);

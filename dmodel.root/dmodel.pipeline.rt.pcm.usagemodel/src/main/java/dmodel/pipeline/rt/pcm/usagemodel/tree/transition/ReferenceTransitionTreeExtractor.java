@@ -38,8 +38,8 @@ public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtracto
 
 				// 1.3.3. already has the following node?
 				TreeNode<ReferenceTreeTransition> nextNode = null;
-				if (currentNode.getParent() != null) {
-					for (TreeNode<ReferenceTreeTransition> transition : currentNode.getParent().getChildren()) {
+				if (currentNode != null) {
+					for (TreeNode<ReferenceTreeTransition> transition : currentNode.getChildren()) {
 						if (transition.getData().callDescriptor.getServiceId().equals(conv.getServiceId())) {
 							// this is our next node
 							nextNode = transition;

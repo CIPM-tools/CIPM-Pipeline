@@ -111,7 +111,9 @@ public class RuntimeSystemBuilder {
 			List<Pair<String, Integer>> outgoingEdges = assemblyInvocationGraph.getOutgoingEdges(node);
 			if (outgoingEdges != null) {
 				for (Pair<String, Integer> child : assemblyInvocationGraph.getOutgoingEdges(node)) {
-					currentNodes.add(child.getLeft());
+					if (!marked.contains(child.getLeft())) {
+						currentNodes.add(child.getLeft());
+					}
 				}
 			}
 		}
