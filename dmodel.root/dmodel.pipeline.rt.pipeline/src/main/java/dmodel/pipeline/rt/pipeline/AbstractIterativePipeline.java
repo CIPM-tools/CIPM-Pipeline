@@ -75,7 +75,7 @@ public abstract class AbstractIterativePipeline<S, B> {
 		}
 	}
 
-	protected void triggerEndpoint() {
+	protected synchronized void triggerEndpoint() {
 		if (reachedEndpoints.incrementAndGet() == this.endPoints.size()) {
 			// we finished
 			running = false;

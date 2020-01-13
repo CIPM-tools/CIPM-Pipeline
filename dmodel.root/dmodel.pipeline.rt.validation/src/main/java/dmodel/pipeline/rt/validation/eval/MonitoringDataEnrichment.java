@@ -112,7 +112,9 @@ public class MonitoringDataEnrichment {
 				assignedPoints.forEach(ap -> {
 					if (ap.getMonitoringDistribution() == null) {
 						ap.setMonitoringDistribution(new TimeValueDistribution());
+						ap.setServiceId(serviceRec.getServiceId());
 					}
+					// TODO SUBTRACT START TIME
 					ap.getMonitoringDistribution().addValueX(serviceRec.getEntryTime() / 1000000000.0D);
 					ap.getMonitoringDistribution()
 							.addValueY((serviceRec.getExitTime() - serviceRec.getEntryTime()) / 1000000.0D);

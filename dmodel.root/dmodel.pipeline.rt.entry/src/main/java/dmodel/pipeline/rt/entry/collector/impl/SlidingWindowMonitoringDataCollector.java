@@ -65,20 +65,24 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 	}
 
 	private void execTrigger() {
-		// log
-		log.info("Triggering the runtime pipeline.");
-
 		long currentTime = System.currentTimeMillis();
 		// get subset
-		List<IMonitoringRecord> collected = this.recordMap
-				.subMap(currentTime - config.getSlidingWindowSize() * 1000, currentTime).entrySet().stream()
-				.map(e -> e.getValue()).flatMap(List::stream).collect(Collectors.toList());
+		try {
+			List<IMonitoringRecord> collected = this.recordMap
+					.subMap(currentTime - config.getSlidingWindowSize() * 1000, currentTime).entrySet().stream()
+					.map(e -> e.getValue()).flatMap(List::stream).collect(Collectors.toList());
 
-		// pass it to the processing part
-		pipeline.triggerPipeline(collected);
+			// log
+			log.info("Triggering the runtime pipeline.");
 
-		// cut old
-		cutRecordMap(currentTime);
+			// pass it to the processing part
+			pipeline.triggerPipeline(collected);
+
+			// cut old
+			cutRecordMap(currentTime);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void cutRecordMap(long currentTime) {

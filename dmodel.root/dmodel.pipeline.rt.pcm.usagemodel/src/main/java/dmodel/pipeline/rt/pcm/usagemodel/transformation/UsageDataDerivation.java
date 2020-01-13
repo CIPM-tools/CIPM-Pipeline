@@ -1,6 +1,7 @@
 package dmodel.pipeline.rt.pcm.usagemodel.transformation;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
@@ -27,6 +28,9 @@ public class UsageDataDerivation {
 		try {
 			// 1. derive usage data
 			List<UsageScenario> data = this.treeExtractor.extract(callTrees, pcm.getRepository(), pcm.getSystem());
+			data = data.stream()
+					.filter(dt -> dt.getScenarioBehaviour_UsageScenario().getActions_ScenarioBehaviour().size() > 2)
+					.collect(Collectors.toList());
 
 			log.info("Extracted " + data.size() + " usage scenario(s).");
 

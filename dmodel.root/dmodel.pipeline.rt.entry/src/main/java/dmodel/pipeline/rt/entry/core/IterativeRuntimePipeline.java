@@ -56,6 +56,7 @@ public class IterativeRuntimePipeline extends
 
 	@Override
 	protected void onIterationFinished(List<IMonitoringRecord> monitoring) {
+		blackboard.getPerformanceEvaluation().exitPipelineExecution();
 		log.info("Finished execution of the pipeline.");
 
 		// EVALUATION STUFF
@@ -87,7 +88,7 @@ public class IterativeRuntimePipeline extends
 			fileSys.setSystemFile(systemFile);
 			fileSys.setUsageModelFile(usageFile);
 
-			blackboard.getArchitectureModel().saveToFilesystem(fileSys);
+			blackboard.getArchitectureModel().copyDeep().saveToFilesystem(fileSys);
 
 			// save monitoring data
 			saveMonitoringData(monitoring, monitoringPath);

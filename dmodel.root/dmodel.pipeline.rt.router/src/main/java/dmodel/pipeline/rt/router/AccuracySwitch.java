@@ -66,23 +66,31 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		CountDownLatch waitLatch = new CountDownLatch(2);
 
 		// 1.1 submit usage derivation
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-				ETransformationState.RUNNING);
-		usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
-				getBlackboard().getValidationResultContainer().getPreValidationResults());
-		waitLatch.countDown();
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-				ETransformationState.FINISHED);
+		executorService.submit(() -> {
+			long start = getBlackboard().getPerformanceEvaluation().getTime();
+			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
+					ETransformationState.RUNNING);
+			usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
+					getBlackboard().getValidationResultContainer().getPreValidationResults());
+			waitLatch.countDown();
+			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
+					ETransformationState.FINISHED);
+			getBlackboard().getPerformanceEvaluation().trackUsage1(start);
+		});
 
 		// 1.2. submit repository derivation
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-				ETransformationState.RUNNING);
-		repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
-				getBlackboard().getBorder().getRuntimeMapping(),
-				getBlackboard().getValidationResultContainer().getPreValidationResults());
-		waitLatch.countDown();
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-				ETransformationState.FINISHED);
+		executorService.submit(() -> {
+			long start = getBlackboard().getPerformanceEvaluation().getTime();
+			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
+					ETransformationState.RUNNING);
+			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
+					getBlackboard().getBorder().getRuntimeMapping(),
+					getBlackboard().getValidationResultContainer().getPreValidationResults());
+			waitLatch.countDown();
+			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
+					ETransformationState.FINISHED);
+			getBlackboard().getPerformanceEvaluation().trackCalibration1(start);
+		});
 
 		// 2. wait for the transformations to finish
 		try {
@@ -94,25 +102,30 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 
 		// 3. simulate the resulting models
 		// TODO this could be parallelized
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
 				ETransformationState.RUNNING);
 		ValidationData pathRepository = getBlackboard().getValidationFeedbackComponent().process(copyForRepository,
 				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData, "ValidateRepo");
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
 				ETransformationState.FINISHED);
+		getBlackboard().getPerformanceEvaluation().trackValidationRepository(start);
 
+		start = getBlackboard().getPerformanceEvaluation().getTime();
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
 				ETransformationState.RUNNING);
 		ValidationData pathUsageModel = getBlackboard().getValidationFeedbackComponent().process(copyForUsage,
 				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData, "ValidateUsage");
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
 				ETransformationState.FINISHED);
+		getBlackboard().getPerformanceEvaluation().trackValidationUsage(start);
 
 		// add them to the blackboard
 		getBlackboard().getValidationResultContainer().setAfterRepositoryResults(pathRepository);
 		getBlackboard().getValidationResultContainer().setAfterUsageModelResults(pathUsageModel);
 
 		// 3.1. check which one is better
+		start = getBlackboard().getPerformanceEvaluation().getTime();
 		double sum = 0;
 		Map<Triple<String, String, ValidationMetricType>, ValidationMetricValue> mappingA = Maps.newHashMap();
 		if (pathRepository != null && pathUsageModel != null) {
@@ -132,9 +145,12 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 				}
 			}
 		}
+		getBlackboard().getPerformanceEvaluation().trackCrossValidation(start);
 
 		// 4. execute one final transformation on the better model
 		if (sum >= 0) {
+			start = getBlackboard().getPerformanceEvaluation().getTime();
+			getBlackboard().getPerformanceEvaluation().trackPath(true);
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL2,
 					ETransformationState.RUNNING);
 
@@ -143,7 +159,10 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL2,
 					ETransformationState.FINISHED);
+			getBlackboard().getPerformanceEvaluation().trackUsage2(start);
 		} else {
+			start = getBlackboard().getPerformanceEvaluation().getTime();
+			getBlackboard().getPerformanceEvaluation().trackPath(false);
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
 					ETransformationState.RUNNING);
 
@@ -153,6 +172,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
 					ETransformationState.FINISHED);
+			getBlackboard().getPerformanceEvaluation().trackCalibration2(start);
 		}
 
 		// 5. set it as final
@@ -165,6 +185,10 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			getBlackboard().setArchitectureModel(copyForUsage);
 			copyForUsage.syncWithFilesystem(getBlackboard().getFilesystemPCM());
 		}
+
+		// evaluation
+		getBlackboard().getPerformanceEvaluation().trackUsageScenarios(
+				getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
 	}
 
 }

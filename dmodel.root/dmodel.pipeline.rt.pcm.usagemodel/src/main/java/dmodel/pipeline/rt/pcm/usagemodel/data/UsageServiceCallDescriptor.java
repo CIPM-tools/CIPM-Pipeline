@@ -82,7 +82,12 @@ public class UsageServiceCallDescriptor implements IAbstractUsageDescriptor {
 		parameterValues.entrySet().forEach(pv -> {
 			VariableUsage varUsage = ParameterFactory.eINSTANCE.createVariableUsage();
 			VariableReference varReference = StoexFactory.eINSTANCE.createVariableReference();
-			varReference.setReferenceName(pv.getKey());
+
+			String[] varReferenceSplit = pv.getKey().split("\\.");
+			if (varReferenceSplit.length == 1) {
+				varReferenceSplit = new String[] { pv.getKey(), "VALUE" };
+			}
+			varReference.setReferenceName(varReferenceSplit[0]);
 
 			// convert to stoex
 			PCMRandomVariable characterisation;
@@ -106,7 +111,7 @@ public class UsageServiceCallDescriptor implements IAbstractUsageDescriptor {
 
 			VariableCharacterisation varCharacter = ParameterFactory.eINSTANCE.createVariableCharacterisation();
 			varCharacter.setSpecification_VariableCharacterisation(characterisation);
-			varCharacter.setType(VariableCharacterisationType.NUMBER_OF_ELEMENTS);
+			varCharacter.setType(VariableCharacterisationType.getByName(varReferenceSplit[1]));
 
 			varUsage.getVariableCharacterisation_VariableUsage().add(varCharacter);
 			varUsage.setNamedReference__VariableUsage(varReference);

@@ -16,6 +16,7 @@ import org.palladiosimulator.pcm.usagemodel.ScenarioBehaviour;
 import org.palladiosimulator.pcm.usagemodel.Start;
 import org.palladiosimulator.pcm.usagemodel.Stop;
 import org.palladiosimulator.pcm.usagemodel.UsagemodelFactory;
+import org.pcm.headless.api.util.PCMUtil;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
@@ -34,6 +35,21 @@ public class UsageServiceUtil {
 			return 0;
 		}
 	};
+
+	public static boolean isEntryCall(Repository repository, System system, ServiceCallRecord rec) {
+		ResourceDemandingSEFF seff = PCMUtil.getElementById(repository, ResourceDemandingSEFF.class,
+				rec.getServiceId());
+
+		return system.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
+			if (pr instanceof OperationProvidedRole) {
+				return ((OperationProvidedRole) pr).getProvidedInterface__OperationProvidedRole()
+						.getSignatures__OperationInterface().stream().anyMatch(op -> {
+							return op.getId().equals(seff.getDescribedService__SEFF().getId());
+						});
+			}
+			return false;
+		}).map(pr -> (OperationProvidedRole) pr).findFirst().isPresent();
+	}
 
 	public static UsageServiceCallDescriptor createDescriptor(ServiceCallRecord rec, Repository repository,
 			System system) {

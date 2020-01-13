@@ -34,9 +34,16 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 	})
 	/* @formatter:on */
 	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<PCMContextRecord> records) {
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
+
 		log.info("Start building of service call trees.");
-		return MonitoringDataUtil.buildServiceCallTree(records.stream().filter(f -> f instanceof ServiceCallRecord)
-				.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));
+		List<Tree<ServiceCallRecord>> result = MonitoringDataUtil
+				.buildServiceCallTree(records.stream().filter(f -> f instanceof ServiceCallRecord)
+						.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));
+
+		getBlackboard().getPerformanceEvaluation().trackServiceCallTreeExtraction(start);
+
+		return result;
 	}
 
 }

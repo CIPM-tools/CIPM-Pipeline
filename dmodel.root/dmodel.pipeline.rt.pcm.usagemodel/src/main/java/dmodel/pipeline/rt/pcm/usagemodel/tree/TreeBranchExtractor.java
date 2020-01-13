@@ -23,6 +23,7 @@ import dmodel.pipeline.rt.pcm.usagemodel.tree.path.IPathExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.path.SimpleComparisonPathExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.transition.ITransitionTreeExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.tree.transition.ReferenceTransitionTreeExtractor;
+import dmodel.pipeline.rt.pcm.usagemodel.util.UsageServiceUtil;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
 import lombok.extern.java.Log;
@@ -49,7 +50,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		// 1. create entry call tree
 		log.info("Extract entry calls.");
 		List<ServiceCallRecord> entryCalls = callSequences.parallelStream().map(e -> e.getRoot().getData())
-				.collect(Collectors.toList());
+				.filter(e -> UsageServiceUtil.isEntryCall(repository, system, e)).collect(Collectors.toList());
 
 		// 2. extract user sessions
 		log.info("Extract sessions.");

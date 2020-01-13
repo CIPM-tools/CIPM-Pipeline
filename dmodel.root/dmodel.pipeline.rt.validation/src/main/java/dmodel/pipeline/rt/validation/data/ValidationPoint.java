@@ -16,6 +16,8 @@ public class ValidationPoint {
 
 	private String id;
 
+	private String serviceId;
+
 	private PlainMeasuringPoint measuringPoint;
 	private PlainMetricDescription metricDescription;
 

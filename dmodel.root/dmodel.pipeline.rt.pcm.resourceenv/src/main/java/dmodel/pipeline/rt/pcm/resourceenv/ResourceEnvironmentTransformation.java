@@ -40,6 +40,7 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_RESENV) })
 	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_ALLOCATION))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
 		log.info("Deriving resource environment.");
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
 				ETransformationState.RUNNING);
@@ -66,6 +67,7 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 		transformer.processEnvironmentData(getBlackboard().getArchitectureModel(),
 				getBlackboard().getBorder().getRuntimeMapping(), data);
 
+		getBlackboard().getPerformanceEvaluation().trackResourceEnvironment(start);
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
 				ETransformationState.FINISHED);
 	}

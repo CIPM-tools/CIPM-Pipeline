@@ -25,6 +25,7 @@ public class PrePipelineValidationTask extends AbstractIterativePipelinePart<Run
 	public List<PCMContextRecord> prePipelineValidation(List<PCMContextRecord> recs) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.PRE_VALIDATION,
 				ETransformationState.RUNNING);
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
 
 		log.info("Start simulation of the current models.");
 		// simulate
@@ -36,6 +37,7 @@ public class PrePipelineValidationTask extends AbstractIterativePipelinePart<Run
 		getBlackboard().getValidationResultContainer().setPreValidationResults(metrics);
 
 		// finish
+		getBlackboard().getPerformanceEvaluation().trackPreValidation(start);
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.PRE_VALIDATION,
 				ETransformationState.FINISHED);
 

@@ -67,6 +67,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
 
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();
@@ -79,6 +80,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 				getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
 
 		// finish
+		getBlackboard().getPerformanceEvaluation().trackSystem(start);
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.FINISHED);
 	}
 

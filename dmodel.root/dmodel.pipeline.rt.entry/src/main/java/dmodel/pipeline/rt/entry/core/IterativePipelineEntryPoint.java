@@ -24,9 +24,20 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 	@OutputPorts({ @OutputPort(id = PortIDs.T_VAL_PRE, to = PrePipelineValidationTask.class, async = false),
 			@OutputPort(id = PortIDs.T_RAW_ROUTER, to = AccuracySwitch.class, async = false) })
 	public List<PCMContextRecord> filterMonitoringData(List<IMonitoringRecord> records) {
+		// EVALUATION
+		getBlackboard().getPerformanceEvaluation().enterPipelineExecution();
+		getBlackboard().getPerformanceEvaluation().trackRecordCount(records.size());
+
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
+
+		// original logic
 		log.info("Reached entry (size = " + records.size() + ").");
-		return records.stream().filter(r -> r instanceof PCMContextRecord).map(PCMContextRecord.class::cast)
-				.collect(Collectors.toList());
+		List<PCMContextRecord> result = records.stream().filter(r -> r instanceof PCMContextRecord)
+				.map(PCMContextRecord.class::cast).collect(Collectors.toList());
+
+		getBlackboard().getPerformanceEvaluation().trackPreFilter(start);
+
+		return result;
 	}
 
 }

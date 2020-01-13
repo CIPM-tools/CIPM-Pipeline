@@ -18,4 +18,6 @@ public interface PortIDs {
 
 	String T_FINAL_VALIDATION = "model->final";
 	String T_RAW_FINAL_VALIDATION = "raw->final";
+
+	String T_VAL_IMM = "final->imm";
 }

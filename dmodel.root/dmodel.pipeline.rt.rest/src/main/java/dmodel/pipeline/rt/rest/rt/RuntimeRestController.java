@@ -53,4 +53,14 @@ public class RuntimeRestController {
 		}
 	}
 
+	@GetMapping("/runtime/pipeline/performance")
+	public String performanceDetails() {
+		log.fine("Performance details has been polled.");
+		try {
+			return objectMapper.writeValueAsString(blackboard.getPerformanceEvaluation().getData());
+		} catch (JsonProcessingException e) {
+			return JsonUtil.wrapAsObject("error", true, false);
+		}
+	}
+
 }

@@ -6,6 +6,7 @@ import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.BranchAction;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.LoopAction;
+import org.palladiosimulator.pcm.seff.ResourceDemandingBehaviour;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +17,7 @@ import InstrumentationMetamodel.InstrumentationModel;
 import InstrumentationMetamodel.InstrumentationModelFactory;
 import InstrumentationMetamodel.InstrumentationType;
 import InstrumentationMetamodel.ServiceInstrumentationPoint;
+import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
 import dmodel.pipeline.rt.pipeline.blackboard.validation.ValidationResultContainer;
 import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
@@ -52,6 +54,9 @@ public class RuntimePipelineBlackboard {
 
 	@Autowired
 	private PipelineUIState pipelineState;
+
+	@Autowired
+	private PerformanceEvaluation performanceEvaluation;
 
 	private boolean applicationRunning = false;
 	private long lastMonitoringDataReceivedTimestamp = 0;
@@ -91,27 +96,7 @@ public class RuntimePipelineBlackboard {
 			sip.setService(service);
 			imm.getPoints().add(sip);
 
-			for (AbstractAction action : service.getSteps_Behaviour()) {
-				if (action instanceof LoopAction) {
-					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
-							.createActionInstrumentationPoint();
-					inner.setType(InstrumentationType.LOOP);
-					inner.setAction(action);
-					sip.getActionInstrumentationPoints().add(inner);
-				} else if (action instanceof BranchAction) {
-					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
-							.createActionInstrumentationPoint();
-					inner.setType(InstrumentationType.BRANCH);
-					inner.setAction(action);
-					sip.getActionInstrumentationPoints().add(inner);
-				} else if (action instanceof InternalAction) {
-					ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
-							.createActionInstrumentationPoint();
-					inner.setType(InstrumentationType.INTERNAL);
-					inner.setAction(action);
-					sip.getActionInstrumentationPoints().add(inner);
-				}
-			}
+			recursiveBuildImm(service, sip);
 		}
 		this.instrumentationModel = imm;
 	}
@@ -124,6 +109,36 @@ public class RuntimePipelineBlackboard {
 		// delete previous validation results
 		pipelineState.reset();
 		validationResultContainer.reset();
+	}
+
+	private void recursiveBuildImm(ResourceDemandingBehaviour service, ServiceInstrumentationPoint sip) {
+		for (AbstractAction action : service.getSteps_Behaviour()) {
+			if (action instanceof LoopAction) {
+				ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+						.createActionInstrumentationPoint();
+				inner.setType(InstrumentationType.LOOP);
+				inner.setAction(action);
+				sip.getActionInstrumentationPoints().add(inner);
+
+				recursiveBuildImm(((LoopAction) action).getBodyBehaviour_Loop(), sip);
+			} else if (action instanceof BranchAction) {
+				ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+						.createActionInstrumentationPoint();
+				inner.setType(InstrumentationType.BRANCH);
+				inner.setAction(action);
+				sip.getActionInstrumentationPoints().add(inner);
+
+				((BranchAction) action).getBranches_Branch().stream().forEach(branch -> {
+					recursiveBuildImm(branch.getBranchBehaviour_BranchTransition(), sip);
+				});
+			} else if (action instanceof InternalAction) {
+				ActionInstrumentationPoint inner = InstrumentationModelFactory.eINSTANCE
+						.createActionInstrumentationPoint();
+				inner.setType(InstrumentationType.INTERNAL);
+				inner.setAction(action);
+				sip.getActionInstrumentationPoints().add(inner);
+			}
+		}
 	}
 
 }
