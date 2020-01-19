@@ -4,21 +4,11 @@ import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
-import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
 import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
 
 @Service
-public class ServiceCallAverageDistanceRelative implements IValidationMetric<DoubleMetricValue> {
-
-	@Override
-	public boolean isTarget(ValidationPoint point) {
-		if (point.getMeasuringPoint().getType() == MeasuringPointType.ASSEMBLY_OPERATION
-				|| point.getMeasuringPoint().getType() == MeasuringPointType.ENTRY_LEVEL_CALL) {
-			return true;
-		}
-		return false;
-	}
+public class ServiceCallAverageDistanceRelative extends ServiceCallMetric {
 
 	@Override
 	public DoubleMetricValue calculate(ValidationPoint point) {

@@ -9,9 +9,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
@@ -36,15 +39,19 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 
 	private SortedMap<Long, List<IMonitoringRecord>> recordMap;
 
+	private List<Pair<IMonitoringRecord, Long>> buffer = Lists.newArrayList();
+	private volatile boolean processing = false;
+
 	@Override
 	public void collect(IMonitoringRecord record) {
-		long time = System.currentTimeMillis();
-		if (recordMap.containsKey(time)) {
-			recordMap.get(time).add(record);
-		} else {
-			List<IMonitoringRecord> nList = new LinkedList<>();
-			nList.add(record);
-			recordMap.put(time, nList);
+		if (processing) {
+			buffer.add(Pair.of(record, System.currentTimeMillis()));
+			return;
+		}
+
+		synchronized (recordMap) {
+			long time = System.currentTimeMillis();
+			pushRecord(record, time);
 		}
 	}
 
@@ -65,6 +72,7 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 	}
 
 	private void execTrigger() {
+		processing = true;
 		long currentTime = System.currentTimeMillis();
 		// get subset
 		try {
@@ -80,8 +88,31 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 
 			// cut old
 			cutRecordMap(currentTime);
+
+			// open up
+			processing = false;
+			flushBuffer();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void pushRecord(IMonitoringRecord record, long time) {
+		if (recordMap.containsKey(time)) {
+			recordMap.get(time).add(record);
+		} else {
+			List<IMonitoringRecord> nList = new LinkedList<>();
+			nList.add(record);
+			recordMap.put(time, nList);
+		}
+	}
+
+	private void flushBuffer() {
+		synchronized (recordMap) {
+			for (Pair<IMonitoringRecord, Long> rec : buffer) {
+				pushRecord(rec.getLeft(), rec.getRight());
+			}
+			buffer.clear();
 		}
 	}
 

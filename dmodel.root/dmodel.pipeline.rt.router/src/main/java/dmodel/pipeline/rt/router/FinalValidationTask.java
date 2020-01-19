@@ -13,6 +13,7 @@ import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
 import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.validation.data.ValidationData;
+import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import lombok.extern.java.Log;
 
@@ -21,7 +22,7 @@ public class FinalValidationTask extends AbstractIterativePipelinePart<RuntimePi
 
 	@InputPorts({ @InputPort(PortIDs.T_RAW_FINAL_VALIDATION), @InputPort(PortIDs.T_FINAL_VALIDATION) })
 	@OutputPorts({ @OutputPort(id = PortIDs.T_VAL_IMM, async = false, to = InstrumentationModelTransformation.class) })
-	public ValidationData validateFinal(List<PCMContextRecord> recs) {
+	public ValidationData validateFinal(List<PCMContextRecord> recs, InMemoryPCM resultModel) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION3,
 				ETransformationState.RUNNING);
 		long start = getBlackboard().getPerformanceEvaluation().getTime();

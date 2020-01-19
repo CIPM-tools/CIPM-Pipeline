@@ -26,6 +26,7 @@ import dmodel.pipeline.rt.pcm.repository.tree.TreeNode;
 import dmodel.pipeline.rt.pcm.repository.usage.IUsageEstimation;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 // TODO refactor
 public class TimelineAnalyzer implements ITimelineAnalysis {
@@ -80,9 +81,10 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 
 					if (utilizationNormalized > 0.0) {
 						// unroll it
-						for (Entry<Long, ResourceDemandTimelineInterval> intersection : intersecting) {
-							unrollIntervalWithModel(intersection.getValue());
-						}
+						// for (Entry<Long, ResourceDemandTimelineInterval> intersection : intersecting)
+						// {
+						// unrollIntervalWithModel(intersection.getValue());
+						// }
 
 						// get intersecting ias
 						List<TreeNode<AbstractTimelineObject>> allIss = new ArrayList<>();
@@ -233,7 +235,7 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		LOG.info("Performing linear regressions.");
 		Map<String, PCMRandomVariable> stoexMapping = new HashMap<>();
 		for (Entry<String, List<Pair<ServiceParametersWrapper, Double>>> demandEntry : iaDemands.entrySet()) {
-			ParametricLinearRegression regression = new ParametricLinearRegression(demandEntry.getValue(), 1, 0.4f);
+			ParametricLinearRegression regression = new ParametricLinearRegression(demandEntry.getValue(), 1, 0.5f);
 			PCMRandomVariable derived = regression.deriveStoex(null);
 			stoexMapping.put(demandEntry.getKey(), derived);
 			LOG.info(derived.getSpecification());
@@ -242,7 +244,7 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		// write back to model
 		LOG.info("Writing info back to the model.");
 		stoexMapping.entrySet().forEach(wb -> {
-			InternalAction action = PCMUtil.getElementById(pcm.getRepository(), InternalAction.class, wb.getKey());
+			InternalAction action = PCMUtils.getElementById(pcm.getRepository(), InternalAction.class, wb.getKey());
 			if (action != null) {
 				List<ParametricResourceDemand> inner = ModelUtil.getObjects(action, ParametricResourceDemand.class);
 				if (inner.size() == 1) {

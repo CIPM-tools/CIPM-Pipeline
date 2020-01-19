@@ -6,6 +6,7 @@ import java.util.Set;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.pcm.headless.shared.data.results.PlainMeasuringPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
 
@@ -20,6 +21,7 @@ import dmodel.pipeline.shared.pipeline.PortIDs;
 import lombok.extern.java.Log;
 
 @Log
+@Service
 public class InstrumentationModelTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
 	@Autowired

@@ -79,6 +79,7 @@ public class PerformanceEvaluation {
 
 	public void enterPipelineExecution() {
 		currentTrack = new ExecutionData();
+		currentTrack.setStartTime(System.currentTimeMillis());
 		start = System.nanoTime();
 	}
 

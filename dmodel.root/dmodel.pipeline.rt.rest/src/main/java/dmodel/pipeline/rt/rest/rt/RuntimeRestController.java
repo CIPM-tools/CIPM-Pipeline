@@ -43,10 +43,17 @@ public class RuntimeRestController {
 		try {
 			return objectMapper
 					.writeValueAsString(blackboard.getInstrumentationModel().getPoints().stream().map(sip -> {
-						Set<String> inner = Sets.newHashSet(sip.getService().getId());
-						sip.getActionInstrumentationPoints().stream()
-								.forEach(aip -> inner.add(aip.getAction().getId()));
-						return inner;
+						if (sip.isActive()) {
+							Set<String> inner = Sets.newHashSet(sip.getService().getId());
+							sip.getActionInstrumentationPoints().stream().forEach(aip -> {
+								if (aip.isActive()) {
+									inner.add(aip.getAction().getId());
+								}
+							});
+							return inner;
+						} else {
+							return Sets.newHashSet();
+						}
 					}).flatMap(Set::stream).collect(Collectors.toList()));
 		} catch (JsonProcessingException e) {
 			return JsonUtil.wrapAsObject("error", true, false);

@@ -29,10 +29,10 @@ import dmodel.pipeline.shared.pcm.util.PCMElementIDCache;
 @Service
 public class MonitoringDataEnrichment {
 	private Cache<Pair<String, String>, List<ValidationPoint>> resourceUtilCache = new Cache2kBuilder<Pair<String, String>, List<ValidationPoint>>() {
-	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
+	}.expireAfterWrite(2, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
 	private Cache<Pair<String, String>, List<ValidationPoint>> serviceCallCache = new Cache2kBuilder<Pair<String, String>, List<ValidationPoint>>() {
-	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
+	}.expireAfterWrite(2, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
 	private PCMElementIDCache<ResourceContainer> cacheResEnv = new PCMElementIDCache<>(ResourceContainer.class);
 
@@ -50,6 +50,7 @@ public class MonitoringDataEnrichment {
 		monitoring.stream().forEach(rec -> {
 			processRecord(pcm, mapping, points, rec);
 		});
+
 	}
 
 	private void processRecord(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
@@ -71,6 +72,7 @@ public class MonitoringDataEnrichment {
 						.filter(p -> p.getMeasuringPoint().getSourceIds().contains(resolvedTargetId)
 								&& p.getMeasuringPoint().getSourceIds().size() == 1)
 						.collect(Collectors.toList());
+				resourceUtilCache.put(key, assignedPoints);
 			}
 
 			if (assignedPoints.size() > 0) {
@@ -106,6 +108,7 @@ public class MonitoringDataEnrichment {
 					}
 					return false;
 				}).collect(Collectors.toList());
+				serviceCallCache.put(key, assignedPoints);
 			}
 
 			if (assignedPoints.size() > 0) {

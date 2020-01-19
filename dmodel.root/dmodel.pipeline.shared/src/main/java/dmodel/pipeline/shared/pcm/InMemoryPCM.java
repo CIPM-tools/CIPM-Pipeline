@@ -69,14 +69,15 @@ public class InMemoryPCM {
 	}
 
 	public void syncWithFilesystem(LocalFilesystemPCM pcm) {
-		FileBackedModelUtil.synchronize(this.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
-				n -> this.updatedAllocation(), null);
+		// The order is important!
 		FileBackedModelUtil.synchronize(this.getRepository(), pcm.getRepositoryFile(), Repository.class,
 				n -> this.updatedRepository(), null);
 		FileBackedModelUtil.synchronize(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
 				ResourceEnvironment.class, n -> this.updatedResourceEnv(), null);
 		FileBackedModelUtil.synchronize(this.getSystem(), pcm.getSystemFile(), System.class, n -> this.updatedSystem(),
 				null);
+		FileBackedModelUtil.synchronize(this.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
+				n -> this.updatedAllocation(), null);
 		FileBackedModelUtil.synchronize(this.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
 				n -> this.updatedUsage(), null);
 		this.reflected = pcm;
@@ -85,14 +86,14 @@ public class InMemoryPCM {
 	public static InMemoryPCM createFromFilesystemSynced(LocalFilesystemPCM pcm) {
 		InMemoryPCM ret = createFromFilesystem(pcm);
 
-		FileBackedModelUtil.synchronize(ret.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
-				n -> ret.updatedAllocation(), null);
 		FileBackedModelUtil.synchronize(ret.getRepository(), pcm.getRepositoryFile(), Repository.class,
 				n -> ret.updatedRepository(), null);
 		FileBackedModelUtil.synchronize(ret.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
 				ResourceEnvironment.class, n -> ret.updatedResourceEnv(), null);
 		FileBackedModelUtil.synchronize(ret.getSystem(), pcm.getSystemFile(), System.class, n -> ret.updatedSystem(),
 				null);
+		FileBackedModelUtil.synchronize(ret.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
+				n -> ret.updatedAllocation(), null);
 		FileBackedModelUtil.synchronize(ret.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
 				n -> ret.updatedUsage(), null);
 		ret.reflected = pcm;
@@ -150,10 +151,12 @@ public class InMemoryPCM {
 	}
 
 	public void saveToFilesystem(LocalFilesystemPCM pcm) {
+		// The order is important
+		// Because of the dependencies in the models
 		ModelUtil.saveToFile(this.getRepository(), pcm.getRepositoryFile());
-		ModelUtil.saveToFile(this.getAllocationModel(), pcm.getAllocationModelFile());
 		ModelUtil.saveToFile(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile());
 		ModelUtil.saveToFile(this.getSystem(), pcm.getSystemFile());
+		ModelUtil.saveToFile(this.getAllocationModel(), pcm.getAllocationModelFile());
 		ModelUtil.saveToFile(this.getUsageModel(), pcm.getUsageModelFile());
 	}
 
@@ -240,6 +243,7 @@ public class InMemoryPCM {
 		List<EObject> orgs = Lists.newArrayList(allocationModel, repository, resourceEnvironmentModel, usageModel,
 				system);
 		List<EObject> copies = transformer.copyObjects(orgs);
+		transformer.relinkObjects(copies);
 
 		Repository repo = copies.stream().filter(f -> f instanceof Repository).map(Repository.class::cast).findFirst()
 				.orElse(null);

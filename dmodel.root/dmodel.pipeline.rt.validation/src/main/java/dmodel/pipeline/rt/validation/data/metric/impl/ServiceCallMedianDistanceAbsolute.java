@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.validation.data.metric.impl;
 
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
@@ -7,29 +8,20 @@ import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
 
 @Service
-public class ServiceCallAverageDistanceAbsolute extends ServiceCallMetric {
+public class ServiceCallMedianDistanceAbsolute extends ServiceCallMetric {
 
 	@Override
 	public DoubleMetricValue calculate(ValidationPoint point) {
 		if (point.getAnalysisDistribution() != null && point.getMonitoringDistribution() != null) {
 			if (point.getAnalysisDistribution().getYValues().size() >= 1
 					&& point.getMonitoringDistribution().getYValues().size() >= 1) {
-				double avg1 = avg(point.getAnalysisDistribution().yAxis());
-				double avg2 = avg(point.getMonitoringDistribution().yAxis());
-
-				double distance = Math.abs(avg1 - avg2);
-				return new DoubleMetricValue(distance, ValidationMetricType.AVG_DISTANCE_ABS, false);
+				Percentile q1 = new Percentile(0.5);
+				double distance = Math.abs(q1.evaluate(point.getAnalysisDistribution().yAxis())
+						- q1.evaluate(point.getMonitoringDistribution().yAxis()));
+				return new DoubleMetricValue(distance, ValidationMetricType.MEDIAN_DISTANCE, false);
 			}
 		}
 		return null;
-	}
-
-	private double avg(double[] all) {
-		double sum = 0;
-		for (double d : all) {
-			sum += d;
-		}
-		return sum / all.length;
 	}
 
 }

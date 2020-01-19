@@ -118,6 +118,7 @@ public class RuntimePipelineBlackboard {
 						.createActionInstrumentationPoint();
 				inner.setType(InstrumentationType.LOOP);
 				inner.setAction(action);
+				inner.setActive(true);
 				sip.getActionInstrumentationPoints().add(inner);
 
 				recursiveBuildImm(((LoopAction) action).getBodyBehaviour_Loop(), sip);
@@ -126,6 +127,7 @@ public class RuntimePipelineBlackboard {
 						.createActionInstrumentationPoint();
 				inner.setType(InstrumentationType.BRANCH);
 				inner.setAction(action);
+				inner.setActive(true);
 				sip.getActionInstrumentationPoints().add(inner);
 
 				((BranchAction) action).getBranches_Branch().stream().forEach(branch -> {
@@ -136,6 +138,7 @@ public class RuntimePipelineBlackboard {
 						.createActionInstrumentationPoint();
 				inner.setType(InstrumentationType.INTERNAL);
 				inner.setAction(action);
+				inner.setActive(true);
 				sip.getActionInstrumentationPoints().add(inner);
 			}
 		}

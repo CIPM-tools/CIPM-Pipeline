@@ -8,6 +8,7 @@ import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationSignature;
+import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.system.System;
@@ -36,19 +37,22 @@ public class UsageServiceUtil {
 		}
 	};
 
-	public static boolean isEntryCall(Repository repository, System system, ServiceCallRecord rec) {
+	public static synchronized boolean isEntryCall(Repository repository, System system, ServiceCallRecord rec) {
 		ResourceDemandingSEFF seff = PCMUtil.getElementById(repository, ResourceDemandingSEFF.class,
 				rec.getServiceId());
 
-		return system.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
+		for (ProvidedRole pr : system.getProvidedRoles_InterfaceProvidingEntity()) {
 			if (pr instanceof OperationProvidedRole) {
-				return ((OperationProvidedRole) pr).getProvidedInterface__OperationProvidedRole()
-						.getSignatures__OperationInterface().stream().anyMatch(op -> {
-							return op.getId().equals(seff.getDescribedService__SEFF().getId());
-						});
+				for (OperationSignature sig : ((OperationProvidedRole) pr).getProvidedInterface__OperationProvidedRole()
+						.getSignatures__OperationInterface()) {
+					if (sig.getId().equals(seff.getDescribedService__SEFF().getId())) {
+						return true;
+					}
+				}
 			}
-			return false;
-		}).map(pr -> (OperationProvidedRole) pr).findFirst().isPresent();
+		}
+
+		return false;
 	}
 
 	public static UsageServiceCallDescriptor createDescriptor(ServiceCallRecord rec, Repository repository,

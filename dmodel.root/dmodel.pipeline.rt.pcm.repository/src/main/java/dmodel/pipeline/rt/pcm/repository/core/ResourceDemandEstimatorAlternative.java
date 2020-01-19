@@ -16,8 +16,6 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 import org.pcm.headless.api.util.PCMUtil;
 
-import com.google.common.collect.Sets;
-
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.repository.MonitoringDataSet;
 import dmodel.pipeline.rt.pcm.repository.estimation.IResourceDemandTimeline;
@@ -47,7 +45,6 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 		// build service call tree
 		List<TreeNode<ServiceCallRecord>> callRoots = new ArrayList<>();
 		Map<String, TreeNode<ServiceCallRecord>> idMapping = new HashMap<>();
-		Set<String> seenCallerIds = Sets.newHashSet();
 
 		// sort
 		List<ServiceCallRecord> sortedServiceCalls = data.getServiceCalls().getServiceCalls().stream()

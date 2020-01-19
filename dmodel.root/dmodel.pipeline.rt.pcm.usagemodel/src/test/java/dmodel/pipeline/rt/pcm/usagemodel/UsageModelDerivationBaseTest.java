@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.List;
 
 import org.junit.Before;
@@ -37,37 +38,33 @@ public class UsageModelDerivationBaseTest extends AbstractTransformationTest {
 
 	@BeforeClass
 	public static void loadInitModels() {
-		INIT_REPOSITORY = ModelUtil.readFromResource(
-				UsageModelDerivationBaseTest.class.getResource("/models/test.repository"), Repository.class);
+		INIT_REPOSITORY = ModelUtil.readFromFile(new File("test-data/models/test.repository").getAbsolutePath(),
+				Repository.class);
 
-		INIT_SYSTEM = ModelUtil.readFromResource(UsageModelDerivationBaseTest.class.getResource("/models/test.system"),
-				org.palladiosimulator.pcm.system.System.class);
+		INIT_SYSTEM = ModelUtil.readFromFile(new File("test-data/models/test.system").getAbsolutePath(), System.class);
 
-		INIT_RESENV = ModelUtil.readFromResource(
-				UsageModelDerivationBaseTest.class.getResource("/models/test.resourceenvironment"),
+		INIT_RESENV = ModelUtil.readFromFile(new File("test-data/models/test.resourceenvironment").getAbsolutePath(),
 				ResourceEnvironment.class);
 
-		INIT_ALLOCATION = ModelUtil.readFromResource(
-				UsageModelDerivationBaseTest.class.getResource("/models/test.allocation"), Allocation.class);
+		INIT_ALLOCATION = ModelUtil.readFromFile(new File("test-data/models/test.allocation").getAbsolutePath(),
+				Allocation.class);
 	}
 
 	@Override
 	protected void loadPCMModels() {
-		blackboard.getArchitectureModel().setRepository(ModelUtil.readFromResource(
-				UsageModelDerivationBaseTest.class.getResource("/models/test.repository"), Repository.class));
+		blackboard.getArchitectureModel().setRepository(ModelUtil
+				.readFromFile(new File("test-data/models/test.repository").getAbsolutePath(), Repository.class));
 
-		blackboard.getArchitectureModel()
-				.setSystem(ModelUtil.readFromResource(
-						UsageModelDerivationBaseTest.class.getResource("/models/test.system"),
-						org.palladiosimulator.pcm.system.System.class));
+		blackboard.getArchitectureModel().setSystem(
+				ModelUtil.readFromFile(new File("test-data/models/test.system").getAbsolutePath(), System.class));
 
-		blackboard.getArchitectureModel()
-				.setResourceEnvironmentModel(ModelUtil.readFromResource(
-						UsageModelDerivationBaseTest.class.getResource("/models/test.resourceenvironment"),
-						ResourceEnvironment.class));
+		blackboard.getArchitectureModel().setResourceEnvironmentModel(ModelUtil.readFromFile(
+				new File("test-data/models/test.resourceenvironment").getAbsolutePath(), ResourceEnvironment.class));
 
-		blackboard.getArchitectureModel().setAllocationModel(ModelUtil.readFromResource(
-				UsageModelDerivationBaseTest.class.getResource("/models/test.allocation"), Allocation.class));
+		blackboard.getArchitectureModel().setAllocationModel(ModelUtil
+				.readFromFile(new File("test-data/models/test.allocation").getAbsolutePath(), Allocation.class));
+
+		blackboard.getArchitectureModel().setUsageModel(null);
 	}
 
 	@Test

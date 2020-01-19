@@ -8,6 +8,7 @@ import lombok.Data;
 public class ExecutionData {
 	// EXECUTION TIMES
 	private long executionTimeCumulated;
+	private long startTime;
 
 	private long preFilter;
 	private long serviceCallTree;

@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
+import org.palladiosimulator.pcm.system.System;
 
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
@@ -29,36 +30,26 @@ public class CocomeUsageModelDerivationTest extends AbstractTransformationTest {
 	@Override
 	protected void loadPCMModels() {
 		blackboard.getArchitectureModel()
-				.setRepository(ModelUtil.readFromResource(
-						CocomeUsageModelDerivationTest.class.getResource("/cocome/models/cocome.repository"),
-						Repository.class));
+				.setRepository(ModelUtil.readFromFile("test-data/cocome/models/cocome.repository", Repository.class));
 
 		blackboard.getArchitectureModel()
-				.setSystem(ModelUtil.readFromResource(
-						CocomeUsageModelDerivationTest.class.getResource("/cocome/models/cocome.system"),
-						org.palladiosimulator.pcm.system.System.class));
+				.setSystem(ModelUtil.readFromFile("test-data/cocome/models/cocome.system", System.class));
 
-		blackboard.getArchitectureModel()
-				.setResourceEnvironmentModel(ModelUtil.readFromResource(
-						CocomeUsageModelDerivationTest.class.getResource("/cocome/models/cocome.resourceenvironment"),
-						ResourceEnvironment.class));
+		blackboard.getArchitectureModel().setResourceEnvironmentModel(ModelUtil
+				.readFromFile("test-data/cocome/models/cocome.resourceenvironment", ResourceEnvironment.class));
 
-		blackboard.getArchitectureModel()
-				.setAllocationModel(ModelUtil.readFromResource(
-						CocomeUsageModelDerivationTest.class.getResource("/cocome/models/cocome.allocation"),
-						Allocation.class));
+		blackboard.getArchitectureModel().setAllocationModel(
+				ModelUtil.readFromFile("test-data/cocome/models/cocome.allocation", Allocation.class));
 	}
 
 	@Test
 	public void noMonitoringDataTest() throws IllegalStateException, AnalysisConfigurationException {
-		List<PCMContextRecord> recs = MonitoringDataUtil.getMonitoringDataFromFiles("cocome/monitoring/");
+		List<PCMContextRecord> recs = MonitoringDataUtil.getMonitoringDataFromFiles("test-data/cocome/monitoring/");
 		List<ServiceCallRecord> srecs = recs.stream().filter(f -> f instanceof ServiceCallRecord)
 				.map(ServiceCallRecord.class::cast).collect(Collectors.toList());
 		List<Tree<ServiceCallRecord>> records = MonitoringDataUtil.buildServiceCallTree(srecs);
 
 		derivation.deriveUsageData(records, blackboard.getArchitectureModel(), null);
-
-		ModelUtil.saveToFile(blackboard.getArchitectureModel().getUsageModel(), "output.usagemodel");
 	}
 
 }

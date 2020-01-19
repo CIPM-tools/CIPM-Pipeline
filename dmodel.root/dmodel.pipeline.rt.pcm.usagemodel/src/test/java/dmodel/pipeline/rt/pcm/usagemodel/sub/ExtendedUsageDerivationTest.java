@@ -31,7 +31,7 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		assertEquals(1, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
 		assertNotNull(blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
 				.getScenarioBehaviour_UsageScenario());
-		assertEquals(3, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
+		assertEquals(5, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
 				.getScenarioBehaviour_UsageScenario().getActions_ScenarioBehaviour().size());
 	}
 
@@ -49,10 +49,10 @@ public class ExtendedUsageDerivationTest extends UsageModelDerivationBaseTest {
 		assertTrue(modelsEqual(INIT_ALLOCATION, blackboard.getArchitectureModel().getAllocationModel()));
 
 		assertNotNull(blackboard.getArchitectureModel().getUsageModel());
-		assertEquals(2, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
+		assertEquals(1, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
 		assertNotNull(blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
 				.getScenarioBehaviour_UsageScenario());
-		assertEquals(3, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
+		assertEquals(5, blackboard.getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().get(0)
 				.getScenarioBehaviour_UsageScenario().getActions_ScenarioBehaviour().size());
 	}
 

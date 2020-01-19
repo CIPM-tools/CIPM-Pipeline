@@ -53,14 +53,16 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
-	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<PCMContextRecord> rawMonitoringData) {
+	public InMemoryPCM accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls,
+			List<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
 
 		// create deep copies
+		getBlackboard().getArchitectureModel().clearListeners();
 		InMemoryPCM copyForUsage = getBlackboard().getArchitectureModel().copyDeep();
 		InMemoryPCM copyForRepository = getBlackboard().getArchitectureModel().copyDeep();
-		copyForRepository.clearListeners();
 		copyForUsage.clearListeners();
+		copyForRepository.clearListeners();
 
 		// 1. invoke the transformations
 		CountDownLatch waitLatch = new CountDownLatch(2);
@@ -72,24 +74,26 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					ETransformationState.RUNNING);
 			usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
 					getBlackboard().getValidationResultContainer().getPreValidationResults());
-			waitLatch.countDown();
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
 					ETransformationState.FINISHED);
 			getBlackboard().getPerformanceEvaluation().trackUsage1(start);
+
+			waitLatch.countDown();
 		});
 
 		// 1.2. submit repository derivation
 		executorService.submit(() -> {
-			long start = getBlackboard().getPerformanceEvaluation().getTime();
+			long starti = getBlackboard().getPerformanceEvaluation().getTime();
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
 					ETransformationState.RUNNING);
 			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
 					getBlackboard().getBorder().getRuntimeMapping(),
 					getBlackboard().getValidationResultContainer().getPreValidationResults());
-			waitLatch.countDown();
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
 					ETransformationState.FINISHED);
-			getBlackboard().getPerformanceEvaluation().trackCalibration1(start);
+			getBlackboard().getPerformanceEvaluation().trackCalibration1(starti);
+
+			waitLatch.countDown();
 		});
 
 		// 2. wait for the transformations to finish
@@ -97,11 +101,11 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			waitLatch.await();
 		} catch (InterruptedException e) {
 			log.warning("Waiting for the subtransformations has been interrupted.");
-			return;
+			return null;
 		}
 
 		// 3. simulate the resulting models
-		// TODO this could be parallelized
+		// TODO maybe do this in parallel if it works flawless
 		long start = getBlackboard().getPerformanceEvaluation().getTime();
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
 				ETransformationState.RUNNING);
@@ -140,7 +144,12 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					Triple<String, String, ValidationMetricType> query = Triple.of(validationPoint.getId(),
 							validationPoint.getMetricDescription().getId(), val.type());
 					if (mappingA.containsKey(query)) {
-						sum += mappingA.get(query).compare(val);
+						double comp = mappingA.get(query).compare(val);
+						if (comp > 0) {
+							sum += 1;
+						} else if (comp < 0) {
+							sum -= 1;
+						}
 					}
 				}
 			}
@@ -176,19 +185,24 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		}
 
 		// 5. set it as final
-		getBlackboard().getArchitectureModel().clearListeners();
+		InMemoryPCM resultModel;
 		if (sum >= 0) {
-			// TODO debug
+			log.info("Selected repository path.");
 			getBlackboard().setArchitectureModel(copyForRepository);
 			copyForRepository.syncWithFilesystem(getBlackboard().getFilesystemPCM());
+			resultModel = copyForRepository;
 		} else {
+			log.info("Selected usage path.");
 			getBlackboard().setArchitectureModel(copyForUsage);
 			copyForUsage.syncWithFilesystem(getBlackboard().getFilesystemPCM());
+			resultModel = copyForUsage;
 		}
 
 		// evaluation
 		getBlackboard().getPerformanceEvaluation().trackUsageScenarios(
 				getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
+
+		return resultModel;
 	}
 
 }

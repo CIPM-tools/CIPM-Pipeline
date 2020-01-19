@@ -46,6 +46,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 	@Override
 	public List<UsageScenario> extract(List<Tree<ServiceCallRecord>> callSequences, Repository repository,
 			System system) {
+		// reset old
 		currentGroupId = 0;
 		// 1. create entry call tree
 		log.info("Extract entry calls.");

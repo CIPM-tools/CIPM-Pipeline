@@ -76,7 +76,7 @@ function startVisualization(id, type) {
 
 function createVisualizationTab(type, data) {
 	// create tab
-	var genId = data.id + "-" + type;
+	var genId = data.id + "-" + type + "-" + currentSel;
 	var genIdContent = genId + "-content";
 
 	var tabItem = $('<li class="nav-item"><a class="nav-link" id="'
