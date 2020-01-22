@@ -40,7 +40,7 @@ public class ResourceDemandTimelineInterval {
 		if (records != null) {
 			records.forEach(r -> {
 				if (r != null && r.getResourceId().equals(resourceId)) {
-					TreeNode<AbstractTimelineObject> temp = buildNode(r);
+					TreeNode<AbstractTimelineObject> temp = buildNode(r, data.getServiceId());
 					temp.parent = root;
 					root.children.add(temp);
 				}
@@ -48,8 +48,8 @@ public class ResourceDemandTimelineInterval {
 		}
 	}
 
-	private TreeNode<AbstractTimelineObject> buildNode(ResponseTimeRecord r) {
-		return new TreeNode<AbstractTimelineObject>(new InternalActionTimelineObject(r));
+	private TreeNode<AbstractTimelineObject> buildNode(ResponseTimeRecord r, String serviceId) {
+		return new TreeNode<AbstractTimelineObject>(new InternalActionTimelineObject(r, serviceId));
 	}
 
 	private TreeNode<AbstractTimelineObject> buildNode(ServiceCallRecord data) {

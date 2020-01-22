@@ -87,6 +87,20 @@ public class SimpleComparisonPathExtractor implements IPathExtractor {
 				}
 			}
 
+			// calculate the diff between the child probability (sum) and parent probability
+			float parentProbability = currentNode.getData().getProbability();
+			float childProbability = currentNode.getChildren().stream().map(n -> n.getData().getProbability())
+					.reduce(0f, Float::sum);
+			if (currentNode.getParent() != null && parentProbability - childProbability > 0) {
+				Pair<Tree<DescriptorTransition<IAbstractUsageDescriptor>>, Map<TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>, TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>>> copy = copyTree(
+						currentTree);
+
+				// we are finished with one => add a child
+				copy.getRight().get(currentTreeNode).getData().setProbability(parentProbability - childProbability);
+				container.add(copy.getLeft());
+				currentNode.getData().setProbability(childProbability);
+			}
+
 			// convert set to branch
 			for (int i : mergeable) {
 				// get child
@@ -118,6 +132,21 @@ public class SimpleComparisonPathExtractor implements IPathExtractor {
 				// we are finished here => add a child
 				container.add(currentTree);
 			} else {
+				// calculate the diff between the child probability (sum) and parent probability
+				float parentProbability = currentNode.getData().getProbability();
+				float childProbability = currentNode.getChildren().stream().map(n -> n.getData().getProbability())
+						.reduce(0f, Float::sum);
+
+				if (currentNode.getParent() != null && parentProbability - childProbability > 0) {
+					Pair<Tree<DescriptorTransition<IAbstractUsageDescriptor>>, Map<TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>, TreeNode<DescriptorTransition<IAbstractUsageDescriptor>>>> copy = copyTree(
+							currentTree);
+
+					// we are finished with one => add a child
+					copy.getRight().get(currentTreeNode).getData().setProbability(parentProbability - childProbability);
+					container.add(copy.getLeft());
+					currentNode.getData().setProbability(childProbability);
+				}
+
 				// => size == 1
 				TreeNode<DescriptorTransition<IAbstractUsageDescriptor>> oldNode = currentNode.getChildren().get(0);
 

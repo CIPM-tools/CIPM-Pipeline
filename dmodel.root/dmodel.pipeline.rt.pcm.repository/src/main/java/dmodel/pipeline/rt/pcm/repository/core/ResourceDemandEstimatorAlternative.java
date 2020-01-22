@@ -128,9 +128,9 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 	}
 
 	@Override
-	public void derive() {
+	public void derive(Map<String, Double> currentValidationAdjustment) {
 		TimelineAnalyzer analyzer = new TimelineAnalyzer(pcm, TimelineAnalyzer.UnrollStrategy.COMPLETE,
-				new AdvancedPOSIXUsageEstimation()); // 20 s
+				new AdvancedPOSIXUsageEstimation(), currentValidationAdjustment); // 20 s
 		for (IResourceDemandTimeline tl : this.timelines) {
 			analyzer.analyze(tl);
 		}

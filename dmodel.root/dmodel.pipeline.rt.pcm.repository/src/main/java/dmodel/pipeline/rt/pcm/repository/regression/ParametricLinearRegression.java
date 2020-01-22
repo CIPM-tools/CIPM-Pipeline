@@ -30,14 +30,16 @@ public class ParametricLinearRegression {
 	private List<Pair<ServiceParametersWrapper, Double>> underlying;
 	private float innerThres;
 	private int prec;
+	private double adjustmentFactor;
 
 	private static final int MAX_DEPTH = 5;
 
 	public ParametricLinearRegression(List<Pair<ServiceParametersWrapper, Double>> data, int precision,
-			float dependencyThreshold) {
+			float dependencyThreshold, double adjustmentFactor) {
 		this.underlying = data;
 		this.innerThres = dependencyThreshold;
 		this.prec = precision;
+		this.adjustmentFactor = adjustmentFactor;
 	}
 
 	public PCMRandomVariable deriveStoex(Map<String, String> parameterMapping) {
@@ -109,7 +111,7 @@ public class ParametricLinearRegression {
 				}
 			}
 
-			values[dataset.numAttributes() - 1] = demand;
+			values[dataset.numAttributes() - 1] = demand * adjustmentFactor;
 			DenseInstance instance = new DenseInstance(1, values);
 			dataset.add(instance);
 		}

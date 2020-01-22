@@ -14,13 +14,14 @@ import lombok.Data;
 
 @Data
 public class UsageGroup implements IPCMAnalogue<UsageScenario> {
-	private long interarrivalTime = 1500; // quick fix
 	private List<IAbstractUsageDescriptor> descriptors;
 	private int id;
+	private double interarrivalTime;
 
-	public UsageGroup(int id) {
+	public UsageGroup(int id, double interarrival) {
 		this.descriptors = Lists.newArrayList();
 		this.id = id;
+		this.interarrivalTime = interarrival;
 	}
 
 	@Override

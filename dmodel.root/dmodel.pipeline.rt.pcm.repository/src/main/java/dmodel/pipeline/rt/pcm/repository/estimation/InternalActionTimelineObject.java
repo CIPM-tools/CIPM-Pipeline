@@ -5,11 +5,13 @@ import dmodel.pipeline.monitoring.records.ResponseTimeRecord;
 public class InternalActionTimelineObject extends AbstractTimelineObject {
 
 	private String internalActionId;
+	private String serviceId;
 
-	public InternalActionTimelineObject(ResponseTimeRecord resp) {
+	public InternalActionTimelineObject(ResponseTimeRecord resp, String serviceId) {
 		super(resp.getStartTime(), resp.getStopTime() - resp.getStartTime());
 
 		this.internalActionId = resp.getInternalActionId();
+		this.serviceId = serviceId;
 	}
 
 	public String getInternalActionId() {
@@ -18,6 +20,14 @@ public class InternalActionTimelineObject extends AbstractTimelineObject {
 
 	public void setInternalActionId(String internalActionId) {
 		this.internalActionId = internalActionId;
+	}
+
+	public String getServiceId() {
+		return serviceId;
+	}
+
+	public void setServiceId(String serviceId) {
+		this.serviceId = serviceId;
 	}
 
 	@Override

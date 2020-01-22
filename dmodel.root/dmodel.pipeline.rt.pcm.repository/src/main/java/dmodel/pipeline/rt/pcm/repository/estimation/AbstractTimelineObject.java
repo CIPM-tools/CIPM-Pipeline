@@ -4,6 +4,7 @@ public abstract class AbstractTimelineObject {
 
 	private long duration;
 	private long start;
+	private double factor;
 
 	public AbstractTimelineObject(long start, long duration) {
 		this.duration = duration;

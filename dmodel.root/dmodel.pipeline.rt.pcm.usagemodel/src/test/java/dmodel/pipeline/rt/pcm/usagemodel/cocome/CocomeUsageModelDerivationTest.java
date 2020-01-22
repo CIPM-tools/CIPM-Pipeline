@@ -43,13 +43,15 @@ public class CocomeUsageModelDerivationTest extends AbstractTransformationTest {
 	}
 
 	@Test
-	public void noMonitoringDataTest() throws IllegalStateException, AnalysisConfigurationException {
+	public void basicCoCoMETest() throws IllegalStateException, AnalysisConfigurationException {
 		List<PCMContextRecord> recs = MonitoringDataUtil.getMonitoringDataFromFiles("test-data/cocome/monitoring/");
 		List<ServiceCallRecord> srecs = recs.stream().filter(f -> f instanceof ServiceCallRecord)
 				.map(ServiceCallRecord.class::cast).collect(Collectors.toList());
 		List<Tree<ServiceCallRecord>> records = MonitoringDataUtil.buildServiceCallTree(srecs);
 
 		derivation.deriveUsageData(records, blackboard.getArchitectureModel(), null);
+
+		ModelUtil.saveToFile(blackboard.getArchitectureModel().getUsageModel(), "output.usagemodel");
 	}
 
 }

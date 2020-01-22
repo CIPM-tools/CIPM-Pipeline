@@ -13,6 +13,12 @@ import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
 public class NeuralNetworkDemandEstimator implements IResourceDemandEstimator {
 
 	@Override
+	public void derive(Map<String, Double> currentValidationAdjustment) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void prepare(MonitoringDataSet data) {
 		// 1. for each action id own set
 		Map<String, List<ResponseTimeRecord>> responseTimeBuckets = Maps.newHashMap();
@@ -29,12 +35,6 @@ public class NeuralNetworkDemandEstimator implements IResourceDemandEstimator {
 		responseTimeBuckets.entrySet().stream().forEach(bucket -> {
 
 		});
-	}
-
-	@Override
-	public void derive() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

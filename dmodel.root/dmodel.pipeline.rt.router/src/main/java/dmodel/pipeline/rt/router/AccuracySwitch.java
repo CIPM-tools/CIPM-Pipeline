@@ -53,8 +53,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
-	public InMemoryPCM accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls,
-			List<PCMContextRecord> rawMonitoringData) {
+	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
 
 		// create deep copies
@@ -101,7 +100,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			waitLatch.await();
 		} catch (InterruptedException e) {
 			log.warning("Waiting for the subtransformations has been interrupted.");
-			return null;
+			return;
 		}
 
 		// 3. simulate the resulting models
@@ -185,24 +184,19 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		}
 
 		// 5. set it as final
-		InMemoryPCM resultModel;
 		if (sum >= 0) {
 			log.info("Selected repository path.");
 			getBlackboard().setArchitectureModel(copyForRepository);
 			copyForRepository.syncWithFilesystem(getBlackboard().getFilesystemPCM());
-			resultModel = copyForRepository;
 		} else {
 			log.info("Selected usage path.");
 			getBlackboard().setArchitectureModel(copyForUsage);
 			copyForUsage.syncWithFilesystem(getBlackboard().getFilesystemPCM());
-			resultModel = copyForUsage;
 		}
 
 		// evaluation
 		getBlackboard().getPerformanceEvaluation().trackUsageScenarios(
 				getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
-
-		return resultModel;
 	}
 
 }

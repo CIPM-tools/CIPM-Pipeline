@@ -1,8 +1,12 @@
 package dmodel.pipeline.rt.pcm.repository;
 
 import java.util.List;
+import java.util.Map;
 
+import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.springframework.stereotype.Service;
+
+import com.google.common.collect.Maps;
 
 import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
@@ -11,14 +15,23 @@ import dmodel.pipeline.rt.pcm.repository.core.ResourceDemandEstimatorAlternative
 import dmodel.pipeline.rt.pcm.repository.loop.impl.LoopEstimationImpl;
 import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
 import dmodel.pipeline.rt.validation.data.ValidationData;
+import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
+import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
+import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import lombok.extern.java.Log;
 
 @Service
 @Log
 public class RepositoryDerivation {
+	private static final double ADJUSTMENT_FACTOR = 0.1d;
+	private static final double THRES_REL_DIST = 0.1d;
+
 	private final LoopEstimationImpl loopEstimation;
 	private final BranchEstimationImpl branchEstimation;
+
+	private Map<String, Double> currentValidationAdjustment = Maps.newHashMap();
+	private Map<String, Double> currentServiceAdjustment = Maps.newHashMap();
 
 	public RepositoryDerivation() {
 		this.loopEstimation = new LoopEstimationImpl();
@@ -28,13 +41,15 @@ public class RepositoryDerivation {
 	public void calibrateRepository(List<PCMContextRecord> data, InMemoryPCM pcm, PalladioRuntimeMapping mapping,
 			ValidationData validation) {
 
+		prepareAdjustment(validation);
+
 		try {
 			MonitoringDataSet monitoringDataSet = new MonitoringDataSet(data, mapping, pcm.getAllocationModel(),
 					pcm.getRepository());
 
 			IResourceDemandEstimator estimation = new ResourceDemandEstimatorAlternative(pcm);
 			estimation.prepare(monitoringDataSet);
-			estimation.derive();
+			estimation.derive(currentValidationAdjustment);
 
 			log.info("Finished calibration of internal actions.");
 			log.info("Finished repository calibration.");
@@ -42,6 +57,58 @@ public class RepositoryDerivation {
 			e.printStackTrace();
 		}
 
+	}
+
+	private void prepareAdjustment(ValidationData validation) {
+		validation.getValidationPoints().forEach(point -> {
+			MeasuringPointType type = point.getMeasuringPoint().getType();
+			if (type == MeasuringPointType.ASSEMBLY_OPERATION || type == MeasuringPointType.ENTRY_LEVEL_CALL) {
+				if (point.getServiceId() != null) {
+					DoubleMetricValue valueRelDist = null;
+					DoubleMetricValue valueAbsDist = null;
+					// check the metric
+					for (ValidationMetricValue metric : point.getMetricValues()) {
+						if (metric.type() == ValidationMetricType.AVG_DISTANCE_REL) {
+							valueRelDist = ((DoubleMetricValue) metric);
+						} else if (metric.type() == ValidationMetricType.AVG_DISTANCE_ABS) {
+							valueAbsDist = ((DoubleMetricValue) metric);
+						}
+					}
+
+					if (valueRelDist != null && valueAbsDist != null) {
+						double absDist = (double) valueAbsDist.value();
+						double relDist = (double) valueRelDist.value();
+
+						if (relDist >= THRES_REL_DIST) {
+							if (absDist > 0) {
+								adjustService(point.getServiceId(), ADJUSTMENT_FACTOR);
+							} else if (absDist < 0) {
+								adjustService(point.getServiceId(), -ADJUSTMENT_FACTOR);
+							}
+						}
+					}
+				}
+			}
+		});
+	}
+
+	private void adjustService(String service, double factor) {
+		if (!currentValidationAdjustment.containsKey(service)) {
+			currentValidationAdjustment.put(service, factor);
+			currentServiceAdjustment.put(service, Math.signum(factor) * 1.0d);
+		} else {
+			double adjustmentBefore = currentServiceAdjustment.get(service);
+			double adjustmentNow;
+			if (Math.signum(adjustmentBefore) != Math.signum(factor)) {
+				adjustmentNow = adjustmentBefore * -0.5d;
+			} else {
+				adjustmentNow = Math.signum(factor) * 1.0d;
+			}
+
+			currentValidationAdjustment.put(service,
+					currentValidationAdjustment.get(service) + factor * Math.abs(adjustmentNow));
+			currentServiceAdjustment.put(service, adjustmentNow);
+		}
 	}
 
 }

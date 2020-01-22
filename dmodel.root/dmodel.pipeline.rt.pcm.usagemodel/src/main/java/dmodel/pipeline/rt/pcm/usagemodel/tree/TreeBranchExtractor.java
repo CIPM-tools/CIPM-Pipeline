@@ -32,6 +32,7 @@ import lombok.extern.java.Log;
 public class TreeBranchExtractor implements IUsageDataExtractor {
 	private static final double MIN_RELEVANCE = 0.05;
 	private static final float USER_GROUP_MAX_VARIANCE = 0.25f;
+	private static final double NANO_TO_MS = 1000000;
 
 	private ITransitionTreeExtractor treeExtractor;
 	private IPathExtractor pathExtractor;
@@ -50,12 +51,21 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		currentGroupId = 0;
 		// 1. create entry call tree
 		log.info("Extract entry calls.");
-		List<ServiceCallRecord> entryCalls = callSequences.parallelStream().map(e -> e.getRoot().getData())
+		List<ServiceCallRecord> entryCalls = callSequences.stream().map(e -> e.getRoot().getData())
 				.filter(e -> UsageServiceUtil.isEntryCall(repository, system, e)).collect(Collectors.toList());
+
+		if (entryCalls.size() < 1) {
+			return Lists.newArrayList();
+		}
 
 		// 2. extract user sessions
 		log.info("Extract sessions.");
 		List<ServiceCallSession> sessions = extractSessions(entryCalls);
+
+		int sessionNumber = sessions.size();
+		long lowest = entryCalls.stream().map(c -> c.getEntryTime()).min(Long::compare).get();
+		long highest = entryCalls.stream().map(c -> c.getEntryTime()).max(Long::compare).get();
+		double interarrivalOverall = ((highest - lowest) / NANO_TO_MS) / ((double) sessionNumber);
 
 		// 3. create probability tree
 		log.info("Extract tree.");
@@ -74,7 +84,7 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 				.extractRelevantPaths(treeWithoutLoops, (1.0f - USER_GROUP_MAX_VARIANCE));
 
 		// 4.3. compress paths
-		// TODO
+		// makes in a lot of cases no sense (because of the parameters)
 
 		// 4.4. collect relevant paths
 		log.info("Collect relevant paths.");
@@ -85,15 +95,19 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		log.info("Finalize usage scenarios.");
 		return relevantPaths.stream().map(relevantTree -> {
 			if (relevantTree.getRoot().getChildren().size() > 0) {
-				UsageGroup usageGroup = buildUserGroup(relevantTree);
+				double relevance = estimateRelevance(relevantTree);
+				double interarrival = interarrivalOverall / relevance;
+
+				UsageGroup usageGroup = buildUserGroup(relevantTree, interarrival);
 				return usageGroup.toPCM();
 			}
 			return null;
 		}).filter(f -> f != null).collect(Collectors.toList());
 	}
 
-	private synchronized UsageGroup buildUserGroup(Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree) {
-		UsageGroup nGroup = new UsageGroup(currentGroupId++);
+	private synchronized UsageGroup buildUserGroup(Tree<DescriptorTransition<IAbstractUsageDescriptor>> relevantTree,
+			double interarr) {
+		UsageGroup nGroup = new UsageGroup(currentGroupId++, interarr);
 		buildUserGroupRecursive(nGroup.getDescriptors(), relevantTree.getRoot().getChildren());
 		return nGroup;
 	}
@@ -157,7 +171,8 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 			}
 			sessionMapping.get(entryCall.getSessionId()).add(entryCall);
 		}
-		return sessionMapping.entrySet().parallelStream().map(e -> new ServiceCallSession(e.getKey(), e.getValue()))
+
+		return sessionMapping.entrySet().stream().map(e -> new ServiceCallSession(e.getKey(), e.getValue()))
 				.collect(Collectors.toList());
 	}
 

@@ -12,13 +12,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.InternalAction;
-import org.palladiosimulator.pcm.seff.ResourceDemandingInternalBehaviour;
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-import org.palladiosimulator.pcm.seff.StartAction;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
-import org.pcm.headless.api.util.PCMUtil;
 
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
 import dmodel.pipeline.rt.pcm.repository.regression.ParametricLinearRegression;
@@ -36,10 +31,14 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 	private UnrollStrategy strategy;
 	private IUsageEstimation usageEstimation;
 
-	public TimelineAnalyzer(InMemoryPCM pcm, UnrollStrategy strategy, IUsageEstimation estimationStrategy) {
+	private Map<String, Double> adjustmentFactors;
+
+	public TimelineAnalyzer(InMemoryPCM pcm, UnrollStrategy strategy, IUsageEstimation estimationStrategy,
+			Map<String, Double> adjustmentFactors) {
 		this.pcm = pcm;
 		this.strategy = strategy;
 		this.usageEstimation = estimationStrategy;
+		this.adjustmentFactors = adjustmentFactors;
 	}
 
 	@Override
@@ -219,11 +218,13 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		// read our accumulator
 		LOG.info("Reading the values.");
 		Map<String, List<Pair<ServiceParametersWrapper, Double>>> iaDemands = new HashMap<>();
+		Map<String, String> internalActionServiceIdMapping = new HashMap<>();
 		// aggregate up to internal actions
 		usageAccumulator.entrySet().forEach(et -> {
 			String iaId = et.getKey().getInternalActionId();
 			if (!iaDemands.containsKey(iaId)) {
 				iaDemands.put(iaId, new ArrayList<>());
+				internalActionServiceIdMapping.put(iaId, et.getKey().getServiceId());
 			}
 
 			// get parent & parameters
@@ -235,7 +236,16 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		LOG.info("Performing linear regressions.");
 		Map<String, PCMRandomVariable> stoexMapping = new HashMap<>();
 		for (Entry<String, List<Pair<ServiceParametersWrapper, Double>>> demandEntry : iaDemands.entrySet()) {
-			ParametricLinearRegression regression = new ParametricLinearRegression(demandEntry.getValue(), 1, 0.5f);
+			String belongingServiceId = internalActionServiceIdMapping.get(demandEntry.getKey());
+			double adjustmentFactor;
+			if (!adjustmentFactors.containsKey(belongingServiceId)) {
+				adjustmentFactor = 0;
+			} else {
+				adjustmentFactor = adjustmentFactors.get(belongingServiceId);
+			}
+
+			ParametricLinearRegression regression = new ParametricLinearRegression(demandEntry.getValue(), 1, 0.5f,
+					adjustmentFactor + 1.0d);
 			PCMRandomVariable derived = regression.deriveStoex(null);
 			stoexMapping.put(demandEntry.getKey(), derived);
 			LOG.info(derived.getSpecification());
@@ -285,7 +295,7 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 			if (child.data instanceof ServiceCallTimelineObject) {
 				output.addAll(getIntersectingInternalActions(child, start, end));
 			} else if (child.data instanceof InternalActionTimelineObject) {
-				if (child.data.getStart() <= end && child.data.getStart() + child.data.getDuration() >= start) {
+				if (child.data.getStart() <= end && child.data.getEnd() >= start) {
 					// hit
 					output.add(child);
 				}
@@ -293,50 +303,6 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		});
 
 		return output;
-	}
-
-	private void unrollIntervalWithModel(ResourceDemandTimelineInterval ival) {
-		unrollIntervalWithModel(ival.getRoot());
-	}
-
-	// TODO
-	private void unrollIntervalWithModel(TreeNode<AbstractTimelineObject> obj) {
-		if (obj.data instanceof ServiceCallTimelineObject) {
-			long iAs = obj.children.stream().filter(f -> f.data instanceof InternalActionTimelineObject)
-					.map(k -> ((InternalActionTimelineObject) k.data).getInternalActionId()).distinct().count();
-			ServiceCallTimelineObject tlo = (ServiceCallTimelineObject) obj.data;
-			ResourceDemandingSEFF seff = PCMUtil.getElementById(pcm.getRepository(), ResourceDemandingSEFF.class,
-					tlo.getServiceId());
-
-			if (seff != null) {
-				int iAsPCM = ModelUtil.getObjects(seff, InternalAction.class).size();
-
-				boolean any = iAs > 0;
-				boolean all = iAsPCM == iAs;
-
-				if (!all && strategy == UnrollStrategy.COMPLETE) {
-					// unroll
-					// TODO
-				} else if (!any && strategy == UnrollStrategy.PARTIALLY) {
-					// full unrollment
-					// TODO
-				}
-			}
-		}
-	}
-
-	private List<AbstractAction> getSeffOrderered(ResourceDemandingSEFF seff) {
-		List<AbstractAction> lst = new ArrayList<>();
-		for (ResourceDemandingInternalBehaviour behav : seff.getResourceDemandingInternalBehaviours()) {
-			AbstractAction start = behav.getSteps_Behaviour().stream().filter(b -> b instanceof StartAction).findFirst()
-					.orElse(null);
-			while (start != null) {
-				lst.add(start);
-				start = start.getSuccessor_AbstractAction();
-			}
-		}
-
-		return lst;
 	}
 
 	private double calculateBaseline(IResourceDemandTimeline timeline, long maxDuration) {

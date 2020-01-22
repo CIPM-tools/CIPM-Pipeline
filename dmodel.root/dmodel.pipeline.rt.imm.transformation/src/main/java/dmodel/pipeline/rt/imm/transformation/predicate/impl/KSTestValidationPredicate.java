@@ -11,7 +11,7 @@ import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
 // TODO should be configurable
 @Service
 public class KSTestValidationPredicate implements ValidationPredicate {
-	private static final double THRES = 0.25;
+	private static final double THRES = 0.2;
 
 	@Override
 	public boolean satisfied(ValidationPoint validationPoint) {

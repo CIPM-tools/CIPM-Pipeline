@@ -29,7 +29,7 @@ public class ModelUtil {
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
 				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
 
-		URI filePathUri = org.eclipse.emf.common.util.URI.createFileURI(path);
+		URI filePathUri = org.eclipse.emf.common.util.URI.createFileURI(new File(path).getAbsolutePath());
 
 		Resource resource = resourceSet.getResource(filePathUri, true);
 		return clazz.cast(resource.getContents().get(0));
