@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="ASCII"?>
+<repository:Repository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" xmlns:seff="http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2" xmlns:stoex="http://sdq.ipd.uka.de/StochasticExpressions/2.2" id="_HZJnoJSbEd-mVsWhjZHqXg" entityName="defaultRepository" repositoryDescription="DemoRepository">
+  <components__Repository xsi:type="repository:BasicComponent" id="_-3VggNCgEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Data.Enterprise">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_d1Mf0NChEduC9O_qbthgAg" entityName="EnterpriseQueryIf" providedInterface__OperationProvidedRole="_Eldg8NChEduC9O_qbthgAg"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_rJCGMh_6Edy5k9ER1TBmjg" describedService__SEFF="_2NLSRFcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_wxpUgB_6Edy5k9ER1TBmjg" successor_AbstractAction="_w5_YMB_6Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_w5_YMB_6Edy5k9ER1TBmjg" predecessor_AbstractAction="_wxpUgB_6Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_zKFLgh_6Edy5k9ER1TBmjg" describedService__SEFF="_2NL5UlcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_2P9-YB_6Edy5k9ER1TBmjg" successor_AbstractAction="_2YK4IB_6Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_2YK4IB_6Edy5k9ER1TBmjg" predecessor_AbstractAction="_2P9-YB_6Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_B8esgNChEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Data.Persistence">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_bT0IMNChEduC9O_qbthgAg" entityName="PersistenceIf" providedInterface__OperationProvidedRole="_F8ovQNChEduC9O_qbthgAg"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_6ZfDVB8PEdyY_su_CT9KsQ" describedService__SEFF="_2NL5V1cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_-AeFYNLOEduQ7qbNANXHPw" entityName="startPersistenceContext" successor_AbstractAction="_-UJPUNLOEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_-UJPUNLOEduQ7qbNANXHPw" predecessor_AbstractAction="_-AeFYNLOEduQ7qbNANXHPw"/>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_C7qRkNChEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Data.Store">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_OmzqENChEduC9O_qbthgAg" entityName="StoreQueryIf" providedInterface__OperationProvidedRole="_HSKXwNChEduC9O_qbthgAg"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="queryStockItemById" describedService__SEFF="_2NNuhVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_TNHoUNLaEduQ7qbNANXHPw" successor_AbstractAction="_T1zY8NLaEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_Tbk7ENLaEduQ7qbNANXHPw" predecessor_AbstractAction="_T1zY8NLaEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_T1zY8NLaEduQ7qbNANXHPw" entityName="interact with java EntityManager" predecessor_AbstractAction="_TNHoUNLaEduQ7qbNANXHPw" successor_AbstractAction="_Tbk7ENLaEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="DoublePMF[(0.1;2.21533E-4)(0.2;8.86132E-4)(0.3;0.0064244572)(0.4;0.0166149756)(0.5;0.0181657067)(0.6;0.0281346921)(0.7;0.0330084183)(0.8;0.0283562251)(0.9;0.02503323)(1.0;0.0296854231)(1.1;0.0301284891)(1.2;0.0232609659)(1.3;0.0237040319)(1.4;0.0214887018)(1.5;0.0201595038)(1.6;0.0150642446)(1.7;0.0194949047)(1.8;0.0190518387)(1.9;0.0121843155)(2.0;0.0177226407)(2.1;0.0135135135)(2.2;0.0161719096)(2.3;0.0104120514)(2.4;0.0121843155)(2.5;0.0101905184)(2.6;0.0115197164)(2.7;0.0104120514)(2.8;0.0088613203)(2.9;0.0079751883)(3.0;0.0079751883)(3.1;0.0097474524)(3.2;0.0059813912)(3.3;0.0059813912)(3.4;0.0068675233)(3.5;0.0068675233)(3.6;0.0064244572)(3.7;0.0079751883)(3.8;0.0059813912)(3.9;0.0068675233)(4.0;0.0070890563)(4.1;0.0050952592)(4.2;0.0066459903)(4.3;0.0059813912)(4.4;0.0057598582)(4.5;0.0046521932)(4.6;0.0062029242)(4.7;0.0050952592)(4.8;0.0057598582)(4.9;0.0055383252)(5.0;0.0033229951)(5.1;0.0039875942)(5.2;0.0039875942)(5.3;0.0044306602)(5.4;0.0037660611)(5.5;0.0048737262)(5.6;0.0037660611)(5.7;0.0033229951)(5.8;0.0033229951)(5.9;0.0053167922)(6.0;0.0044306602)(6.1;0.0031014621)(6.2;0.0033229951)(6.3;0.0017722641)(6.4;0.0033229951)(6.5;0.0035445281)(6.6;0.0031014621)(6.7;0.0031014621)(6.8;0.0042091272)(6.9;0.0015507311)(7.0;0.0022153301)(7.1;0.0022153301)(7.2;0.0035445281)(7.3;8.86132E-4)(7.4;0.0019937971)(7.5;0.001107665)(7.6;0.0031014621)(7.7;0.0035445281)(7.8;0.0026583961)(7.9;0.0013291981)(8.0;0.0022153301)(8.1;0.0013291981)(8.2;0.0017722641)(8.3;0.0028799291)(8.4;0.0031014621)(8.5;0.0026583961)(8.6;0.0022153301)(8.7;0.0017722641)(8.8;0.0035445281)(8.9;0.0015507311)(9.0;8.86132E-4)(9.1;0.0026583961)(9.2;0.0026583961)(9.3;0.001107665)(9.4;0.0022153301)(9.5;0.0024368631)(9.6;0.0017722641)(9.7;0.0026583961)(9.8;8.86132E-4)(9.9;0.0024368631)(10.0;0.0017722641)(10.1;0.001107665)(10.2;0.0019937971)(10.3;0.0015507311)(10.4;0.0024368631)(10.5;0.0017722641)(10.6;0.001107665)(10.7;4.43066E-4)(10.8;0.0017722641)(10.9;0.0017722641)(11.0;0.0013291981)(11.1;0.0017722641)(11.2;8.86132E-4)(11.3;0.0017722641)(11.4;0.0013291981)(11.5;0.0017722641)(11.6;0.0017722641)(11.7;0.0017722641)(11.8;0.001107665)(11.9;0.0013291981)(12.0;0.0024368631)(12.1;0.0015507311)(12.2;6.64599E-4)(12.3;0.0015507311)(12.4;0.0017722641)(12.5;0.001107665)(12.6;6.64599E-4)(12.7;0.0015507311)(12.8;6.64599E-4)(12.9;0.001107665)(13.0;0.0013291981)(13.1;0.0017722641)(13.2;0.0015507311)(13.3;2.21533E-4)(13.4;6.64599E-4)(13.5;6.64599E-4)(13.6;0.0013291981)(13.7;8.86132E-4)(13.8;0.0015507311)(13.9;0.0015507311)(14.0;0.0015507311)(14.1;0.0019937971)(14.2;0.0013291981)(14.3;0.0013291981)(14.4;0.001107665)(14.5;8.86132E-4)(14.6;8.86132E-4)(14.7;8.86132E-4)(14.8;0.0013291981)(14.9;0.0015507311)(15.0;0.0013291981)(15.1;8.86132E-4)(15.2;0.0013291981)(15.3;0.0015507311)(15.4;0.001107665)(15.5;8.86132E-4)(15.7;0.001107665)(15.8;8.86132E-4)(15.9;0.001107665)(16.0;0.001107665)(16.1;0.0015507311)(16.2;4.43066E-4)(16.3;6.64599E-4)(16.4;0.001107665)(16.5;2.21533E-4)(16.6;8.86132E-4)(16.7;0.001107665)(16.8;0.001107665)(16.9;0.0013291981)(17.0;0.0019937971)(17.1;8.86132E-4)(17.2;8.86132E-4)(17.3;6.64599E-4)(17.4;6.64599E-4)(17.5;8.86132E-4)(17.6;4.43066E-4)(17.7;0.001107665)(17.8;0.0017722641)(17.9;0.0013291981)(18.0;2.21533E-4)(18.1;0.0015507311)(18.2;0.001107665)(18.3;0.0019937971)(18.4;0.0015507311)(18.5;8.86132E-4)(18.6;8.86132E-4)(18.7;6.64599E-4)(18.8;0.0013291981)(18.9;0.0013291981)(19.0;0.001107665)(19.1;2.21533E-4)(19.2;4.43066E-4)(19.3;6.64599E-4)(19.4;2.21533E-4)(19.5;0.001107665)(19.6;0.0013291981)(19.7;2.21533E-4)(19.8;4.43066E-4)(19.9;0.0022153301)(20.0;2.21533E-4)(20.1;4.43066E-4)(20.2;4.43066E-4)(20.3;6.64599E-4)(20.4;2.21533E-4)(20.5;4.43066E-4)(20.6;2.21533E-4)(20.7;0.001107665)(20.8;0.001107665)(20.9;4.43066E-4)(21.0;8.86132E-4)(21.1;4.43066E-4)(21.2;8.86132E-4)(21.4;6.64599E-4)(21.5;2.21533E-4)(21.6;0.0013291981)(21.7;4.43066E-4)(21.8;4.43066E-4)(21.9;6.64599E-4)(22.0;0.001107665)(22.1;0.001107665)(22.2;0.001107665)(22.3;6.64599E-4)(22.4;2.21533E-4)(22.5;8.86132E-4)(22.6;2.21533E-4)(22.8;8.86132E-4)(22.9;4.43066E-4)(23.0;8.86132E-4)(23.1;4.43066E-4)(23.2;4.43066E-4)(23.3;0.001107665)(23.4;2.21533E-4)(23.5;2.21533E-4)(23.6;6.64599E-4)(23.7;8.86132E-4)(23.8;8.86132E-4)(23.9;4.43066E-4)(24.1;4.43066E-4)(24.2;4.43066E-4)(24.3;2.21533E-4)(24.4;6.64599E-4)(24.5;4.43066E-4)(24.6;6.64599E-4)(24.7;2.21533E-4)(24.8;8.86132E-4)(24.9;4.43066E-4)(25.0;4.43066E-4)(25.1;4.43066E-4)(25.2;6.64599E-4)(25.4;6.64599E-4)(25.5;6.64599E-4)(25.6;8.86132E-4)(25.7;6.64599E-4)(25.8;6.64599E-4)(25.9;2.21533E-4)(26.1;2.21533E-4)(26.2;2.21533E-4)(26.3;8.86132E-4)(26.4;2.21533E-4)(26.5;6.64599E-4)(26.6;2.21533E-4)(26.8;2.21533E-4)(26.9;2.21533E-4)(27.0;4.43066E-4)(27.1;6.64599E-4)(27.2;4.43066E-4)(27.3;8.86132E-4)(27.4;4.43066E-4)(27.5;6.64599E-4)(27.6;6.64599E-4)(27.7;4.43066E-4)(27.8;4.43066E-4)(27.9;6.64599E-4)(28.0;2.21533E-4)(28.1;0.0013291981)(28.2;4.43066E-4)(28.3;6.64599E-4)(28.5;6.64599E-4)(28.6;2.21533E-4)(28.7;2.21533E-4)(28.9;4.43066E-4)(29.0;4.43066E-4)(29.1;2.21533E-4)(29.2;8.86132E-4)(29.3;2.21533E-4)(29.4;4.43066E-4)(29.5;6.64599E-4)(29.6;4.43066E-4)(29.7;4.43066E-4)(29.8;2.21533E-4)(30.0;2.21533E-4)(30.1;4.43066E-4)(30.2;4.43066E-4)(30.3;2.21533E-4)(30.4;6.64599E-4)(30.5;6.64599E-4)(30.6;4.43066E-4)(30.7;2.21533E-4)(31.0;2.21533E-4)(31.2;4.43066E-4)(31.3;4.43066E-4)(31.4;4.43066E-4)(31.5;2.21533E-4)(31.6;2.21533E-4)(31.7;4.43066E-4)(31.8;2.21533E-4)(32.0;4.43066E-4)(32.1;6.64599E-4)(32.2;6.64599E-4)(32.3;2.21533E-4)(32.5;2.21533E-4)(32.6;8.86132E-4)(32.7;6.64599E-4)(32.8;2.21533E-4)(32.9;2.21533E-4)(33.0;4.43066E-4)(33.1;2.21533E-4)(33.2;6.64599E-4)(33.3;2.21533E-4)(33.4;4.43066E-4)(33.5;2.21533E-4)(33.6;4.43066E-4)(33.7;2.21533E-4)(33.8;0.001107665)(33.9;4.43066E-4)(34.0;4.43066E-4)(34.1;2.21533E-4)(34.2;2.21533E-4)(34.4;2.21533E-4)(34.5;4.43066E-4)(34.6;6.64599E-4)(34.7;6.64599E-4)(34.8;2.21533E-4)(34.9;4.43066E-4)(35.0;2.21533E-4)(35.1;6.64599E-4)(35.2;6.64599E-4)(35.3;4.43066E-4)(35.4;2.21533E-4)(35.5;4.43066E-4)(35.6;2.21533E-4)(35.8;2.21533E-4)(35.9;2.21533E-4)(36.0;2.21533E-4)(36.1;2.21533E-4)(36.2;6.64599E-4)(36.3;6.64599E-4)(36.4;4.43066E-4)(36.5;4.43066E-4)(36.6;6.64599E-4)(36.8;4.43066E-4)(37.0;6.64599E-4)(37.2;2.21533E-4)(37.4;2.21533E-4)(37.8;2.21533E-4)(37.9;2.21533E-4)(38.1;4.43066E-4)(38.2;2.21533E-4)(38.3;6.64599E-4)(38.4;6.64599E-4)(38.5;2.21533E-4)(38.6;2.21533E-4)(38.7;2.21533E-4)(38.9;2.21533E-4)(39.3;2.21533E-4)(39.4;2.21533E-4)(39.5;2.21533E-4)(39.6;4.43066E-4)(39.7;2.21533E-4)(39.8;2.21533E-4)(39.9;4.43066E-4)(40.2;2.21533E-4)(40.4;2.21533E-4)(40.6;2.21533E-4)(41.0;2.21533E-4)(41.3;2.21533E-4)(41.4;6.64599E-4)(41.5;2.21533E-4)(41.6;2.21533E-4)(41.7;2.21533E-4)(42.0;4.43066E-4)(42.1;2.21533E-4)(42.2;2.21533E-4)(42.5;2.21533E-4)(42.6;8.86132E-4)(43.1;2.21533E-4)(43.5;2.21533E-4)(43.6;2.21533E-4)(43.8;2.21533E-4)(44.1;2.21533E-4)(44.2;6.64599E-4)(44.4;4.43066E-4)(44.7;2.21533E-4)(44.9;2.21533E-4)(45.0;2.21533E-4)(45.1;2.21533E-4)(45.4;2.21533E-4)(45.7;2.21533E-4)(45.9;2.21533E-4)(46.0;2.21533E-4)(46.2;2.21533E-4)(46.3;2.21533E-4)(47.0;2.21533E-4)(47.1;2.21533E-4)(47.2;2.21533E-4)(47.4;2.21533E-4)(47.5;2.21533E-4)(47.6;4.43066E-4)(47.7;2.21533E-4)(48.3;2.21533E-4)(48.7;4.43066E-4)(49.2;2.21533E-4)(49.4;2.21533E-4)(50.0;2.21533E-4)(50.2;2.21533E-4)(50.3;2.21533E-4)(50.4;6.64599E-4)(50.5;2.21533E-4)(50.6;2.21533E-4)(51.3;2.21533E-4)(51.5;2.21533E-4)(52.1;2.21533E-4)(52.2;2.21533E-4)(52.3;2.21533E-4)(52.5;2.21533E-4)(52.6;2.21533E-4)(53.4;2.21533E-4)(53.5;4.43066E-4)(53.6;4.43066E-4)(53.8;2.21533E-4)(53.9;2.21533E-4)(54.3;2.21533E-4)(54.4;2.21533E-4)(54.5;2.21533E-4)(55.5;2.21533E-4)(55.7;2.21533E-4)(56.0;4.43066E-4)(56.6;2.21533E-4)(57.6;2.21533E-4)(57.7;2.21533E-4)(57.9;4.43066E-4)(58.4;2.21533E-4)(58.5;2.21533E-4)(59.0;2.21533E-4)(59.6;2.21533E-4)(60.3;2.21533E-4)(60.4;2.21533E-4)(60.6;2.21533E-4)(60.7;2.21533E-4)(60.8;2.21533E-4)(61.0;2.21533E-4)(61.1;2.21533E-4)(61.6;2.21533E-4)(62.5;2.21533E-4)(62.7;2.21533E-4)(62.9;4.43066E-4)(63.7;2.21533E-4)(64.1;2.21533E-4)(64.2;2.21533E-4)(64.9;2.21533E-4)(65.0;2.21533E-4)(65.1;6.64599E-4)(65.4;2.21533E-4)(65.7;2.21533E-4)(66.0;2.21533E-4)(66.3;2.21533E-4)(66.6;2.21533E-4)(67.3;2.21533E-4)(68.5;2.21533E-4)(69.1;2.21533E-4)(69.3;2.21533E-4)(70.0;2.21533E-4)(70.8;2.21533E-4)(71.8;2.21533E-4)(73.5;2.21533E-4)(73.9;2.21533E-4)(74.1;2.21533E-4)(74.6;2.21533E-4)(75.5;4.43066E-4)(75.7;2.21533E-4)(76.0;2.21533E-4)(76.1;2.21533E-4)(77.0;2.21533E-4)(77.5;2.21533E-4)(77.6;2.21533E-4)(77.9;2.21533E-4)(78.3;2.21533E-4)(78.6;2.21533E-4)(80.4;2.21533E-4)(80.9;2.21533E-4)(81.2;2.21533E-4)(82.5;4.43066E-4)(83.7;4.43066E-4)(84.0;2.21533E-4)(84.2;2.21533E-4)(84.6;4.43066E-4)(84.9;2.21533E-4)(85.3;2.21533E-4)(86.4;2.21533E-4)(87.6;2.21533E-4)(89.4;2.21533E-4)(90.8;4.43066E-4)(90.9;4.43066E-4)(94.8;2.21533E-4)(97.5;2.21533E-4)(98.5;4.43066E-4)(100.4;2.21533E-4)(101.9;2.21533E-4)(102.8;2.21533E-4)(105.0;2.21533E-4)(106.1;2.21533E-4)(107.0;2.21533E-4)(107.4;2.21533E-4)(108.6;2.21533E-4)(108.7;2.21533E-4)(109.7;2.21533E-4)(111.1;2.21533E-4)(115.0;2.21533E-4)(115.3;2.21533E-4)(116.2;2.21533E-4)(117.3;2.21533E-4)(118.8;2.21533E-4)(120.0;2.21533E-4)(120.1;2.21533E-4)(122.0;2.21533E-4)(123.9;2.21533E-4)(124.5;2.21533E-4)(125.0;2.21533E-4)(127.6;2.21533E-4)(128.0;2.21533E-4)(131.4;2.21533E-4)(131.5;2.21533E-4)(135.1;2.21533E-4)(135.6;2.21533E-4)(136.8;2.21533E-4)(141.0;2.21533E-4)(142.2;2.21533E-4)(147.4;2.21533E-4)(156.7;2.21533E-4)(166.1;2.21533E-4)(178.3;2.21533E-4)(189.0;2.21533E-4)(192.4;2.21533E-4)(237.4;2.21533E-4)]"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="queryLowStockItemsWithRespectToIncomingProducts" seffTypeID="" describedService__SEFF="_2NNHclcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_aOgwANLxEduQ7qbNANXHPw" successor_AbstractAction="_diGnsNLxEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_aedQgNLxEduQ7qbNANXHPw" predecessor_AbstractAction="_diGnsNLxEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_diGnsNLxEduQ7qbNANXHPw" entityName="query using the entity manager" predecessor_AbstractAction="_aOgwANLxEduQ7qbNANXHPw" successor_AbstractAction="_aedQgNLxEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="DoublePMF[(0.0;0.0040160643)(0.1;0.0120481928)(0.2;0.0341365462)(0.3;0.0441767068)(0.4;0.0582329317)(0.5;0.0481927711)(0.6;0.0381526104)(0.7;0.0240963855)(0.8;0.0301204819)(0.9;0.0220883534)(1.0;0.0240963855)(1.1;0.0180722892)(1.2;0.016064257)(1.3;0.0200803213)(1.4;0.0140562249)(1.5;0.0140562249)(1.6;0.0140562249)(1.7;0.0220883534)(1.8;0.016064257)(1.9;0.0120481928)(2.0;0.0140562249)(2.1;0.0180722892)(2.2;0.0180722892)(2.3;0.0060240964)(2.4;0.0060240964)(2.5;0.0180722892)(2.6;0.0100401606)(2.7;0.0040160643)(2.8;0.0140562249)(2.9;0.0060240964)(3.0;0.0060240964)(3.1;0.0120481928)(3.2;0.016064257)(3.3;0.0120481928)(3.4;0.0080321285)(3.5;0.0100401606)(3.6;0.0100401606)(3.7;0.0140562249)(3.8;0.0020080321)(3.9;0.0040160643)(4.1;0.0080321285)(4.2;0.0020080321)(4.3;0.0020080321)(4.4;0.0020080321)(4.5;0.0100401606)(4.6;0.0060240964)(4.7;0.0100401606)(4.8;0.0020080321)(4.9;0.0060240964)(5.1;0.0020080321)(5.2;0.0080321285)(5.3;0.0040160643)(5.4;0.0060240964)(5.5;0.0080321285)(5.6;0.0020080321)(5.7;0.0080321285)(5.8;0.0060240964)(5.9;0.0060240964)(6.0;0.0020080321)(6.1;0.0060240964)(6.2;0.0020080321)(6.3;0.0020080321)(6.4;0.0020080321)(6.5;0.0020080321)(6.7;0.0020080321)(6.8;0.0020080321)(6.9;0.0020080321)(7.0;0.0040160643)(7.1;0.0080321285)(7.4;0.0080321285)(7.6;0.0060240964)(7.7;0.0020080321)(7.8;0.0020080321)(7.9;0.0020080321)(8.0;0.0060240964)(8.2;0.0060240964)(8.4;0.0020080321)(8.5;0.0040160643)(8.6;0.0020080321)(8.9;0.0040160643)(9.2;0.0020080321)(9.4;0.0020080321)(9.5;0.0040160643)(9.8;0.0020080321)(9.9;0.0020080321)(10.0;0.0020080321)(10.1;0.0020080321)(10.5;0.0060240964)(10.7;0.0020080321)(11.0;0.0040160643)(11.1;0.0020080321)(11.2;0.0020080321)(11.7;0.0020080321)(11.9;0.0020080321)(12.5;0.0020080321)(13.3;0.0020080321)(13.4;0.0020080321)(13.8;0.0040160643)(13.9;0.0040160643)(14.0;0.0020080321)(14.2;0.0020080321)(14.6;0.0020080321)(14.8;0.0020080321)(15.1;0.0020080321)(15.2;0.0020080321)(16.5;0.0020080321)(16.9;0.0020080321)(17.2;0.0020080321)(17.5;0.0040160643)(18.6;0.0020080321)(19.8;0.0020080321)(19.9;0.0020080321)(20.4;0.0020080321)(20.6;0.0020080321)(20.9;0.0020080321)(21.6;0.0020080321)(22.4;0.0020080321)(22.6;0.0020080321)(22.9;0.0020080321)(24.0;0.0020080321)(24.3;0.0020080321)(25.5;0.0020080321)(26.4;0.0020080321)(26.7;0.0020080321)(27.1;0.0020080321)(31.3;0.0020080321)(32.5;0.0020080321)(33.6;0.0020080321)(36.9;0.0040160643)(37.5;0.0020080321)(41.3;0.0020080321)(47.8;0.0020080321)(52.9;0.0020080321)(57.6;0.0020080321)(58.3;0.0020080321)(121.7;0.0020080321)]"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="queryStoreById" describedService__SEFF="_2NL5WlcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ywDMINLxEduQ7qbNANXHPw" successor_AbstractAction="_zJrNENLxEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_y7hcUNLxEduQ7qbNANXHPw" predecessor_AbstractAction="_zJrNENLxEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_zJrNENLxEduQ7qbNANXHPw" entityName="Query through EntityManager" predecessor_AbstractAction="_ywDMINLxEduQ7qbNANXHPw" successor_AbstractAction="_y7hcUNLxEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="50"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="queryStockItem" describedService__SEFF="_2NNuglcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_1i0i0NL-EdujoZKiiOMQBA" successor_AbstractAction="_2GlXMNL-EdujoZKiiOMQBA"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_11mU4NL-EdujoZKiiOMQBA" predecessor_AbstractAction="_2GlXMNL-EdujoZKiiOMQBA"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_2GlXMNL-EdujoZKiiOMQBA" entityName="EntityManager query" predecessor_AbstractAction="_1i0i0NL-EdujoZKiiOMQBA" successor_AbstractAction="_11mU4NL-EdujoZKiiOMQBA">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="1"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="flushDatabase" seffTypeID="" describedService__SEFF="_2NQx1VcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StopAction" id="_V6e9MN6xEduAmOtZLewIEg" predecessor_AbstractAction="_WWfjwN6xEduAmOtZLewIEg"/>
+      <steps_Behaviour xsi:type="seff:StartAction" id="_WJFZ4N6xEduAmOtZLewIEg" successor_AbstractAction="_WWfjwN6xEduAmOtZLewIEg"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_WWfjwN6xEduAmOtZLewIEg" entityName="Internal" predecessor_AbstractAction="_WJFZ4N6xEduAmOtZLewIEg" successor_AbstractAction="_V6e9MN6xEduAmOtZLewIEg">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="DoublePDF[ (0.5; 0.50000000) (1.0; 0.50000000) ]"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="markProductUnavailableInStock" seffTypeID="" describedService__SEFF="_2NQx01cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_R3Y6MN68EduAmOtZLewIEg" successor_AbstractAction="_STQW0N68EduAmOtZLewIEg"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_STQW0N68EduAmOtZLewIEg" predecessor_AbstractAction="_R3Y6MN68EduAmOtZLewIEg" successor_AbstractAction="_MbflMB_WEdybE9d5euW0Qw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="10"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_MbflMB_WEdybE9d5euW0Qw" predecessor_AbstractAction="_STQW0N68EduAmOtZLewIEg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_GqStsh_5Edy5k9ER1TBmjg" describedService__SEFF="_2NMgYlcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_IqlxgR_5Edy5k9ER1TBmjg" successor_AbstractAction="_JIsCwB_5Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_JIsCwB_5Edy5k9ER1TBmjg" predecessor_AbstractAction="_IqlxgR_5Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_ZU7A0h_5Edy5k9ER1TBmjg" describedService__SEFF="_2NMgZVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_jQmm0B_5Edy5k9ER1TBmjg" successor_AbstractAction="_jifBAB_5Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_jifBAB_5Edy5k9ER1TBmjg" predecessor_AbstractAction="_jQmm0B_5Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_obZ3wh_5Edy5k9ER1TBmjg" describedService__SEFF="_2NNHdVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_t0hRgB_5Edy5k9ER1TBmjg" successor_AbstractAction="_uOTDcB_5Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_uOTDcB_5Edy5k9ER1TBmjg" predecessor_AbstractAction="_t0hRgB_5Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_x6oLQh_5Edy5k9ER1TBmjg" describedService__SEFF="_2NNHeFcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_11kW0B_5Edy5k9ER1TBmjg" successor_AbstractAction="_2AcKEB_5Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_2AcKEB_5Edy5k9ER1TBmjg" predecessor_AbstractAction="_11kW0B_5Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_D4QOch_6Edy5k9ER1TBmjg" describedService__SEFF="_2NOVklcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_HNo14B_6Edy5k9ER1TBmjg" successor_AbstractAction="_HV-5kB_6Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_HV-5kB_6Edy5k9ER1TBmjg" predecessor_AbstractAction="_HNo14B_6Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_KX_5Eh_6Edy5k9ER1TBmjg" describedService__SEFF="_2NOVlVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ODvLAB_6Edy5k9ER1TBmjg" successor_AbstractAction="_OMFOsB_6Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_OMFOsB_6Edy5k9ER1TBmjg" predecessor_AbstractAction="_ODvLAB_6Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_sGEvA9CiEduC9O_qbthgAg" entityName="TradingSystem.Inventory.GUI.Reporting">
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_vsrnUdC4EduW_YoCCnq0vw" entityName="ReportingIf" requiredInterface__OperationRequiredRole="_vebx9NCiEduC9O_qbthgAg"/>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_zokQE9CiEduC9O_qbthgAg" entityName="TradingSystem.Inventory.GUI.Store">
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_1a8xsdC4EduW_YoCCnq0vw" entityName="StoreIf" requiredInterface__OperationRequiredRole="_4153pNCiEduC9O_qbthgAg"/>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_XDTf09CiEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Application.ProductDispatcher">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_gMw-sNCiEduC9O_qbthgAg" entityName="ProductDispatcherIf" providedInterface__OperationProvidedRole="_dbS8pNCiEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_h-Kq4dCiEduC9O_qbthgAg" entityName="EnterpriseQueryIf" requiredInterface__OperationRequiredRole="_Eldg8NChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_jJt4AdCiEduC9O_qbthgAg" entityName="PersistenceIf" requiredInterface__OperationRequiredRole="_F8ovQNChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_kzNlYdCiEduC9O_qbthgAg" entityName="StoreQueryIf" requiredInterface__OperationRequiredRole="_HSKXwNChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_AXZsESDlEdyyNLPIIGbfMQ" entityName="StoreIf" requiredInterface__OperationRequiredRole="_4153pNCiEduC9O_qbthgAg"/>
+    <componentParameterUsage_ImplementationComponentType>
+      <variableCharacterisation_VariableUsage type="VALUE">
+        <specification_VariableCharacterisation specification="45"/>
+      </variableCharacterisation_VariableUsage>
+      <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="numberOfStores"/>
+    </componentParameterUsage_ImplementationComponentType>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="orderProductsAvailableAtOtherStores" describedService__SEFF="_2NO8o1cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_BHJ0kNLyEduQ7qbNANXHPw" successor_AbstractAction="_EJT-ANLyEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_BYli0NLyEduQ7qbNANXHPw" predecessor_AbstractAction="_A2scgN7AEduAmOtZLewIEg"/>
+      <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_EJT-ANLyEduQ7qbNANXHPw" entityName="getPersistenceContext" predecessor_AbstractAction="_BHJ0kNLyEduQ7qbNANXHPw" successor_AbstractAction="__MsdkNLyEduQ7qbNANXHPw" calledService_ExternalService="_2NL5V1cvEeGI_ZRmqWdpYA" role_ExternalService="_jJt4AdCiEduC9O_qbthgAg"/>
+      <steps_Behaviour xsi:type="seff:ExternalCallAction" id="__MsdkNLyEduQ7qbNANXHPw" entityName="queryEnterpriseById" predecessor_AbstractAction="_EJT-ANLyEduQ7qbNANXHPw" successor_AbstractAction="_Y6-ZoNLzEduQ7qbNANXHPw" calledService_ExternalService="_2NLSRFcvEeGI_ZRmqWdpYA" role_ExternalService="_h-Kq4dCiEduC9O_qbthgAg"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_Y6-ZoNLzEduQ7qbNANXHPw" entityName="removeCallingStore" predecessor_AbstractAction="__MsdkNLyEduQ7qbNANXHPw" successor_AbstractAction="_trQxsNLzEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="1"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:LoopAction" id="_trQxsNLzEduQ7qbNANXHPw" entityName="IterateStores" predecessor_AbstractAction="_Y6-ZoNLzEduQ7qbNANXHPw" successor_AbstractAction="_EteToNL1EduQ7qbNANXHPw">
+        <bodyBehaviour_Loop id="_EH8QUKTJEeGVosGVY5oxwg">
+          <steps_Behaviour xsi:type="seff:StopAction" id="_7g2BcNLzEduQ7qbNANXHPw" predecessor_AbstractAction="_uyhfQNL0EduQ7qbNANXHPw"/>
+          <steps_Behaviour xsi:type="seff:StartAction" id="_70NpYNLzEduQ7qbNANXHPw" successor_AbstractAction="_85pncNLzEduQ7qbNANXHPw"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_85pncNLzEduQ7qbNANXHPw" entityName="get store instance from application factory" predecessor_AbstractAction="_70NpYNLzEduQ7qbNANXHPw" successor_AbstractAction="_dVr08NL0EduQ7qbNANXHPw"/>
+          <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_dVr08NL0EduQ7qbNANXHPw" entityName="flushDatabase" predecessor_AbstractAction="_85pncNLzEduQ7qbNANXHPw" successor_AbstractAction="_uyhfQNL0EduQ7qbNANXHPw" calledService_ExternalService="_2NQx1VcvEeGI_ZRmqWdpYA" role_ExternalService="_AXZsESDlEdyyNLPIIGbfMQ"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_uyhfQNL0EduQ7qbNANXHPw" entityName="collect started threads" predecessor_AbstractAction="_dVr08NL0EduQ7qbNANXHPw" successor_AbstractAction="_7g2BcNLzEduQ7qbNANXHPw"/>
+        </bodyBehaviour_Loop>
+        <iterationCount_LoopAction specification="numberOfStores.VALUE"/>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_EteToNL1EduQ7qbNANXHPw" entityName="time out realisation" predecessor_AbstractAction="_trQxsNLzEduQ7qbNANXHPw" successor_AbstractAction="_OpTDkNL1EduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_OpTDkNL1EduQ7qbNANXHPw" entityName="getProductIds" predecessor_AbstractAction="_EteToNL1EduQ7qbNANXHPw" successor_AbstractAction="_7puwUNL2EduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="1000"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:BranchAction" id="_7puwUNL2EduQ7qbNANXHPw" entityName="requiredProductAmount.size() > 0" predecessor_AbstractAction="_OpTDkNL1EduQ7qbNANXHPw" successor_AbstractAction="_RPZpgNL9EdujoZKiiOMQBA">
+        <branches_Branch xsi:type="seff:GuardedBranchTransition" id="_e5nAEd7MEduAmOtZLewIEg">
+          <branchBehaviour_BranchTransition id="_EH-skaTJEeGVosGVY5oxwg">
+            <steps_Behaviour xsi:type="seff:StartAction" id="_5bVUMNL4EdujoZKiiOMQBA" successor_AbstractAction="_5us8INL4EdujoZKiiOMQBA"/>
+            <steps_Behaviour xsi:type="seff:StopAction" id="_5us8INL4EdujoZKiiOMQBA" predecessor_AbstractAction="_5bVUMNL4EdujoZKiiOMQBA"/>
+          </branchBehaviour_BranchTransition>
+          <branchCondition_GuardedBranchTransition specification="productAmounts.NUMBER_OF_ELEMENTS == 0"/>
+        </branches_Branch>
+        <branches_Branch xsi:type="seff:GuardedBranchTransition" id="_hriVId7MEduAmOtZLewIEg">
+          <branchBehaviour_BranchTransition id="_EH_ToaTJEeGVosGVY5oxwg">
+            <steps_Behaviour xsi:type="seff:StartAction" id="_GTOMoNL5EdujoZKiiOMQBA" successor_AbstractAction="_HGxwgNL5EdujoZKiiOMQBA"/>
+            <steps_Behaviour xsi:type="seff:InternalAction" id="_HGxwgNL5EdujoZKiiOMQBA" entityName="write output for AMPL / CPLEX and apply optimization" predecessor_AbstractAction="_GTOMoNL5EdujoZKiiOMQBA" successor_AbstractAction="_kFrIwNL5EdujoZKiiOMQBA"/>
+            <steps_Behaviour xsi:type="seff:StopAction" id="_MYStcNL5EdujoZKiiOMQBA" predecessor_AbstractAction="_kFrIwNL5EdujoZKiiOMQBA"/>
+            <steps_Behaviour xsi:type="seff:LoopAction" id="_kFrIwNL5EdujoZKiiOMQBA" entityName="loopStores" predecessor_AbstractAction="_HGxwgNL5EdujoZKiiOMQBA" successor_AbstractAction="_MYStcNL5EdujoZKiiOMQBA">
+              <bodyBehaviour_Loop id="_EIAhwqTJEeGVosGVY5oxwg">
+                <steps_Behaviour xsi:type="seff:StartAction" id="_3VZtANL5EdujoZKiiOMQBA" successor_AbstractAction="_5f_VQNL5EdujoZKiiOMQBA"/>
+                <steps_Behaviour xsi:type="seff:StopAction" id="_3oeaANL5EdujoZKiiOMQBA" predecessor_AbstractAction="_pcULYNL7EdujoZKiiOMQBA"/>
+                <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_5f_VQNL5EdujoZKiiOMQBA" entityName="queryStoreById" predecessor_AbstractAction="_3VZtANL5EdujoZKiiOMQBA" successor_AbstractAction="_INS3MNL6EdujoZKiiOMQBA" calledService_ExternalService="_2NL5WlcvEeGI_ZRmqWdpYA" role_ExternalService="_kzNlYdCiEduC9O_qbthgAg"/>
+                <steps_Behaviour xsi:type="seff:InternalAction" id="_INS3MNL6EdujoZKiiOMQBA" entityName="ctors of collections" predecessor_AbstractAction="_5f_VQNL5EdujoZKiiOMQBA" successor_AbstractAction="_XvDU4NL6EdujoZKiiOMQBA"/>
+                <steps_Behaviour xsi:type="seff:LoopAction" id="_XvDU4NL6EdujoZKiiOMQBA" entityName="loopProducts" predecessor_AbstractAction="_INS3MNL6EdujoZKiiOMQBA" successor_AbstractAction="_pcULYNL7EdujoZKiiOMQBA">
+                  <bodyBehaviour_Loop id="_EIBv4qTJEeGVosGVY5oxwg">
+                    <steps_Behaviour xsi:type="seff:StartAction" id="_0YyVcNL6EdujoZKiiOMQBA" successor_AbstractAction="_1EchkNL6EdujoZKiiOMQBA"/>
+                    <steps_Behaviour xsi:type="seff:BranchAction" id="_1EchkNL6EdujoZKiiOMQBA" entityName="p.Amount> 0" predecessor_AbstractAction="_0YyVcNL6EdujoZKiiOMQBA" successor_AbstractAction="_c2KjMNL7EdujoZKiiOMQBA">
+                      <branches_Branch xsi:type="seff:GuardedBranchTransition" id="_PjSEQR_QEdy87ZY8YXDpkA">
+                        <branchBehaviour_BranchTransition id="_EICW86TJEeGVosGVY5oxwg">
+                          <steps_Behaviour xsi:type="seff:StartAction" id="_9g6XkNL6EdujoZKiiOMQBA" successor_AbstractAction="_97I1cNL6EdujoZKiiOMQBA"/>
+                          <steps_Behaviour xsi:type="seff:StopAction" id="_97I1cNL6EdujoZKiiOMQBA" predecessor_AbstractAction="_9g6XkNL6EdujoZKiiOMQBA"/>
+                        </branchBehaviour_BranchTransition>
+                        <branchCondition_GuardedBranchTransition specification="productAmounts.NUMBER_OF_ELEMENTS &lt;= 0"/>
+                      </branches_Branch>
+                      <branches_Branch xsi:type="seff:GuardedBranchTransition" id="_SGvfgR_QEdy87ZY8YXDpkA">
+                        <branchBehaviour_BranchTransition id="_EIDlEaTJEeGVosGVY5oxwg">
+                          <steps_Behaviour xsi:type="seff:StartAction" id="_Bf3gcNL7EdujoZKiiOMQBA" successor_AbstractAction="_EnQIINL7EdujoZKiiOMQBA"/>
+                          <steps_Behaviour xsi:type="seff:StopAction" id="_CHNNQNL7EdujoZKiiOMQBA" predecessor_AbstractAction="_KdHvUNL7EdujoZKiiOMQBA"/>
+                          <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_EnQIINL7EdujoZKiiOMQBA" entityName="queryProductsById" predecessor_AbstractAction="_Bf3gcNL7EdujoZKiiOMQBA" successor_AbstractAction="_KdHvUNL7EdujoZKiiOMQBA" calledService_ExternalService="_2NOVklcvEeGI_ZRmqWdpYA" role_ExternalService="_kzNlYdCiEduC9O_qbthgAg"/>
+                          <steps_Behaviour xsi:type="seff:InternalAction" id="_KdHvUNL7EdujoZKiiOMQBA" predecessor_AbstractAction="_EnQIINL7EdujoZKiiOMQBA" successor_AbstractAction="_CHNNQNL7EdujoZKiiOMQBA"/>
+                        </branchBehaviour_BranchTransition>
+                        <branchCondition_GuardedBranchTransition specification="productAmounts.NUMBER_OF_ELEMENTS > 0"/>
+                      </branches_Branch>
+                    </steps_Behaviour>
+                    <steps_Behaviour xsi:type="seff:StopAction" id="_c2KjMNL7EdujoZKiiOMQBA" predecessor_AbstractAction="_1EchkNL6EdujoZKiiOMQBA"/>
+                  </bodyBehaviour_Loop>
+                  <iterationCount_LoopAction specification="productAmounts.NUMBER_OF_ELEMENTS"/>
+                </steps_Behaviour>
+                <steps_Behaviour xsi:type="seff:InternalAction" id="_pcULYNL7EdujoZKiiOMQBA" entityName="List.put" predecessor_AbstractAction="_XvDU4NL6EdujoZKiiOMQBA" successor_AbstractAction="_3oeaANL5EdujoZKiiOMQBA"/>
+              </bodyBehaviour_Loop>
+              <iterationCount_LoopAction specification="numberOfStores.VALUE"/>
+            </steps_Behaviour>
+          </branchBehaviour_BranchTransition>
+          <branchCondition_GuardedBranchTransition specification="productAmounts.NUMBER_OF_ELEMENTS > 0"/>
+        </branches_Branch>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_RPZpgNL9EdujoZKiiOMQBA" entityName="prepare" predecessor_AbstractAction="_7puwUNL2EduQ7qbNANXHPw" successor_AbstractAction="_pbL4ENL9EdujoZKiiOMQBA"/>
+      <steps_Behaviour xsi:type="seff:LoopAction" id="_pbL4ENL9EdujoZKiiOMQBA" entityName="Iterate deliveringStores" predecessor_AbstractAction="_RPZpgNL9EdujoZKiiOMQBA" successor_AbstractAction="_NeLlMNL-EdujoZKiiOMQBA">
+        <bodyBehaviour_Loop id="_EINWEaTJEeGVosGVY5oxwg">
+          <steps_Behaviour xsi:type="seff:StartAction" id="_8CiNsNL9EdujoZKiiOMQBA" successor_AbstractAction="_81y2oNL9EdujoZKiiOMQBA"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_81y2oNL9EdujoZKiiOMQBA" entityName="get remote object" predecessor_AbstractAction="_8CiNsNL9EdujoZKiiOMQBA" successor_AbstractAction="_BmEuwNL-EdujoZKiiOMQBA"/>
+          <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_BmEuwNL-EdujoZKiiOMQBA" entityName="markProductsUnavailableInStock" predecessor_AbstractAction="_81y2oNL9EdujoZKiiOMQBA" successor_AbstractAction="_FOYSMNL-EdujoZKiiOMQBA" calledService_ExternalService="_2NQx01cvEeGI_ZRmqWdpYA" role_ExternalService="_AXZsESDlEdyyNLPIIGbfMQ"/>
+          <steps_Behaviour xsi:type="seff:StopAction" id="_FOYSMNL-EdujoZKiiOMQBA" predecessor_AbstractAction="_BmEuwNL-EdujoZKiiOMQBA"/>
+        </bodyBehaviour_Loop>
+        <iterationCount_LoopAction specification="numberOfStores.VALUE"/>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_NeLlMNL-EdujoZKiiOMQBA" entityName="sumUp" predecessor_AbstractAction="_pbL4ENL9EdujoZKiiOMQBA" successor_AbstractAction="_A2scgN7AEduAmOtZLewIEg"/>
+      <steps_Behaviour xsi:type="seff:SetVariableAction" id="_A2scgN7AEduAmOtZLewIEg" entityName="setReturnValue" predecessor_AbstractAction="_NeLlMNL-EdujoZKiiOMQBA" successor_AbstractAction="_BYli0NLyEduQ7qbNANXHPw">
+        <localVariableUsages_SetVariableAction>
+          <variableCharacterisation_VariableUsage type="NUMBER_OF_ELEMENTS">
+            <specification_VariableCharacterisation specification="IntPMF[ (1;0.1) (2;0.5) (3;0.2) (4;0.2) ]"/>
+          </variableCharacterisation_VariableUsage>
+          <namedReference__VariableUsage xsi:type="stoex:VariableReference" referenceName="RETURN"/>
+        </localVariableUsages_SetVariableAction>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_URW_1dCmEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Application.Reporting">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_wrdB4NCmEduC9O_qbthgAg" entityName="ReportingIf" providedInterface__OperationProvidedRole="_vebx9NCiEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_b-BUEdCnEduC9O_qbthgAg" entityName="EnterpriseQueryIf" requiredInterface__OperationRequiredRole="_Eldg8NChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_lmx-EdCnEduC9O_qbthgAg" entityName="PersistenceIf" requiredInterface__OperationRequiredRole="_F8ovQNChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_t5HAodCnEduC9O_qbthgAg" entityName="StoreQueryIf" requiredInterface__OperationRequiredRole="_HSKXwNChEduC9O_qbthgAg"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_ifiR9yCfEdyrYp4aNf6BNw" describedService__SEFF="_2NO8qVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ifiR-CCfEdyrYp4aNf6BNw" successor_AbstractAction="_ifiR-SCfEdyrYp4aNf6BNw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_ifiR-SCfEdyrYp4aNf6BNw" predecessor_AbstractAction="_ifiR-CCfEdyrYp4aNf6BNw"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_ifiR-iCfEdyrYp4aNf6BNw" describedService__SEFF="_2NPjslcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ifiR-yCfEdyrYp4aNf6BNw" successor_AbstractAction="_ifiR_CCfEdyrYp4aNf6BNw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_ifiR_CCfEdyrYp4aNf6BNw" predecessor_AbstractAction="_ifiR-yCfEdyrYp4aNf6BNw"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_ifiR_SCfEdyrYp4aNf6BNw" describedService__SEFF="_2NPjtVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ifiR_iCfEdyrYp4aNf6BNw" successor_AbstractAction="_ifiR_yCfEdyrYp4aNf6BNw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_ifiR_yCfEdyrYp4aNf6BNw" predecessor_AbstractAction="_ifiR_iCfEdyrYp4aNf6BNw"/>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <components__Repository xsi:type="repository:BasicComponent" id="_6tZA5dCmEduC9O_qbthgAg" entityName="TradingSystem.Inventory.Application.Store">
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="_8phWYNCmEduC9O_qbthgAg" entityName="StoreIf" providedInterface__OperationProvidedRole="_4153pNCiEduC9O_qbthgAg"/>
+    <providedRoles_InterfaceProvidingEntity xsi:type="repository:OperationProvidedRole" id="__f6UsNCmEduC9O_qbthgAg" entityName="CashDeskConnectorIf" providedInterface__OperationProvidedRole="_WoD42tCjEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_0k7YYdCnEduC9O_qbthgAg" entityName="PersistenceIf" requiredInterface__OperationRequiredRole="_F8ovQNChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_4OSEsdCnEduC9O_qbthgAg" entityName="StoreQueryIf" requiredInterface__OperationRequiredRole="_HSKXwNChEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_aa6McdCwEduW_YoCCnq0vw" entityName="SaleRegisteredEvent" requiredInterface__OperationRequiredRole="_RQoSZNCpEduC9O_qbthgAg"/>
+    <requiredRoles_InterfaceRequiringEntity xsi:type="repository:OperationRequiredRole" id="_IpnV8dItEduQ7qbNANXHPw" entityName="ProductDispatcherIf" requiredInterface__OperationRequiredRole="_dbS8pNCiEduC9O_qbthgAg"/>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="bookSale" describedService__SEFF="_2NKrM1cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_ckGrcNJOEduQ7qbNANXHPw" successor_AbstractAction="_qPZWwNJOEduQ7qbNANXHPw"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_c4EJQNJOEduQ7qbNANXHPw" entityName="stopBooksale" predecessor_AbstractAction="_Ujpx8DimEeqwL5MwVOMK9g"/>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_m1YuANJOEduQ7qbNANXHPw" entityName="persistence context setup" predecessor_AbstractAction="_qPZWwNJOEduQ7qbNANXHPw" successor_AbstractAction="_wAfysNJOEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="0.4"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_qPZWwNJOEduQ7qbNANXHPw" entityName="getPersistenceContext" predecessor_AbstractAction="_ckGrcNJOEduQ7qbNANXHPw" successor_AbstractAction="_m1YuANJOEduQ7qbNANXHPw" calledService_ExternalService="_2NL5V1cvEeGI_ZRmqWdpYA" role_ExternalService="_0k7YYdCnEduC9O_qbthgAg"/>
+      <steps_Behaviour xsi:type="seff:LoopAction" id="_wAfysNJOEduQ7qbNANXHPw" entityName="ProductWithStockItemIterator" predecessor_AbstractAction="_m1YuANJOEduQ7qbNANXHPw" successor_AbstractAction="_M7N1kNJPEduQ7qbNANXHPw">
+        <bodyBehaviour_Loop id="_EIWgAaTJEeGVosGVY5oxwg">
+          <steps_Behaviour xsi:type="seff:StopAction" id="_2ZFscNJOEduQ7qbNANXHPw" entityName="stopItemIterator" predecessor_AbstractAction="_sWjMnP1LEeicRPoFxRMR1Q"/>
+          <steps_Behaviour xsi:type="seff:StartAction" id="_2sTjYNJOEduQ7qbNANXHPw" successor_AbstractAction="_3isY0NJOEduQ7qbNANXHPw"/>
+          <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_3isY0NJOEduQ7qbNANXHPw" entityName="queryStockItemById" predecessor_AbstractAction="_2sTjYNJOEduQ7qbNANXHPw" successor_AbstractAction="_sWjMnP1LEeicRPoFxRMR1Q" calledService_ExternalService="_2NNuhVcvEeGI_ZRmqWdpYA" role_ExternalService="_4OSEsdCnEduC9O_qbthgAg"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_sWjMnP1LEeicRPoFxRMR1Q" entityName="updateEntity" predecessor_AbstractAction="_3isY0NJOEduQ7qbNANXHPw" successor_AbstractAction="_2ZFscNJOEduQ7qbNANXHPw">
+            <resourceDemand_Action>
+              <specification_ParametericResourceDemand specification="DoublePMF[(0.4;4.43066E-4)(0.5;2.21533E-4)(0.6;4.43066E-4)(0.7;2.21533E-4)(0.9;4.43066E-4)(1.0;4.43066E-4)(1.1;8.86132E-4)(1.2;2.21533E-4)(1.3;2.21533E-4)(1.4;2.21533E-4)(1.5;4.43066E-4)(1.6;4.43066E-4)(1.7;2.21533E-4)(1.8;2.21533E-4)(1.9;2.21533E-4)(2.1;2.21533E-4)(2.2;6.64599E-4)(2.3;6.64599E-4)(2.4;4.43066E-4)(2.5;2.21533E-4)(2.6;4.43066E-4)(2.7;4.43066E-4)(2.8;6.64599E-4)(2.9;0.001107665)(3.0;4.43066E-4)(3.1;6.64599E-4)(3.2;8.86132E-4)(3.3;6.64599E-4)(3.4;0.0015507311)(3.5;0.001107665)(3.6;4.43066E-4)(3.7;0.0013291981)(3.8;4.43066E-4)(3.9;8.86132E-4)(4.0;0.0013291981)(4.1;0.0019937971)(4.2;4.43066E-4)(4.3;0.001107665)(4.4;8.86132E-4)(4.5;0.0013291981)(4.6;0.0017722641)(4.7;0.0031014621)(4.8;0.0031014621)(4.9;0.0015507311)(5.0;0.0033229951)(5.1;0.0031014621)(5.2;0.0015507311)(5.3;0.0017722641)(5.4;0.0017722641)(5.5;0.0042091272)(5.6;0.0026583961)(5.7;0.0024368631)(5.8;0.0039875942)(5.9;0.0028799291)(6.0;0.0017722641)(6.1;0.0026583961)(6.2;0.0042091272)(6.3;0.0037660611)(6.4;0.0064244572)(6.5;0.0048737262)(6.6;0.0028799291)(6.7;0.0031014621)(6.8;0.0039875942)(6.9;0.0062029242)(7.0;0.0050952592)(7.1;0.0044306602)(7.2;0.0064244572)(7.3;0.0042091272)(7.4;0.0046521932)(7.5;0.0062029242)(7.6;0.0053167922)(7.7;0.0028799291)(7.8;0.0033229951)(7.9;0.0048737262)(8.0;0.0048737262)(8.1;0.0057598582)(8.2;0.0053167922)(8.3;0.0090828533)(8.4;0.0050952592)(8.5;0.0046521932)(8.6;0.0064244572)(8.7;0.0042091272)(8.8;0.0075321223)(8.9;0.0037660611)(9.0;0.0048737262)(9.1;0.0055383252)(9.2;0.0053167922)(9.3;0.0039875942)(9.4;0.0068675233)(9.5;0.0031014621)(9.6;0.0055383252)(9.7;0.0057598582)(9.8;0.0066459903)(9.9;0.0039875942)(10.0;0.0044306602)(10.1;0.0053167922)(10.2;0.0048737262)(10.3;0.0033229951)(10.4;0.0026583961)(10.5;0.0093043864)(10.6;0.0050952592)(10.7;0.0042091272)(10.8;0.0059813912)(10.9;0.0042091272)(11.0;0.0048737262)(11.1;0.0059813912)(11.2;0.0024368631)(11.3;0.0048737262)(11.4;0.0055383252)(11.5;0.0053167922)(11.6;0.0057598582)(11.7;0.0035445281)(11.8;0.0035445281)(11.9;0.0037660611)(12.0;0.0028799291)(12.1;0.0057598582)(12.2;0.0033229951)(12.3;0.0050952592)(12.4;0.0050952592)(12.5;0.0062029242)(12.6;0.0039875942)(12.7;0.0050952592)(12.8;0.0055383252)(12.9;0.0055383252)(13.0;0.0028799291)(13.1;0.0050952592)(13.2;0.0028799291)(13.3;0.0048737262)(13.4;0.0037660611)(13.5;0.0053167922)(13.6;0.0053167922)(13.7;0.0024368631)(13.8;0.0035445281)(13.9;0.0035445281)(14.0;0.0057598582)(14.1;0.0042091272)(14.2;0.0026583961)(14.3;0.0053167922)(14.4;0.0053167922)(14.5;0.0031014621)(14.6;0.0033229951)(14.7;0.0039875942)(14.8;0.0046521932)(14.9;0.0037660611)(15.0;0.0026583961)(15.1;0.0035445281)(15.2;0.0064244572)(15.3;0.0033229951)(15.4;0.0035445281)(15.5;0.0066459903)(15.6;0.0042091272)(15.7;0.0033229951)(15.8;0.0033229951)(15.9;0.0048737262)(16.0;0.0026583961)(16.1;0.0044306602)(16.2;0.0019937971)(16.3;0.0026583961)(16.4;0.0039875942)(16.5;0.0028799291)(16.6;0.0026583961)(16.7;0.0028799291)(16.8;0.0024368631)(16.9;0.0037660611)(17.0;0.0037660611)(17.1;0.0042091272)(17.2;0.0013291981)(17.3;0.0013291981)(17.4;0.0015507311)(17.5;0.0042091272)(17.6;0.0042091272)(17.7;0.0035445281)(17.8;0.0031014621)(17.9;0.0024368631)(18.0;0.0035445281)(18.1;0.0019937971)(18.2;0.0031014621)(18.3;0.0015507311)(18.4;0.0017722641)(18.5;8.86132E-4)(18.6;0.0026583961)(18.7;0.0050952592)(18.8;0.001107665)(18.9;0.001107665)(19.0;0.001107665)(19.1;0.0019937971)(19.2;8.86132E-4)(19.3;0.0035445281)(19.4;0.0028799291)(19.5;0.0019937971)(19.6;0.0015507311)(19.7;0.0013291981)(19.8;0.0017722641)(19.9;0.0048737262)(20.0;0.0028799291)(20.1;0.0017722641)(20.2;0.0013291981)(20.3;0.0022153301)(20.4;0.0028799291)(20.5;0.0028799291)(20.6;0.0024368631)(20.7;0.0015507311)(20.8;0.0015507311)(20.9;0.0022153301)(21.0;0.0035445281)(21.1;0.0031014621)(21.2;0.001107665)(21.3;0.0015507311)(21.4;0.0019937971)(21.5;0.0024368631)(21.6;0.0019937971)(21.7;0.0017722641)(21.8;0.0013291981)(21.9;8.86132E-4)(22.0;8.86132E-4)(22.1;0.0017722641)(22.2;0.0031014621)(22.3;0.0013291981)(22.4;0.0015507311)(22.5;0.0015507311)(22.6;0.001107665)(22.7;0.0017722641)(22.8;0.0022153301)(22.9;0.001107665)(23.0;0.0013291981)(23.1;2.21533E-4)(23.2;0.001107665)(23.3;0.0013291981)(23.4;0.0031014621)(23.5;4.43066E-4)(23.6;0.001107665)(23.7;0.0013291981)(23.8;0.001107665)(23.9;0.0026583961)(24.0;0.0017722641)(24.1;8.86132E-4)(24.2;8.86132E-4)(24.3;0.0015507311)(24.4;4.43066E-4)(24.5;0.0028799291)(24.6;0.0022153301)(24.7;0.0024368631)(24.8;0.0019937971)(24.9;0.0019937971)(25.0;8.86132E-4)(25.1;0.0019937971)(25.2;0.0022153301)(25.3;8.86132E-4)(25.4;0.001107665)(25.5;0.0013291981)(25.6;0.0013291981)(25.7;0.001107665)(25.8;0.0017722641)(25.9;6.64599E-4)(26.0;8.86132E-4)(26.1;6.64599E-4)(26.2;0.0019937971)(26.3;0.0013291981)(26.4;8.86132E-4)(26.5;0.0015507311)(26.6;0.0015507311)(26.7;8.86132E-4)(26.8;8.86132E-4)(26.9;0.0019937971)(27.0;0.0013291981)(27.1;6.64599E-4)(27.2;4.43066E-4)(27.3;0.0017722641)(27.4;0.0024368631)(27.5;0.0022153301)(27.6;8.86132E-4)(27.7;6.64599E-4)(27.8;4.43066E-4)(27.9;6.64599E-4)(28.0;6.64599E-4)(28.1;0.0024368631)(28.2;2.21533E-4)(28.4;0.001107665)(28.5;6.64599E-4)(28.6;6.64599E-4)(28.7;8.86132E-4)(28.8;0.001107665)(28.9;0.0015507311)(29.0;0.001107665)(29.1;4.43066E-4)(29.2;8.86132E-4)(29.3;8.86132E-4)(29.4;8.86132E-4)(29.5;8.86132E-4)(29.6;0.001107665)(29.7;8.86132E-4)(29.8;0.0013291981)(29.9;4.43066E-4)(30.0;0.001107665)(30.1;8.86132E-4)(30.2;6.64599E-4)(30.3;0.001107665)(30.4;0.0019937971)(30.5;4.43066E-4)(30.6;0.0017722641)(30.7;2.21533E-4)(30.8;0.001107665)(30.9;4.43066E-4)(31.0;4.43066E-4)(31.1;0.001107665)(31.2;6.64599E-4)(31.3;0.001107665)(31.4;8.86132E-4)(31.5;0.001107665)(31.6;0.0019937971)(31.7;4.43066E-4)(31.8;8.86132E-4)(31.9;0.0013291981)(32.0;8.86132E-4)(32.1;4.43066E-4)(32.2;8.86132E-4)(32.3;8.86132E-4)(32.4;0.0015507311)(32.5;4.43066E-4)(32.6;6.64599E-4)(32.7;6.64599E-4)(32.8;8.86132E-4)(32.9;8.86132E-4)(33.0;8.86132E-4)(33.1;2.21533E-4)(33.2;4.43066E-4)(33.3;0.001107665)(33.4;6.64599E-4)(33.5;6.64599E-4)(33.6;0.0013291981)(33.7;0.0013291981)(33.8;8.86132E-4)(33.9;0.0019937971)(34.0;6.64599E-4)(34.2;8.86132E-4)(34.3;4.43066E-4)(34.4;0.001107665)(34.6;2.21533E-4)(34.7;2.21533E-4)(34.8;0.0015507311)(34.9;8.86132E-4)(35.0;4.43066E-4)(35.1;4.43066E-4)(35.2;6.64599E-4)(35.3;6.64599E-4)(35.4;6.64599E-4)(35.5;4.43066E-4)(35.6;2.21533E-4)(35.7;2.21533E-4)(35.8;6.64599E-4)(35.9;2.21533E-4)(36.0;0.0013291981)(36.1;0.0013291981)(36.2;0.001107665)(36.3;2.21533E-4)(36.4;4.43066E-4)(36.5;4.43066E-4)(36.7;8.86132E-4)(36.9;4.43066E-4)(37.0;4.43066E-4)(37.1;6.64599E-4)(37.2;0.001107665)(37.3;4.43066E-4)(37.4;0.0013291981)(37.5;8.86132E-4)(37.6;0.001107665)(37.7;4.43066E-4)(37.8;6.64599E-4)(37.9;8.86132E-4)(38.0;4.43066E-4)(38.1;6.64599E-4)(38.2;2.21533E-4)(38.3;4.43066E-4)(38.4;0.001107665)(38.5;0.001107665)(38.6;0.001107665)(38.7;6.64599E-4)(38.8;0.0013291981)(38.9;6.64599E-4)(39.0;6.64599E-4)(39.1;6.64599E-4)(39.2;4.43066E-4)(39.3;8.86132E-4)(39.4;4.43066E-4)(39.5;2.21533E-4)(39.6;0.001107665)(39.7;6.64599E-4)(39.8;0.001107665)(39.9;4.43066E-4)(40.0;2.21533E-4)(40.1;6.64599E-4)(40.2;0.001107665)(40.3;2.21533E-4)(40.4;8.86132E-4)(40.5;6.64599E-4)(40.6;2.21533E-4)(40.7;4.43066E-4)(40.8;2.21533E-4)(40.9;8.86132E-4)(41.0;6.64599E-4)(41.1;2.21533E-4)(41.2;4.43066E-4)(41.3;4.43066E-4)(41.5;4.43066E-4)(41.6;8.86132E-4)(41.7;4.43066E-4)(41.8;0.0015507311)(41.9;4.43066E-4)(42.0;6.64599E-4)(42.1;4.43066E-4)(42.2;6.64599E-4)(42.3;4.43066E-4)(42.4;2.21533E-4)(42.5;2.21533E-4)(42.6;8.86132E-4)(42.7;2.21533E-4)(42.8;2.21533E-4)(42.9;8.86132E-4)(43.0;6.64599E-4)(43.1;8.86132E-4)(43.2;4.43066E-4)(43.3;8.86132E-4)(43.5;6.64599E-4)(43.6;6.64599E-4)(43.7;0.001107665)(43.8;4.43066E-4)(43.9;2.21533E-4)(44.0;6.64599E-4)(44.2;4.43066E-4)(44.3;4.43066E-4)(44.4;4.43066E-4)(44.5;8.86132E-4)(44.6;2.21533E-4)(44.7;2.21533E-4)(44.8;2.21533E-4)(44.9;4.43066E-4)(45.0;0.001107665)(45.1;4.43066E-4)(45.2;2.21533E-4)(45.3;0.001107665)(45.4;2.21533E-4)(45.5;4.43066E-4)(45.6;8.86132E-4)(45.7;0.001107665)(45.9;2.21533E-4)(46.0;4.43066E-4)(46.2;2.21533E-4)(46.3;2.21533E-4)(46.4;2.21533E-4)(46.5;2.21533E-4)(46.6;6.64599E-4)(46.8;2.21533E-4)(46.9;6.64599E-4)(47.0;2.21533E-4)(47.3;4.43066E-4)(47.4;6.64599E-4)(47.5;6.64599E-4)(47.6;6.64599E-4)(47.9;4.43066E-4)(48.0;0.0013291981)(48.1;4.43066E-4)(48.3;4.43066E-4)(48.6;6.64599E-4)(48.8;6.64599E-4)(48.9;2.21533E-4)(49.0;2.21533E-4)(49.1;4.43066E-4)(49.2;8.86132E-4)(49.4;2.21533E-4)(49.5;4.43066E-4)(49.7;2.21533E-4)(49.8;6.64599E-4)(50.0;8.86132E-4)(50.1;6.64599E-4)(50.2;4.43066E-4)(50.3;2.21533E-4)(50.4;0.001107665)(50.5;2.21533E-4)(50.6;2.21533E-4)(50.7;2.21533E-4)(50.9;4.43066E-4)(51.0;4.43066E-4)(51.1;2.21533E-4)(51.3;2.21533E-4)(51.6;6.64599E-4)(51.7;2.21533E-4)(51.9;2.21533E-4)(52.1;2.21533E-4)(52.2;4.43066E-4)(52.5;2.21533E-4)(52.6;4.43066E-4)(52.7;2.21533E-4)(53.0;4.43066E-4)(53.2;2.21533E-4)(53.3;2.21533E-4)(53.4;8.86132E-4)(53.5;2.21533E-4)(53.6;6.64599E-4)(53.7;6.64599E-4)(54.1;2.21533E-4)(54.2;2.21533E-4)(54.4;4.43066E-4)(54.5;8.86132E-4)(54.6;2.21533E-4)(54.7;4.43066E-4)(54.8;4.43066E-4)(54.9;4.43066E-4)(55.0;4.43066E-4)(55.1;2.21533E-4)(55.4;4.43066E-4)(55.5;2.21533E-4)(55.6;2.21533E-4)(55.7;4.43066E-4)(55.8;2.21533E-4)(56.1;2.21533E-4)(56.2;4.43066E-4)(56.3;2.21533E-4)(56.4;2.21533E-4)(56.7;4.43066E-4)(56.9;6.64599E-4)(57.0;2.21533E-4)(57.1;2.21533E-4)(57.3;4.43066E-4)(57.5;2.21533E-4)(57.7;2.21533E-4)(57.8;4.43066E-4)(58.1;2.21533E-4)(58.2;4.43066E-4)(58.3;6.64599E-4)(58.4;4.43066E-4)(58.7;2.21533E-4)(58.8;4.43066E-4)(58.9;4.43066E-4)(59.0;2.21533E-4)(59.2;2.21533E-4)(59.3;4.43066E-4)(59.4;2.21533E-4)(59.5;6.64599E-4)(59.6;2.21533E-4)(59.7;8.86132E-4)(59.8;2.21533E-4)(60.0;4.43066E-4)(60.1;6.64599E-4)(60.3;2.21533E-4)(60.5;2.21533E-4)(60.7;2.21533E-4)(60.9;4.43066E-4)(61.1;2.21533E-4)(61.3;2.21533E-4)(61.4;2.21533E-4)(61.5;2.21533E-4)(61.6;6.64599E-4)(61.9;4.43066E-4)(62.0;2.21533E-4)(62.1;2.21533E-4)(62.2;6.64599E-4)(62.4;2.21533E-4)(62.8;2.21533E-4)(63.0;4.43066E-4)(63.3;4.43066E-4)(63.4;2.21533E-4)(63.6;6.64599E-4)(63.7;2.21533E-4)(64.0;2.21533E-4)(64.2;2.21533E-4)(64.3;6.64599E-4)(64.5;2.21533E-4)(64.6;4.43066E-4)(64.7;2.21533E-4)(64.9;2.21533E-4)(65.0;2.21533E-4)(65.3;2.21533E-4)(65.5;4.43066E-4)(65.7;6.64599E-4)(66.0;4.43066E-4)(66.2;2.21533E-4)(66.4;2.21533E-4)(66.5;4.43066E-4)(66.6;2.21533E-4)(66.7;2.21533E-4)(67.0;2.21533E-4)(67.2;2.21533E-4)(67.3;2.21533E-4)(67.4;8.86132E-4)(67.5;4.43066E-4)(67.6;4.43066E-4)(67.8;4.43066E-4)(68.0;6.64599E-4)(68.3;2.21533E-4)(68.7;4.43066E-4)(68.9;4.43066E-4)(69.1;2.21533E-4)(69.2;2.21533E-4)(69.5;6.64599E-4)(69.6;4.43066E-4)(69.8;2.21533E-4)(70.0;2.21533E-4)(70.4;2.21533E-4)(70.5;2.21533E-4)(70.7;2.21533E-4)(70.8;2.21533E-4)(71.2;6.64599E-4)(71.7;2.21533E-4)(71.8;2.21533E-4)(72.0;2.21533E-4)(72.2;2.21533E-4)(72.3;4.43066E-4)(72.6;2.21533E-4)(72.7;8.86132E-4)(72.8;2.21533E-4)(73.0;4.43066E-4)(73.1;2.21533E-4)(73.2;2.21533E-4)(73.5;2.21533E-4)(73.7;2.21533E-4)(73.9;2.21533E-4)(74.0;2.21533E-4)(74.1;2.21533E-4)(74.2;4.43066E-4)(74.3;4.43066E-4)(74.4;2.21533E-4)(74.9;2.21533E-4)(75.0;2.21533E-4)(75.1;2.21533E-4)(75.5;4.43066E-4)(75.7;2.21533E-4)(75.9;2.21533E-4)(76.0;2.21533E-4)(76.1;2.21533E-4)(76.3;4.43066E-4)(76.7;2.21533E-4)(76.8;2.21533E-4)(77.2;2.21533E-4)(77.4;2.21533E-4)(77.5;4.43066E-4)(78.2;6.64599E-4)(78.5;4.43066E-4)(79.0;2.21533E-4)(79.1;2.21533E-4)(79.2;4.43066E-4)(79.4;2.21533E-4)(79.5;2.21533E-4)(79.6;2.21533E-4)(79.7;2.21533E-4)(80.0;2.21533E-4)(80.5;4.43066E-4)(80.6;6.64599E-4)(80.8;2.21533E-4)(81.0;4.43066E-4)(81.4;2.21533E-4)(81.5;2.21533E-4)(82.0;2.21533E-4)(82.7;4.43066E-4)(83.1;2.21533E-4)(83.3;2.21533E-4)(83.5;2.21533E-4)(83.6;2.21533E-4)(84.0;6.64599E-4)(84.4;2.21533E-4)(84.6;2.21533E-4)(84.9;4.43066E-4)(85.0;4.43066E-4)(85.3;2.21533E-4)(85.5;2.21533E-4)(85.7;4.43066E-4)(85.8;2.21533E-4)(86.1;2.21533E-4)(86.2;2.21533E-4)(86.6;2.21533E-4)(86.7;2.21533E-4)(86.8;2.21533E-4)(87.2;2.21533E-4)(87.5;2.21533E-4)(87.6;2.21533E-4)(87.7;2.21533E-4)(87.9;2.21533E-4)(88.1;2.21533E-4)(88.2;2.21533E-4)(88.4;2.21533E-4)(88.7;2.21533E-4)(88.9;2.21533E-4)(89.0;4.43066E-4)(89.3;2.21533E-4)(89.9;2.21533E-4)(90.0;2.21533E-4)(90.2;2.21533E-4)(90.6;2.21533E-4)(91.5;2.21533E-4)(91.6;2.21533E-4)(91.8;2.21533E-4)(92.1;2.21533E-4)(92.5;4.43066E-4)(92.7;2.21533E-4)(94.2;2.21533E-4)(94.3;4.43066E-4)(94.7;2.21533E-4)(94.8;2.21533E-4)(95.2;2.21533E-4)(95.5;2.21533E-4)(96.1;2.21533E-4)(96.6;2.21533E-4)(97.2;2.21533E-4)(97.4;4.43066E-4)(97.6;2.21533E-4)(97.8;2.21533E-4)(100.6;2.21533E-4)(101.6;2.21533E-4)(101.7;2.21533E-4)(102.1;2.21533E-4)(102.9;2.21533E-4)(103.1;2.21533E-4)(103.2;2.21533E-4)(103.4;2.21533E-4)(103.7;2.21533E-4)(104.1;2.21533E-4)(104.3;2.21533E-4)(104.5;2.21533E-4)(104.8;2.21533E-4)(104.9;2.21533E-4)(106.0;2.21533E-4)(106.2;4.43066E-4)(106.4;2.21533E-4)(107.1;4.43066E-4)(107.3;4.43066E-4)(107.4;2.21533E-4)(108.5;2.21533E-4)(108.6;2.21533E-4)(109.4;2.21533E-4)(111.0;2.21533E-4)(111.1;2.21533E-4)(112.8;2.21533E-4)(115.2;2.21533E-4)(115.8;2.21533E-4)(116.7;2.21533E-4)(117.4;2.21533E-4)(117.7;2.21533E-4)(118.3;2.21533E-4)(119.3;2.21533E-4)(119.4;2.21533E-4)(119.6;2.21533E-4)(121.2;4.43066E-4)(121.4;2.21533E-4)(121.7;2.21533E-4)(122.2;2.21533E-4)(123.7;2.21533E-4)(125.0;2.21533E-4)(125.3;4.43066E-4)(126.0;2.21533E-4)(126.7;2.21533E-4)(127.4;2.21533E-4)(127.5;2.21533E-4)(128.0;2.21533E-4)(128.3;2.21533E-4)(128.7;2.21533E-4)(128.8;2.21533E-4)(129.2;2.21533E-4)(129.3;2.21533E-4)(132.0;2.21533E-4)(133.3;2.21533E-4)(133.9;2.21533E-4)(134.1;2.21533E-4)(134.5;4.43066E-4)(135.1;2.21533E-4)(136.4;2.21533E-4)(136.5;2.21533E-4)(137.3;2.21533E-4)(137.8;2.21533E-4)(138.3;2.21533E-4)(139.6;2.21533E-4)(140.0;2.21533E-4)(141.1;2.21533E-4)(142.9;2.21533E-4)(143.5;2.21533E-4)(144.3;2.21533E-4)(145.5;2.21533E-4)(145.8;2.21533E-4)(146.7;2.21533E-4)(146.9;2.21533E-4)(150.1;2.21533E-4)(155.0;2.21533E-4)(155.4;2.21533E-4)(159.8;2.21533E-4)(161.0;2.21533E-4)(162.5;2.21533E-4)(164.7;2.21533E-4)(168.4;2.21533E-4)(168.6;4.43066E-4)(173.0;2.21533E-4)(174.5;2.21533E-4)(175.8;2.21533E-4)(176.5;2.21533E-4)(176.7;2.21533E-4)(181.0;2.21533E-4)(184.0;2.21533E-4)(185.1;2.21533E-4)(186.1;2.21533E-4)(189.8;2.21533E-4)(191.6;2.21533E-4)(194.3;2.21533E-4)(198.8;2.21533E-4)(199.5;2.21533E-4)(202.7;2.21533E-4)(205.3;2.21533E-4)(217.2;2.21533E-4)(224.8;2.21533E-4)(225.2;2.21533E-4)(231.0;2.21533E-4)(232.1;2.21533E-4)(245.8;2.21533E-4)(246.1;2.21533E-4)(259.3;2.21533E-4)(268.8;2.21533E-4)(280.9;2.21533E-4)(292.9;2.21533E-4)(307.8;2.21533E-4)(315.2;2.21533E-4)(317.0;2.21533E-4)(388.4;2.21533E-4)(606.0;2.21533E-4)]"/>
+              <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+            </resourceDemand_Action>
+          </steps_Behaviour>
+        </bodyBehaviour_Loop>
+        <iterationCount_LoopAction specification="saleTO.NUMBER_OF_ELEMENTS"/>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_M7N1kNJPEduQ7qbNANXHPw" entityName="getPersistenceContext" predecessor_AbstractAction="_wAfysNJOEduQ7qbNANXHPw" successor_AbstractAction="_YeyxANJQEduQ7qbNANXHPw" calledService_ExternalService="_2NL5V1cvEeGI_ZRmqWdpYA" role_ExternalService="_0k7YYdCnEduC9O_qbthgAg"/>
+      <steps_Behaviour xsi:type="seff:LoopAction" id="_XoxOlP1OEeicRPoFxRMR1Q" entityName="selectItemsToOrder" predecessor_AbstractAction="_CrPMVBA0EembpMH3VukgUA" successor_AbstractAction="_Ujpx8DimEeqwL5MwVOMK9g">
+        <bodyBehaviour_Loop id="_2bUVwv1OEeicRPoFxRMR1Q">
+          <steps_Behaviour xsi:type="seff:StartAction" id="_-bUSMv1OEeicRPoFxRMR1Q" entityName="startLowStock" successor_AbstractAction="_25wIzv1PEeicRPoFxRMR1Q"/>
+          <steps_Behaviour xsi:type="seff:StopAction" id="_BeBOMP1PEeicRPoFxRMR1Q" entityName="endLowStock" predecessor_AbstractAction="_25wIzv1PEeicRPoFxRMR1Q"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_25wIzv1PEeicRPoFxRMR1Q" entityName="calcLowStock" predecessor_AbstractAction="_-bUSMv1OEeicRPoFxRMR1Q" successor_AbstractAction="_BeBOMP1PEeicRPoFxRMR1Q">
+            <resourceDemand_Action>
+              <specification_ParametericResourceDemand specification="0"/>
+              <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+            </resourceDemand_Action>
+          </steps_Behaviour>
+        </bodyBehaviour_Loop>
+        <iterationCount_LoopAction specification="1"/>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:ExternalCallAction" id="_YeyxANJQEduQ7qbNANXHPw" entityName="queryLowStockItemsWithRespectToIncomingProducts" predecessor_AbstractAction="_M7N1kNJPEduQ7qbNANXHPw" successor_AbstractAction="_CrPMVBA0EembpMH3VukgUA" calledService_ExternalService="_2NNHclcvEeGI_ZRmqWdpYA" role_ExternalService="_4OSEsdCnEduC9O_qbthgAg"/>
+      <steps_Behaviour xsi:type="seff:LoopAction" id="_CrPMVBA0EembpMH3VukgUA" entityName="calculateProductAmountsLoop" predecessor_AbstractAction="_YeyxANJQEduQ7qbNANXHPw" successor_AbstractAction="_XoxOlP1OEeicRPoFxRMR1Q">
+        <bodyBehaviour_Loop id="_Jwf-0hA0EembpMH3VukgUA">
+          <steps_Behaviour xsi:type="seff:StartAction" id="_OdggghA0EembpMH3VukgUA" entityName="startProductAmountLoop" successor_AbstractAction="_SFTGnBA0EembpMH3VukgUA"/>
+          <steps_Behaviour xsi:type="seff:StopAction" id="_PJXg8BA0EembpMH3VukgUA" predecessor_AbstractAction="_SFTGnBA0EembpMH3VukgUA"/>
+          <steps_Behaviour xsi:type="seff:InternalAction" id="_SFTGnBA0EembpMH3VukgUA" entityName="calculateProductAmount" predecessor_AbstractAction="_OdggghA0EembpMH3VukgUA" successor_AbstractAction="_PJXg8BA0EembpMH3VukgUA">
+            <resourceDemand_Action>
+              <specification_ParametericResourceDemand specification="0"/>
+              <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+            </resourceDemand_Action>
+          </steps_Behaviour>
+        </bodyBehaviour_Loop>
+        <iterationCount_LoopAction specification="1"/>
+      </steps_Behaviour>
+      <steps_Behaviour xsi:type="seff:InternalAction" id="_Ujpx8DimEeqwL5MwVOMK9g" entityName="performTransaction" predecessor_AbstractAction="_XoxOlP1OEeicRPoFxRMR1Q" successor_AbstractAction="_c4EJQNJOEduQ7qbNANXHPw">
+        <resourceDemand_Action>
+          <specification_ParametericResourceDemand specification="4.3"/>
+          <requiredResource_ParametricResourceDemand href="pathmap://PCM_MODELS/Palladio.resourcetype#_oro4gG3fEdy4YaaT-RYrLQ"/>
+        </resourceDemand_Action>
+      </steps_Behaviour>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="__vMR4h_6Edy5k9ER1TBmjg" describedService__SEFF="_2NPjuVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_FJDSgB_7Edy5k9ER1TBmjg" successor_AbstractAction="_FTVP4B_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_FTVP4B_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_FJDSgB_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_H9phEh_7Edy5k9ER1TBmjg" describedService__SEFF="_2NPju1cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_LttSUB_7Edy5k9ER1TBmjg" successor_AbstractAction="_L3Po0B_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_L3Po0B_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_LttSUB_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_N8A88h_7Edy5k9ER1TBmjg" describedService__SEFF="_2NQKwVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_Tsqs8B_7Edy5k9ER1TBmjg" successor_AbstractAction="_T2NDcB_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_T2NDcB_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_Tsqs8B_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_ZHuAYh_7Edy5k9ER1TBmjg" describedService__SEFF="_2NQKw1cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_cr__cB_7Edy5k9ER1TBmjg" successor_AbstractAction="_c7f0AB_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_c7f0AB_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_cr__cB_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_iY7tEh_7Edy5k9ER1TBmjg" describedService__SEFF="_2NQKxVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_mLh08B_7Edy5k9ER1TBmjg" successor_AbstractAction="_mVNVYB_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_mVNVYB_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_mLh08B_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_rLcrkh_7Edy5k9ER1TBmjg" describedService__SEFF="_2NQKyFcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_v5fvEB_7Edy5k9ER1TBmjg" successor_AbstractAction="_wEOYYB_7Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_wEOYYB_7Edy5k9ER1TBmjg" predecessor_AbstractAction="_v5fvEB_7Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_0MIB4h_7Edy5k9ER1TBmjg" describedService__SEFF="_2NQKylcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_Onj-4B_8Edy5k9ER1TBmjg" successor_AbstractAction="_OzoE8B_8Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_OzoE8B_8Edy5k9ER1TBmjg" predecessor_AbstractAction="_Onj-4B_8Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_RbkXkh_8Edy5k9ER1TBmjg" describedService__SEFF="_2NQx0FcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_VWf8EB_8Edy5k9ER1TBmjg" successor_AbstractAction="_VfSrsB_8Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_VfSrsB_8Edy5k9ER1TBmjg" predecessor_AbstractAction="_VWf8EB_8Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_YzMFYh_8Edy5k9ER1TBmjg" describedService__SEFF="_2NQx01cvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_bah7EB_8Edy5k9ER1TBmjg" successor_AbstractAction="_bnCtEB_8Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_bnCtEB_8Edy5k9ER1TBmjg" predecessor_AbstractAction="_bah7EB_8Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_d0c_0h_8Edy5k9ER1TBmjg" describedService__SEFF="_2NQx1VcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_gzVy0B_8Edy5k9ER1TBmjg" successor_AbstractAction="_hEB6MB_8Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_hEB6MB_8Edy5k9ER1TBmjg" predecessor_AbstractAction="_gzVy0B_8Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+    <serviceEffectSpecifications__BasicComponent xsi:type="seff:ResourceDemandingSEFF" id="_mAraYh_8Edy5k9ER1TBmjg" describedService__SEFF="_2NLSQVcvEeGI_ZRmqWdpYA">
+      <steps_Behaviour xsi:type="seff:StartAction" id="_rYcwUB_8Edy5k9ER1TBmjg" successor_AbstractAction="_rg798B_8Edy5k9ER1TBmjg"/>
+      <steps_Behaviour xsi:type="seff:StopAction" id="_rg798B_8Edy5k9ER1TBmjg" predecessor_AbstractAction="_rYcwUB_8Edy5k9ER1TBmjg"/>
+    </serviceEffectSpecifications__BasicComponent>
+  </components__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_WoD42tCjEduC9O_qbthgAg" entityName="CashDeskConnectorIf">
+    <signatures__OperationInterface id="_2NKrM1cvEeGI_ZRmqWdpYA" entityName="bookSale">
+      <parameters__OperationSignature parameterName="saleTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_J-s5ptFpEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NLSQVcvEeGI_ZRmqWdpYA" entityName="getProductWithStockItem">
+      <parameters__OperationSignature parameterName="productBarCode">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_OFaQVtFpEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_Eldg8NChEduC9O_qbthgAg" entityName="EnterpriseQueryIf">
+    <signatures__OperationInterface id="_2NLSRFcvEeGI_ZRmqWdpYA" entityName="queryEnterpriseById">
+      <parameters__OperationSignature parameterName="enterpriseId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_43Fu5tFcEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NL5UlcvEeGI_ZRmqWdpYA" entityName="getMeanTimeToDelivery">
+      <parameters__OperationSignature parameterName="supplier">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_HzcZdtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="enterprise">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_43Fu5tFcEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_F8ovQNChEduC9O_qbthgAg" entityName="PersistenceIf">
+    <signatures__OperationInterface id="_2NL5V1cvEeGI_ZRmqWdpYA" entityName="getPersistenceContext">
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_HSKXwNChEduC9O_qbthgAg" entityName="StoreQueryIf">
+    <signatures__OperationInterface id="_2NL5WlcvEeGI_ZRmqWdpYA" entityName="queryStoreById">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_tGnVBtFdEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NMgYlcvEeGI_ZRmqWdpYA" entityName="queryProducts">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_4ndL5dFmEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NMgZVcvEeGI_ZRmqWdpYA" entityName="queryLowStockItems">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_BeTQxdFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NNHclcvEeGI_ZRmqWdpYA" entityName="queryLowStockItemsWithRespectToIncomingProducts">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_BeTQxdFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NNHdVcvEeGI_ZRmqWdpYA" entityName="queryAllStockItems">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_BeTQxdFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NNHeFcvEeGI_ZRmqWdpYA" entityName="queryOrderById">
+      <parameters__OperationSignature parameterName="orderId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_JMRpFtFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NNuglcvEeGI_ZRmqWdpYA" entityName="queryStockItem">
+      <parameters__OperationSignature parameterName="stockId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_AQXeBtFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NNuhVcvEeGI_ZRmqWdpYA" entityName="queryStockItemById">
+      <parameters__OperationSignature parameterName="stockId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_AQXeBtFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NOVklcvEeGI_ZRmqWdpYA" entityName="queryProductById">
+      <parameters__OperationSignature parameterName="productId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_6wQEZtFmEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NOVlVcvEeGI_ZRmqWdpYA" entityName="getStockItems">
+      <parameters__OperationSignature parameterName="storeId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="productIds">
+        <dataType__Parameter xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_bxQxxdFoEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="pctx">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_C72_dtFdEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_BeTQxdFnEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_dbS8pNCiEduC9O_qbthgAg" entityName="ProductDispatcherIf">
+    <signatures__OperationInterface id="_2NO8o1cvEeGI_ZRmqWdpYA" entityName="orderProductsAvailableAtOtherStores">
+      <parameters__OperationSignature parameterName="enterpriseTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_1GiHBtFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="callingStore">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_27zmltFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <parameters__OperationSignature parameterName="productAmounts">
+        <dataType__Parameter xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_8E94xdFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_lM7xFdFfEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_vebx9NCiEduC9O_qbthgAg" entityName="ReportingIf">
+    <signatures__OperationInterface id="_2NO8qVcvEeGI_ZRmqWdpYA" entityName="getStockReport">
+      <parameters__OperationSignature parameterName="storeTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_27zmltFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_yUl0xtFoEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NPjslcvEeGI_ZRmqWdpYA" entityName="getStockReport">
+      <parameters__OperationSignature parameterName="enterpriseTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_1GiHBtFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_yUl0xtFoEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NPjtVcvEeGI_ZRmqWdpYA" entityName="getMeanTimeToDeliveryReport">
+      <parameters__OperationSignature parameterName="enterpriseTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_1GiHBtFfEducE6dFyopUlg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_yUl0xtFoEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_4153pNCiEduC9O_qbthgAg" entityName="StoreIf">
+    <signatures__OperationInterface id="_2NPjuVcvEeGI_ZRmqWdpYA" entityName="getStore">
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_sHYtltIWEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NPju1cvEeGI_ZRmqWdpYA" entityName="getProductsWithLowStock">
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_wVjXJdIWEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQKwVcvEeGI_ZRmqWdpYA" entityName="getAllProducts">
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_4f1Q9dIWEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQKw1cvEeGI_ZRmqWdpYA" entityName="getAllProductsWithOptionalStockItem">
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_FJanpdIXEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQKxVcvEeGI_ZRmqWdpYA" entityName="orderProducts">
+      <parameters__OperationSignature parameterName="complexOrder">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_L9RhFtIXEduF4-1MMpjBkg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CollectionDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_O15UBdIXEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQKyFcvEeGI_ZRmqWdpYA" entityName="getOrder">
+      <parameters__OperationSignature parameterName="orderId">
+        <dataType__Parameter xsi:type="repository:PrimitiveDataType" href="pathmap://PCM_MODELS/PrimitiveTypes.repository#//@dataTypes__Repository.0"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_L9RhFtIXEduF4-1MMpjBkg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQKylcvEeGI_ZRmqWdpYA" entityName="rollInReceivedOrder">
+      <parameters__OperationSignature parameterName="complexOrderTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_L9RhFtIXEduF4-1MMpjBkg"/>
+      </parameters__OperationSignature>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQx0FcvEeGI_ZRmqWdpYA" entityName="changePrice">
+      <parameters__OperationSignature parameterName="stockItemTO">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_UfQJNtIXEduF4-1MMpjBkg"/>
+      </parameters__OperationSignature>
+      <returnType__OperationSignature xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_OFaQVtFpEducE6dFyopUlg"/>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQx01cvEeGI_ZRmqWdpYA" entityName="markProductsUnavailableInStock">
+      <parameters__OperationSignature parameterName="requiredProductsAndAmount">
+        <dataType__Parameter xsi:type="repository:CompositeDataType" href="../../../dmodel.pipeline.evaluation/models/cocome/models/cocomeTypes.repository#_ZxgtBtIXEduF4-1MMpjBkg"/>
+      </parameters__OperationSignature>
+    </signatures__OperationInterface>
+    <signatures__OperationInterface id="_2NQx1VcvEeGI_ZRmqWdpYA" entityName="flushDatabase"/>
+  </interfaces__Repository>
+  <interfaces__Repository xsi:type="repository:OperationInterface" id="_RQoSZNCpEduC9O_qbthgAg" entityName="SaleRegisteredEvent"/>
+</repository:Repository>

@@ -29,6 +29,8 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 
 	@InputPorts({ @InputPort(PortIDs.T_VAL_IMM) })
 	public void adjustInstrumentationModel(ValidationData validation) {
+		long start = getBlackboard().getPerformanceEvaluation().getTime();
+
 		Set<String> deInstrumentServices = Sets.newHashSet();
 		Set<String> instrumentServices = Sets.newHashSet();
 
@@ -63,6 +65,8 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 			log.info("Enable fine grained monitoring for service '" + instr + "'.");
 			changeInstrumentationModel(instr, true);
 		});
+
+		getBlackboard().getPerformanceEvaluation().trackInstrumentationModel(start);
 	}
 
 	private void changeInstrumentationModel(String deInstr, boolean b) {

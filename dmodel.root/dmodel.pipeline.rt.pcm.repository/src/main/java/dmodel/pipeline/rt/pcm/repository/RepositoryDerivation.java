@@ -2,6 +2,7 @@ package dmodel.pipeline.rt.pcm.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.springframework.stereotype.Service;
@@ -40,10 +41,9 @@ public class RepositoryDerivation {
 
 	public void calibrateRepository(List<PCMContextRecord> data, InMemoryPCM pcm, PalladioRuntimeMapping mapping,
 			ValidationData validation) {
-
-		prepareAdjustment(validation);
-
 		try {
+			prepareAdjustment(validation);
+
 			MonitoringDataSet monitoringDataSet = new MonitoringDataSet(data, mapping, pcm.getAllocationModel(),
 					pcm.getRepository());
 
@@ -54,7 +54,8 @@ public class RepositoryDerivation {
 			log.info("Finished calibration of internal actions.");
 			log.info("Finished repository calibration.");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.info("Calibration failed.");
+			log.log(Level.INFO, "Calibrate Repository failed.", e);
 		}
 
 	}
