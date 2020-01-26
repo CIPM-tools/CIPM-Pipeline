@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.apache.commons.math3.stat.StatUtils;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.springframework.stereotype.Service;
 
@@ -61,29 +62,30 @@ public class RepositoryDerivation {
 	}
 
 	private void prepareAdjustment(ValidationData validation) {
+
 		validation.getValidationPoints().forEach(point -> {
 			MeasuringPointType type = point.getMeasuringPoint().getType();
 			if (type == MeasuringPointType.ASSEMBLY_OPERATION || type == MeasuringPointType.ENTRY_LEVEL_CALL) {
 				if (point.getServiceId() != null) {
 					DoubleMetricValue valueRelDist = null;
-					DoubleMetricValue valueAbsDist = null;
+					// absolute dist
+					double valueAbsDist = StatUtils.mean(point.getMonitoringDistribution().yAxis())
+							- StatUtils.mean(point.getAnalysisDistribution().yAxis());
+
 					// check the metric
 					for (ValidationMetricValue metric : point.getMetricValues()) {
 						if (metric.type() == ValidationMetricType.AVG_DISTANCE_REL) {
 							valueRelDist = ((DoubleMetricValue) metric);
-						} else if (metric.type() == ValidationMetricType.AVG_DISTANCE_ABS) {
-							valueAbsDist = ((DoubleMetricValue) metric);
 						}
 					}
 
-					if (valueRelDist != null && valueAbsDist != null) {
-						double absDist = (double) valueAbsDist.value();
+					if (valueRelDist != null) {
 						double relDist = (double) valueRelDist.value();
 
 						if (relDist >= THRES_REL_DIST) {
-							if (absDist > 0) {
+							if (valueAbsDist > 0) {
 								adjustService(point.getServiceId(), ADJUSTMENT_FACTOR);
-							} else if (absDist < 0) {
+							} else if (valueAbsDist < 0) {
 								adjustService(point.getServiceId(), -ADJUSTMENT_FACTOR);
 							}
 						}

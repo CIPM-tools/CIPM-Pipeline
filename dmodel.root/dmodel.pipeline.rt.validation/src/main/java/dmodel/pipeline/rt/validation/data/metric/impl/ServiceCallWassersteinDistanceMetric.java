@@ -39,8 +39,8 @@ public class ServiceCallWassersteinDistanceMetric extends ServiceCallMetric {
 					valuesMonitoring = point.getMonitoringDistribution().yAxis();
 				}
 
-				return new DoubleMetricValue(new EarthMoversDistance().compute(valuesAnalysis, valuesMonitoring),
-						ValidationMetricType.WASSERSTEIN, false);
+				return new DoubleMetricValue(new EarthMoversDistance().compute(valuesAnalysis, valuesMonitoring)
+						/ (double) valuesAnalysis.length, ValidationMetricType.WASSERSTEIN, false);
 			}
 		}
 		return null;
