@@ -2,6 +2,7 @@ package dmodel.pipeline.rt.pcm.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.math3.stat.StatUtils;
@@ -27,13 +28,16 @@ import lombok.extern.java.Log;
 @Log
 public class RepositoryDerivation {
 	private static final double ADJUSTMENT_FACTOR = 0.1d;
+	private static final double ADDITIVE_INCREASE = 0.02d;
+	private static final double MULTIPLE_DECREASE = 0.5d;
+
 	private static final double THRES_REL_DIST = 0.1d;
 
 	private final LoopEstimationImpl loopEstimation;
 	private final BranchEstimationImpl branchEstimation;
 
 	private Map<String, Double> currentValidationAdjustment = Maps.newHashMap();
-	private Map<String, Double> currentServiceAdjustment = Maps.newHashMap();
+	private Map<String, Double> currentValidationAdjustmentGradient = Maps.newHashMap();
 
 	public RepositoryDerivation() {
 		this.loopEstimation = new LoopEstimationImpl();
@@ -41,9 +45,10 @@ public class RepositoryDerivation {
 	}
 
 	public void calibrateRepository(List<PCMContextRecord> data, InMemoryPCM pcm, PalladioRuntimeMapping mapping,
-			ValidationData validation) {
+			ValidationData validation, Set<String> toPrepare) {
 		try {
-			prepareAdjustment(validation);
+			prepareAdjustment(validation, toPrepare);
+			java.lang.System.out.println(currentValidationAdjustment);
 
 			MonitoringDataSet monitoringDataSet = new MonitoringDataSet(data, mapping, pcm.getAllocationModel(),
 					pcm.getRepository());
@@ -61,12 +66,15 @@ public class RepositoryDerivation {
 
 	}
 
-	private void prepareAdjustment(ValidationData validation) {
+	private void prepareAdjustment(ValidationData validation, Set<String> fineGrainedInstrumentedServices) {
+		if (validation == null) {
+			return;
+		}
 
 		validation.getValidationPoints().forEach(point -> {
 			MeasuringPointType type = point.getMeasuringPoint().getType();
 			if (type == MeasuringPointType.ASSEMBLY_OPERATION || type == MeasuringPointType.ENTRY_LEVEL_CALL) {
-				if (point.getServiceId() != null) {
+				if (point.getServiceId() != null && point.getMonitoringDistribution() != null) {
 					DoubleMetricValue valueRelDist = null;
 					// absolute dist
 					double valueAbsDist = StatUtils.mean(point.getMonitoringDistribution().yAxis())
@@ -79,14 +87,16 @@ public class RepositoryDerivation {
 						}
 					}
 
+					java.lang.System.out.println(valueAbsDist);
 					if (valueRelDist != null) {
 						double relDist = (double) valueRelDist.value();
 
-						if (relDist >= THRES_REL_DIST) {
+						if (relDist >= THRES_REL_DIST
+								&& fineGrainedInstrumentedServices.contains(point.getServiceId())) {
 							if (valueAbsDist > 0) {
-								adjustService(point.getServiceId(), ADJUSTMENT_FACTOR);
+								adjustService(point.getServiceId(), true);
 							} else if (valueAbsDist < 0) {
-								adjustService(point.getServiceId(), -ADJUSTMENT_FACTOR);
+								adjustService(point.getServiceId(), false);
 							}
 						}
 					}
@@ -95,22 +105,22 @@ public class RepositoryDerivation {
 		});
 	}
 
-	private void adjustService(String service, double factor) {
+	private void adjustService(String service, boolean scaleUp) {
 		if (!currentValidationAdjustment.containsKey(service)) {
-			currentValidationAdjustment.put(service, factor);
-			currentServiceAdjustment.put(service, Math.signum(factor) * 1.0d);
+			currentValidationAdjustment.put(service, ADJUSTMENT_FACTOR * (scaleUp ? 1 : -1));
+			currentValidationAdjustmentGradient.put(service, ADJUSTMENT_FACTOR);
 		} else {
-			double adjustmentBefore = currentServiceAdjustment.get(service);
+			double adjustmentBefore = currentValidationAdjustment.get(service);
+			double currentGradient = currentValidationAdjustmentGradient.get(service);
+
 			double adjustmentNow;
-			if (Math.signum(adjustmentBefore) != Math.signum(factor)) {
-				adjustmentNow = adjustmentBefore * -0.5d;
+			if (scaleUp && adjustmentBefore < 0 || !scaleUp && adjustmentBefore > 0) {
+				adjustmentNow = currentGradient * MULTIPLE_DECREASE;
 			} else {
-				adjustmentNow = Math.signum(factor) * 1.0d;
+				adjustmentNow = currentGradient + ADDITIVE_INCREASE;
 			}
 
-			currentValidationAdjustment.put(service,
-					currentValidationAdjustment.get(service) + factor * Math.abs(adjustmentNow));
-			currentServiceAdjustment.put(service, adjustmentNow);
+			currentValidationAdjustment.put(service, adjustmentNow * Math.signum(adjustmentBefore) + adjustmentBefore);
 		}
 	}
 

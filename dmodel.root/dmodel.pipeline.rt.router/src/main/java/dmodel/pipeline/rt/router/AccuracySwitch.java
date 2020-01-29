@@ -2,9 +2,11 @@ package dmodel.pipeline.rt.router;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,12 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		// 1. invoke the transformations
 		CountDownLatch waitLatch = new CountDownLatch(2);
 
+		// 1.0. get services that are instrumented fine grained
+		Set<String> fineGrainedInstrumentedServices = getBlackboard().getInstrumentationModel().getPoints().stream()
+				.filter(instr -> {
+					return instr.getActionInstrumentationPoints().stream().anyMatch(ac -> ac.isActive());
+				}).map(instr -> instr.getService().getId()).collect(Collectors.toSet());
+
 		// 1.1 submit usage derivation
 		executorService.submit(() -> {
 			long start = getBlackboard().getPerformanceEvaluation().getTime();
@@ -87,7 +95,8 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					ETransformationState.RUNNING);
 			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
 					getBlackboard().getBorder().getRuntimeMapping(),
-					getBlackboard().getValidationResultContainer().getPreValidationResults());
+					getBlackboard().getValidationResultContainer().getPreValidationResults(),
+					fineGrainedInstrumentedServices);
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
 					ETransformationState.FINISHED);
 			getBlackboard().getPerformanceEvaluation().trackCalibration1(starti);
@@ -176,7 +185,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 
 			// usagemodel was better
 			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForUsage,
-					getBlackboard().getBorder().getRuntimeMapping(), pathUsageModel);
+					getBlackboard().getBorder().getRuntimeMapping(), pathUsageModel, fineGrainedInstrumentedServices);
 
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
 					ETransformationState.FINISHED);

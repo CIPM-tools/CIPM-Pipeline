@@ -39,6 +39,13 @@ public class ServiceCallWassersteinDistanceMetric extends ServiceCallMetric {
 					valuesMonitoring = point.getMonitoringDistribution().yAxis();
 				}
 
+				Arrays.sort(valuesMonitoring);
+				Arrays.sort(valuesAnalysis);
+
+				// TODO
+				// i think this implementation is not valid for our use case
+				// JFastEMD is much too slow to use it here
+				// so we leave it as an open point to find an appropriate implementation to use
 				return new DoubleMetricValue(new EarthMoversDistance().compute(valuesAnalysis, valuesMonitoring)
 						/ (double) valuesAnalysis.length, ValidationMetricType.WASSERSTEIN, false);
 			}
