@@ -53,6 +53,7 @@ public class ThreadMonitoringController {
 	private final IDFactory idFactory;
 
 	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
+	private ThreadLocal<InternalOptional<String>> remoteStack;
 
 	private Set<String> monitoredIds = new HashSet<>();
 	private boolean monitoredIdsInited = false;
@@ -75,6 +76,12 @@ public class ThreadMonitoringController {
 			@Override
 			public Stack<ServiceCallTrack> get() {
 				return new Stack<ServiceCallTrack>();
+			}
+		});
+		this.remoteStack = ThreadLocal.withInitial(new Supplier<InternalOptional<String>>() {
+			@Override
+			public InternalOptional<String> get() {
+				return new InternalOptional<String>();
 			}
 		});
 		this.cpuSamplerActive = false;
@@ -149,6 +156,14 @@ public class ThreadMonitoringController {
 
 	}
 
+	public synchronized void continueFromRemote(final String callerId) {
+		this.remoteStack.get().set(callerId);
+	}
+
+	public synchronized void detachFromRemote() {
+		this.remoteStack.get().clear();
+	}
+
 	/**
 	 * Calls this method after entering the service.
 	 * {@link ThreadMonitoringController#exitService()} must be called before
@@ -180,8 +195,13 @@ public class ThreadMonitoringController {
 
 			ServiceCallTrack nTrack;
 			if (trace.empty()) {
-				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
-						String.valueOf(System.identityHashCode(exId)), null);
+				if (remoteStack.get().isPresent()) {
+					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+							String.valueOf(System.identityHashCode(exId)), remoteStack.get().value);
+				} else {
+					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+							String.valueOf(System.identityHashCode(exId)), null);
+				}
 			} else {
 				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
 						String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
@@ -364,6 +384,35 @@ public class ThreadMonitoringController {
 			this.cumulatedMonitoringOverhead = 0;
 		}
 
+	}
+
+	// DUE TO COMPATIBILITY REASONS
+	// OPTIONAL IS AVAILABLE AT JAVA >= 8
+	private static class InternalOptional<T> {
+		private T value;
+		private boolean present;
+
+		private InternalOptional() {
+			this.present = false;
+		}
+
+		private InternalOptional(T value) {
+			this.set(value);
+		}
+
+		private boolean isPresent() {
+			return present;
+		}
+
+		private void set(T value) {
+			this.value = value;
+			this.present = true;
+		}
+
+		private void clear() {
+			this.present = false;
+			this.value = null;
+		}
 	}
 
 }

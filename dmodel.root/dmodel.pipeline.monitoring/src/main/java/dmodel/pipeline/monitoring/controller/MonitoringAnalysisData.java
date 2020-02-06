@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 
 public class MonitoringAnalysisData {
+	private static final String OVERHEAD_FILE = "overhead.txt";
+
 	private long serviceCallOverhead = 0;
 
 	private long branchOverhead = 0;
@@ -83,7 +85,7 @@ public class MonitoringAnalysisData {
 	}
 
 	public void writeOverhead() {
-		File overheadFile = new File("overhead.txt");
+		File overheadFile = new File(OVERHEAD_FILE);
 		if (!(overheadFile.exists())) {
 			try {
 				overheadFile.createNewFile();
