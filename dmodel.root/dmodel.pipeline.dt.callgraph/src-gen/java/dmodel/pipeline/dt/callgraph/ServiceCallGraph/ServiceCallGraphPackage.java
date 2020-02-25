@@ -4,7 +4,6 @@ package dmodel.pipeline.dt.callgraph.ServiceCallGraph;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 
@@ -15,7 +14,6 @@ import org.eclipse.emf.ecore.EReference;
  * <ul>
  *   <li>each class,</li>
  *   <li>each feature of each class,</li>
- *   <li>each operation of each class,</li>
  *   <li>each enum,</li>
  *   <li>and each data type</li>
  * </ul>
@@ -68,7 +66,7 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH = 0;
 
 	/**
-	 * The feature id for the '<em><b>Nodes</b></em>' reference list.
+	 * The feature id for the '<em><b>Nodes</b></em>' containment reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -111,78 +109,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 * @ordered
 	 */
 	int SERVICE_CALL_GRAPH_FEATURE_COUNT = 4;
-
-	/**
-	 * The operation id for the '<em>Add Node</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___ADD_NODE__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = 0;
-
-	/**
-	 * The operation id for the '<em>Add Edge</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER_INT = 1;
-
-	/**
-	 * The operation id for the '<em>Increment Edge</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER = 2;
-
-	/**
-	 * The operation id for the '<em>Has Edge</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER = 3;
-
-	/**
-	 * The operation id for the '<em>Has Node</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = 4;
-
-	/**
-	 * The operation id for the '<em>Node Equal</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = 5;
-
-	/**
-	 * The operation id for the '<em>Remove Edge</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE = 6;
-
-	/**
-	 * The number of operations of the '<em>Service Call Graph</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH_OPERATION_COUNT = 7;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
@@ -231,15 +157,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH_EDGE_FEATURE_COUNT = 3;
 
 	/**
-	 * The number of operations of the '<em>Edge</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH_EDGE_OPERATION_COUNT = 0;
-
-	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.EdgeListImpl <em>Edge List</em>}' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -275,16 +192,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 * @ordered
 	 */
 	int EDGE_LIST_FEATURE_COUNT = 2;
-
-	/**
-	 * The number of operations of the '<em>Edge List</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int EDGE_LIST_OPERATION_COUNT = 0;
-
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphNodeImpl <em>Node</em>}' class.
@@ -323,15 +230,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 */
 	int SERVICE_CALL_GRAPH_NODE_FEATURE_COUNT = 2;
 
-	/**
-	 * The number of operations of the '<em>Node</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH_NODE_OPERATION_COUNT = 0;
-
 
 	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph <em>Service Call Graph</em>}'.
@@ -344,10 +242,10 @@ public interface ServiceCallGraphPackage extends EPackage {
 	EClass getServiceCallGraph();
 
 	/**
-	 * Returns the meta object for the reference list '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getNodes <em>Nodes</em>}'.
+	 * Returns the meta object for the containment reference list '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getNodes <em>Nodes</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference list '<em>Nodes</em>'.
+	 * @return the meta object for the containment reference list '<em>Nodes</em>'.
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getNodes()
 	 * @see #getServiceCallGraph()
 	 * @generated
@@ -386,76 +284,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 * @generated
 	 */
 	EReference getServiceCallGraph_IncomingEdges();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#addNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer) <em>Add Node</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Add Node</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#addNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__AddNode__ResourceDemandingSEFF_ResourceContainer();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#addEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, int) <em>Add Edge</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Add Edge</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#addEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, int)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__AddEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer_int();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#incrementEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer) <em>Increment Edge</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Increment Edge</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#incrementEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer) <em>Has Edge</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Has Edge</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasEdge(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer) <em>Has Node</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Has Node</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#hasNode(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__HasNode__ResourceDemandingSEFF_ResourceContainer();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#nodeEqual(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer) <em>Node Equal</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Node Equal</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#nodeEqual(org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer, org.palladiosimulator.pcm.seff.ResourceDemandingSEFF, org.palladiosimulator.pcm.resourceenvironment.ResourceContainer)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__NodeEqual__ResourceDemandingSEFF_ResourceContainer_ResourceDemandingSEFF_ResourceContainer();
-
-	/**
-	 * Returns the meta object for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#removeEdge(dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge) <em>Remove Edge</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Remove Edge</em>' operation.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#removeEdge(dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge)
-	 * @generated
-	 */
-	EOperation getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge();
 
 	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge <em>Edge</em>}'.
@@ -581,7 +409,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 * <ul>
 	 *   <li>each class,</li>
 	 *   <li>each feature of each class,</li>
-	 *   <li>each operation of each class,</li>
 	 *   <li>each enum,</li>
 	 *   <li>and each data type</li>
 	 * </ul>
@@ -600,7 +427,7 @@ public interface ServiceCallGraphPackage extends EPackage {
 		EClass SERVICE_CALL_GRAPH = eINSTANCE.getServiceCallGraph();
 
 		/**
-		 * The meta object literal for the '<em><b>Nodes</b></em>' reference list feature.
+		 * The meta object literal for the '<em><b>Nodes</b></em>' containment reference list feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
@@ -630,62 +457,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 		 * @generated
 		 */
 		EReference SERVICE_CALL_GRAPH__INCOMING_EDGES = eINSTANCE.getServiceCallGraph_IncomingEdges();
-
-		/**
-		 * The meta object literal for the '<em><b>Add Node</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___ADD_NODE__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__AddNode__ResourceDemandingSEFF_ResourceContainer();
-
-		/**
-		 * The meta object literal for the '<em><b>Add Edge</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___ADD_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER_INT = eINSTANCE.getServiceCallGraph__AddEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer_int();
-
-		/**
-		 * The meta object literal for the '<em><b>Increment Edge</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___INCREMENT_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__IncrementEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer();
-
-		/**
-		 * The meta object literal for the '<em><b>Has Edge</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___HAS_EDGE__RESOURCEDEMANDINGSEFF_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__HasEdge__ResourceDemandingSEFF_ResourceDemandingSEFF_ResourceContainer_ResourceContainer();
-
-		/**
-		 * The meta object literal for the '<em><b>Has Node</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___HAS_NODE__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__HasNode__ResourceDemandingSEFF_ResourceContainer();
-
-		/**
-		 * The meta object literal for the '<em><b>Node Equal</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___NODE_EQUAL__RESOURCEDEMANDINGSEFF_RESOURCECONTAINER_RESOURCEDEMANDINGSEFF_RESOURCECONTAINER = eINSTANCE.getServiceCallGraph__NodeEqual__ResourceDemandingSEFF_ResourceContainer_ResourceDemandingSEFF_ResourceContainer();
-
-		/**
-		 * The meta object literal for the '<em><b>Remove Edge</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation SERVICE_CALL_GRAPH___REMOVE_EDGE__SERVICECALLGRAPHEDGE = eINSTANCE.getServiceCallGraph__RemoveEdge__ServiceCallGraphEdge();
 
 		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.

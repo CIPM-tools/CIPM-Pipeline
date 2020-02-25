@@ -8,6 +8,7 @@ import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EObject;
 
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
+
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 /**
@@ -31,13 +32,13 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
  */
 public interface ServiceCallGraph extends EObject {
 	/**
-	 * Returns the value of the '<em><b>Nodes</b></em>' reference list.
+	 * Returns the value of the '<em><b>Nodes</b></em>' containment reference list.
 	 * The list contents are of type {@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode}.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the value of the '<em>Nodes</em>' reference list.
+	 * @return the value of the '<em>Nodes</em>' containment reference list.
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraph_Nodes()
-	 * @model
+	 * @model containment="true"
 	 * @generated
 	 */
 	EList<ServiceCallGraphNode> getNodes();
@@ -62,7 +63,7 @@ public interface ServiceCallGraph extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Outgoing Edges</em>' map.
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraph_OutgoingEdges()
-	 * @model mapType="dmodel.pipeline.dt.callgraph.ServiceCallGraph.EdgeList&lt;org.eclipse.emf.ecore.EJavaObject, dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge&gt;"
+	 * @model mapType="dmodel.pipeline.dt.callgraph.ServiceCallGraph.EdgeList&lt;org.eclipse.emf.ecore.EJavaObject, dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge&gt;" transient="true"
 	 * @generated
 	 */
 	EMap<Object, EList<ServiceCallGraphEdge>> getOutgoingEdges();
@@ -75,7 +76,7 @@ public interface ServiceCallGraph extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Incoming Edges</em>' map.
 	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraph_IncomingEdges()
-	 * @model mapType="dmodel.pipeline.dt.callgraph.ServiceCallGraph.EdgeList&lt;org.eclipse.emf.ecore.EJavaObject, dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge&gt;"
+	 * @model mapType="dmodel.pipeline.dt.callgraph.ServiceCallGraph.EdgeList&lt;org.eclipse.emf.ecore.EJavaObject, dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge&gt;" transient="true"
 	 * @generated
 	 */
 	EMap<Object, EList<ServiceCallGraphEdge>> getIncomingEdges();
@@ -135,5 +136,13 @@ public interface ServiceCallGraph extends EObject {
 	 * @generated
 	 */
 	void removeEdge(ServiceCallGraphEdge edge);
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	void rebuild();
 
 } // ServiceCallGraph

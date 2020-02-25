@@ -1,9 +1,7 @@
 package dmodel.pipeline.rt.validation.data.metric.impl;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import org.apache.commons.math3.ml.distance.EarthMoversDistance;
 import org.springframework.stereotype.Service;
@@ -21,46 +19,44 @@ public class ServiceCallWassersteinDistanceMetric extends ServiceCallMetric {
 			if (point.getAnalysisDistribution().getYValues().size() >= 2
 					&& point.getMonitoringDistribution().getYValues().size() >= 2) {
 
-				int sizeMonitoring = point.getMonitoringDistribution().getYValues().size();
-				int sizeAnalysis = point.getAnalysisDistribution().getYValues().size();
+				double wsMetric = wsDistance(point.getAnalysisDistribution().yAxis(),
+						point.getMonitoringDistribution().yAxis(), false);
 
-				double[] valuesMonitoring;
-				double[] valuesAnalysis;
-				if (sizeMonitoring < sizeAnalysis) {
-					// we need to adjust them
-					valuesMonitoring = point.getMonitoringDistribution().yAxis();
-					valuesAnalysis = randomlySelect(point.getAnalysisDistribution().yAxis(), sizeMonitoring);
-				} else if (sizeMonitoring > sizeAnalysis) {
-					// we need to adjust the
-					valuesAnalysis = point.getAnalysisDistribution().yAxis();
-					valuesMonitoring = randomlySelect(point.getMonitoringDistribution().yAxis(), sizeAnalysis);
-				} else {
-					valuesAnalysis = point.getAnalysisDistribution().yAxis();
-					valuesMonitoring = point.getMonitoringDistribution().yAxis();
-				}
-
-				Arrays.sort(valuesMonitoring);
-				Arrays.sort(valuesAnalysis);
-
-				// TODO
-				// i think this implementation is not valid for our use case
-				// JFastEMD is much too slow to use it here
-				// so we leave it as an open point to find an appropriate implementation to use
-				return new DoubleMetricValue(new EarthMoversDistance().compute(valuesAnalysis, valuesMonitoring)
-						/ (double) valuesAnalysis.length, ValidationMetricType.WASSERSTEIN, false);
+				return new DoubleMetricValue(wsMetric, ValidationMetricType.WASSERSTEIN, false);
 			}
 		}
 		return null;
 	}
 
-	private double[] randomlySelect(double[] arr, int size) {
-		Random rand = new Random();
-		List<Double> copyList = Arrays.stream(arr).boxed().collect(Collectors.toList());
-		double[] output = new double[size];
-		for (int k = 0; k < size; k++) {
-			output[k] = copyList.remove(rand.nextInt(copyList.size()));
+	private double wsDistance(double[] a, double[] b, boolean normed) {
+		Arrays.sort(a);
+		Arrays.sort(b);
+
+		double minA = DoubleStream.of(a).min().getAsDouble();
+		double minB = DoubleStream.of(b).min().getAsDouble();
+		double maxA = DoubleStream.of(a).max().getAsDouble();
+		double maxB = DoubleStream.of(b).max().getAsDouble();
+
+		int minAB = (int) Math.floor(Math.min(minA, minB));
+		int maxAB = (int) Math.ceil(Math.min(maxA, maxB));
+		double[] transA = new double[maxAB - minAB];
+		double[] transB = new double[maxAB - minAB];
+		int currentPos = 0;
+
+		while (currentPos < transA.length) {
+			int currentLower = minAB + currentPos;
+			int currentUpper = minAB + currentPos + 1;
+
+			transA[currentPos] = (double) DoubleStream.of(a).filter(d -> d >= currentLower && d < currentUpper).count()
+					/ (double) a.length;
+			transB[currentPos++] = (double) DoubleStream.of(b).filter(d -> d >= currentLower && d < currentUpper)
+					.count() / (double) b.length;
 		}
-		return output;
+
+		return new EarthMoversDistance().compute(transA, transB) / (normed ? (transA.length - 1) : 1d);
+
+		// for ks test
+		// return new KolmogorovSmirnovTest().kolmogorovSmirnovStatistic(a, b);
 	}
 
 }
