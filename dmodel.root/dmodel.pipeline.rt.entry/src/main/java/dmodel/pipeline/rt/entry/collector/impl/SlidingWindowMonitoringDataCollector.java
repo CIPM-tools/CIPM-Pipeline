@@ -18,6 +18,8 @@ import com.google.common.collect.Lists;
 
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
+import dmodel.pipeline.rt.entry.core.IterativeRuntimePipelineListener;
+import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.MonitoringDataEntryConfiguration;
 import kieker.common.record.IMonitoringRecord;
@@ -25,7 +27,8 @@ import lombok.extern.java.Log;
 
 @Component
 @Log
-public class SlidingWindowMonitoringDataCollector implements IMonitoringDataCollector, InitializingBean {
+public class SlidingWindowMonitoringDataCollector
+		implements IMonitoringDataCollector, InitializingBean, IterativeRuntimePipelineListener {
 
 	private MonitoringDataEntryConfiguration config;
 
@@ -66,9 +69,17 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 		// we need 2 threads at max
 		this.execService = Executors.newScheduledThreadPool(2);
 
-		// register trigger
-		this.execService.scheduleAtFixedRate(() -> execTrigger(), config.getSlidingWindowTrigger(),
-				config.getSlidingWindowTrigger(), TimeUnit.SECONDS);
+		// trigger time delayed
+		this.execService.schedule(() -> execTrigger(), config.getSlidingWindowTrigger(), TimeUnit.SECONDS);
+
+		// add listener
+		this.pipeline.addPipelineListener(this);
+	}
+
+	@Override
+	public void iterationFinished() {
+		// trigger time delayed
+		this.execService.schedule(() -> execTrigger(), config.getSlidingWindowTrigger(), TimeUnit.SECONDS);
 	}
 
 	private void execTrigger() {
@@ -84,7 +95,8 @@ public class SlidingWindowMonitoringDataCollector implements IMonitoringDataColl
 			log.info("Triggering the runtime pipeline.");
 
 			// pass it to the processing part
-			pipeline.triggerPipeline(collected);
+			pipeline.triggerPipeline(new PartitionedMonitoringData<IMonitoringRecord>(collected,
+					parentConfig.getVfl().getValidationShare()));
 
 			// cut old
 			cutRecordMap(currentTime);

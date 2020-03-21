@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
-import dmodel.pipeline.rt.pcm.allocation.AllocationDerivation;
 import dmodel.pipeline.rt.pcm.resourceenv.ResourceEnvironmentTransformation;
 import dmodel.pipeline.rt.pcm.system.RuntimeSystemDerivation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
@@ -15,6 +14,7 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
@@ -28,17 +28,16 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 	@InputPorts(@InputPort(PortIDs.T_BUILD_SERVICECALL_TREE))
 	@OutputPorts({
 		@OutputPort(to = ResourceEnvironmentTransformation.class, async = false, id = PortIDs.T_SC_PCM_RESENV),
-		@OutputPort(to = AllocationDerivation.class, async = false, id = PortIDs.T_SC_PCM_ALLOCATION),
 		@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_SC_PCM_SYSTEM),
 		@OutputPort(to = AccuracySwitch.class, async = false, id = PortIDs.T_SC_ROUTER)
 	})
 	/* @formatter:on */
-	public List<Tree<ServiceCallRecord>> buildServiceCallTree(List<PCMContextRecord> records) {
+	public List<Tree<ServiceCallRecord>> buildServiceCallTree(PartitionedMonitoringData<PCMContextRecord> records) {
 		long start = getBlackboard().getPerformanceEvaluation().getTime();
 
 		log.info("Start building of service call trees.");
 		List<Tree<ServiceCallRecord>> result = MonitoringDataUtil
-				.buildServiceCallTree(records.stream().filter(f -> f instanceof ServiceCallRecord)
+				.buildServiceCallTree(records.getAllData().stream().filter(f -> f instanceof ServiceCallRecord)
 						.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));
 
 		getBlackboard().getPerformanceEvaluation().trackServiceCallTreeExtraction(start);

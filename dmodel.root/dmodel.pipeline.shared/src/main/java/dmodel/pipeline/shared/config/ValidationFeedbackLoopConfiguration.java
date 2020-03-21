@@ -23,6 +23,8 @@ public class ValidationFeedbackLoopConfiguration {
 	private long simulationTime = 150000;
 	private long measurements = 10000;
 
+	private float validationShare;
+
 	@Getter(AccessLevel.NONE)
 	@Setter(AccessLevel.NONE)
 	@JsonIgnore

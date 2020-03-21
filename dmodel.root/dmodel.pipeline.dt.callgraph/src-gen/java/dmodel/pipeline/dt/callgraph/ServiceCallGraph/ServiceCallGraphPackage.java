@@ -102,13 +102,22 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH__INCOMING_EDGES = 3;
 
 	/**
+	 * The feature id for the '<em><b>Repository</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH__REPOSITORY = 4;
+
+	/**
 	 * The number of structural features of the '<em>Service Call Graph</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SERVICE_CALL_GRAPH_FEATURE_COUNT = 4;
+	int SERVICE_CALL_GRAPH_FEATURE_COUNT = 5;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
@@ -286,6 +295,17 @@ public interface ServiceCallGraphPackage extends EPackage {
 	EReference getServiceCallGraph_IncomingEdges();
 
 	/**
+	 * Returns the meta object for the reference '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository <em>Repository</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>Repository</em>'.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository()
+	 * @see #getServiceCallGraph()
+	 * @generated
+	 */
+	EReference getServiceCallGraph_Repository();
+
+	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge <em>Edge</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -457,6 +477,14 @@ public interface ServiceCallGraphPackage extends EPackage {
 		 * @generated
 		 */
 		EReference SERVICE_CALL_GRAPH__INCOMING_EDGES = eINSTANCE.getServiceCallGraph_IncomingEdges();
+
+		/**
+		 * The meta object literal for the '<em><b>Repository</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference SERVICE_CALL_GRAPH__REPOSITORY = eINSTANCE.getServiceCallGraph_Repository();
 
 		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.

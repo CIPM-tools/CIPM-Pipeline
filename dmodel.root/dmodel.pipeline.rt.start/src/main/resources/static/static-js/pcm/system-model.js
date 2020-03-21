@@ -18,7 +18,6 @@ class PCMSystemGraph {
 		this.requiredRoleMarked = {};
 		
 		this.eventListeners = [];
-		
 		this.renamings = {};
 
 		// Enables crisp rendering of rectangles in SVG
@@ -44,6 +43,20 @@ class PCMSystemGraph {
 		this.graph.setPanning(true);
 		mxGraph.prototype.ordered = false;
 		mxPanningHandler.prototype.useLeftButtonForPanning = true;
+		
+		// no reconnect for edges
+		var graph = this.graph;
+		if (graph.connectionHandler.connectImage == null)
+		{
+			graph.connectionHandler.isConnectableCell = function(cell)
+			{
+			   return false;
+			};
+			mxEdgeHandler.prototype.isConnectableCell = function(cell)
+			{
+				return graph.connectionHandler.isConnectableCell(cell);
+			};
+		}
 		
 		var style = [];
 		style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
@@ -82,7 +95,7 @@ class PCMSystemGraph {
 		this.graph.getStylesheet().putCellStyle('assembly_image', style);
 		
 		style = mxUtils.clone(org_style);
-		style[mxConstants.STYLE_IMAGE] = 'data:image/png,' + BASE64_SYSTEM_COMPOSITE;
+		style[mxConstants.STYLE_IMAGE] = BASE64_SYSTEM_COMPOSITE;
 		style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_IMAGE;
 		style[mxConstants.STYLE_MOVABLE] = false;
 		this.graph.getStylesheet().putCellStyle('comp_image', style);

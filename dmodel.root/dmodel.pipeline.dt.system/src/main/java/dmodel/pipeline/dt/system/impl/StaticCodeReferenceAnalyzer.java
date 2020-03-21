@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,10 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
 import dmodel.pipeline.dt.system.util.SpoonUtil;
+import dmodel.pipeline.monitoring.util.ManualMapping;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
+import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import lombok.extern.java.Log;
 import spoon.Launcher;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
@@ -25,8 +29,32 @@ import spoon.reflect.factory.Factory;
 import spoon.reflect.visitor.filter.TypeFilter;
 
 @Component
+@Log
 public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 	public StaticCodeReferenceAnalyzer() {
+	}
+
+	@Override
+	public SpoonCorrespondence resolveManualMapping(Repository repository, Launcher model) {
+		SpoonCorrespondence correspondenceOutput = new SpoonCorrespondence(model.getModel(), repository);
+
+		model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class)).list().forEach(method -> {
+			if (method instanceof CtMethod<?>) {
+				CtMethod<?> currentMethod = (CtMethod<?>) method;
+				if (currentMethod.hasAnnotation(ManualMapping.class)) {
+					ManualMapping mapping = currentMethod.getAnnotation(ManualMapping.class);
+					ResourceDemandingSEFF belSeff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
+							mapping.value());
+
+					if (belSeff != null) {
+						correspondenceOutput.linkService(currentMethod, belSeff);
+					} else {
+						log.warning("Service with ID '" + belSeff.getId() + "' could not be resolved.");
+					}
+				}
+			}
+		});
+		return correspondenceOutput;
 	}
 
 	@Override

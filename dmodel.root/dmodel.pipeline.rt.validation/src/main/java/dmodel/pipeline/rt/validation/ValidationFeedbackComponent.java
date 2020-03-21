@@ -35,7 +35,7 @@ public class ValidationFeedbackComponent implements IValidationProcessor {
 		// 1. simulate it
 		InMemoryResultRepository analysisResults = simulator.simulateBlocking(instance, taskName);
 		if (analysisResults == null) {
-			return null;
+			return new ValidationData();
 		}
 
 		// 2. enrich with data

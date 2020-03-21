@@ -1,14 +1,16 @@
 package dmodel.pipeline.rexample.prime.generator.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 
+import dmodel.pipeline.monitoring.util.ManualMapping;
 import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 
 public class EratosthenesGeneratorImpl implements IPrimeGenerator {
 
 	@Override
+	@ManualMapping("_PlFlUJYHEempGaXtj6ezAw")
 	public List<Integer> generatePrimes(int amount) {
 		int currentUpperlimit = amount * 10;
 		boolean[] res = new boolean[0];

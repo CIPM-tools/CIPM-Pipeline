@@ -6,7 +6,7 @@ public class JsonBuildingConflict {
 	private String type;
 
 	private String[] possibleIds;
-	private String targetId;
+	private String[] targetIds;
 
 	public long getId() {
 		return id;
@@ -32,12 +32,16 @@ public class JsonBuildingConflict {
 		this.possibleIds = possibleIds;
 	}
 
-	public String getTargetId() {
-		return targetId;
+	public String[] getTargetIds() {
+		return targetIds;
+	}
+
+	public void setTargetIds(String[] targetIds) {
+		this.targetIds = targetIds;
 	}
 
 	public void setTargetId(String targetId) {
-		this.targetId = targetId;
+		this.targetIds = new String[] { targetId };
 	}
 
 }

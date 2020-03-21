@@ -42,6 +42,7 @@ public class BuildServiceCallGraphProcess extends AbstractObservable<ServiceCall
 
 		// extract
 		ServiceCallGraph callGraph = analyzer.deriveSystemComposition(model, spoonMapping);
+		callGraph.setRepository(blackboard.getArchitectureModel().getRepository());
 		border.setServiceCallGraph(callGraph);
 		this.flood(callGraph);
 	}

@@ -67,7 +67,7 @@ public class RepositoryDerivation {
 	}
 
 	private void prepareAdjustment(ValidationData validation, Set<String> fineGrainedInstrumentedServices) {
-		if (validation == null) {
+		if (validation == null || validation.isEmpty()) {
 			return;
 		}
 

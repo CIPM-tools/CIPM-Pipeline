@@ -4,17 +4,21 @@ package dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl;
 
 import java.util.Collection;
 
+import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
+import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
@@ -31,23 +35,19 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage;
  * The following features are implemented:
  * </p>
  * <ul>
- * <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getNodes
- * <em>Nodes</em>}</li>
- * <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getEdges
- * <em>Edges</em>}</li>
- * <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getOutgoingEdges
- * <em>Outgoing Edges</em>}</li>
- * <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getIncomingEdges
- * <em>Incoming Edges</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getNodes <em>Nodes</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getEdges <em>Edges</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getOutgoingEdges <em>Outgoing Edges</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getIncomingEdges <em>Incoming Edges</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getRepository <em>Repository</em>}</li>
  * </ul>
  *
  * @generated
  */
 public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implements ServiceCallGraph {
 	/**
-	 * The cached value of the '{@link #getNodes() <em>Nodes</em>}' containment
-	 * reference list. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * The cached value of the '{@link #getNodes() <em>Nodes</em>}' containment reference list.
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
 	 * @see #getNodes()
 	 * @generated
 	 * @ordered
@@ -55,9 +55,8 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	protected EList<ServiceCallGraphNode> nodes;
 
 	/**
-	 * The cached value of the '{@link #getEdges() <em>Edges</em>}' containment
-	 * reference list. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * The cached value of the '{@link #getEdges() <em>Edges</em>}' containment reference list.
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
 	 * @see #getEdges()
 	 * @generated
 	 * @ordered
@@ -65,9 +64,8 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	protected EList<ServiceCallGraphEdge> edges;
 
 	/**
-	 * The cached value of the '{@link #getOutgoingEdges() <em>Outgoing Edges</em>}'
-	 * map. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * The cached value of the '{@link #getOutgoingEdges() <em>Outgoing Edges</em>}' map.
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
 	 * @see #getOutgoingEdges()
 	 * @generated
 	 * @ordered
@@ -75,9 +73,8 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	protected EMap<Object, EList<ServiceCallGraphEdge>> outgoingEdges;
 
 	/**
-	 * The cached value of the '{@link #getIncomingEdges() <em>Incoming Edges</em>}'
-	 * map. <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
+	 * The cached value of the '{@link #getIncomingEdges() <em>Incoming Edges</em>}' map.
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
 	 * @see #getIncomingEdges()
 	 * @generated
 	 * @ordered
@@ -85,8 +82,17 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	protected EMap<Object, EList<ServiceCallGraphEdge>> incomingEdges;
 
 	/**
+	 * The cached value of the '{@link #getRepository() <em>Repository</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRepository()
+	 * @generated
+	 * @ordered
+	 */
+	protected Repository repository;
+
+	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	protected ServiceCallGraphImpl() {
@@ -95,7 +101,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -105,65 +110,94 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public EList<ServiceCallGraphNode> getNodes() {
 		if (nodes == null) {
-			nodes = new EObjectContainmentEList<ServiceCallGraphNode>(ServiceCallGraphNode.class, this,
-					ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES);
+			nodes = new EObjectContainmentEList<ServiceCallGraphNode>(ServiceCallGraphNode.class, this, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES);
 		}
 		return nodes;
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public EList<ServiceCallGraphEdge> getEdges() {
 		if (edges == null) {
-			edges = new EObjectContainmentEList<ServiceCallGraphEdge>(ServiceCallGraphEdge.class, this,
-					ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES);
+			edges = new EObjectContainmentEList<ServiceCallGraphEdge>(ServiceCallGraphEdge.class, this, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES);
 		}
 		return edges;
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public EMap<Object, EList<ServiceCallGraphEdge>> getOutgoingEdges() {
 		if (outgoingEdges == null) {
-			outgoingEdges = new EcoreEMap<Object, EList<ServiceCallGraphEdge>>(
-					ServiceCallGraphPackage.Literals.EDGE_LIST, EdgeListImpl.class, this,
-					ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES);
+			outgoingEdges = new EcoreEMap<Object,EList<ServiceCallGraphEdge>>(ServiceCallGraphPackage.Literals.EDGE_LIST, EdgeListImpl.class, this, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES);
 		}
 		return outgoingEdges;
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public EMap<Object, EList<ServiceCallGraphEdge>> getIncomingEdges() {
 		if (incomingEdges == null) {
-			incomingEdges = new EcoreEMap<Object, EList<ServiceCallGraphEdge>>(
-					ServiceCallGraphPackage.Literals.EDGE_LIST, EdgeListImpl.class, this,
-					ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES);
+			incomingEdges = new EcoreEMap<Object,EList<ServiceCallGraphEdge>>(ServiceCallGraphPackage.Literals.EDGE_LIST, EdgeListImpl.class, this, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES);
 		}
 		return incomingEdges;
 	}
 
 	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Repository getRepository() {
+		if (repository != null && ((EObject)repository).eIsProxy()) {
+			InternalEObject oldRepository = (InternalEObject)repository;
+			repository = (Repository)eResolveProxy(oldRepository);
+			if (repository != oldRepository) {
+				if (eNotificationRequired())
+					eNotify(new ENotificationImpl(this, Notification.RESOLVE, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY, oldRepository, repository));
+			}
+		}
+		return repository;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public Repository basicGetRepository() {
+		return repository;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setRepository(Repository newRepository) {
+		Repository oldRepository = repository;
+		repository = newRepository;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY, oldRepository, repository));
+	}
+
+	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -177,7 +211,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -197,24 +230,23 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		edge.setFrom(fromNode);
 		edge.setTo(toNode);
 		edge.setValue(value);
-
+		
 		if (!getOutgoingEdges().containsKey(fromNode)) {
 			getOutgoingEdges().put(fromNode, new BasicEList<ServiceCallGraphEdge>());
 		}
 		getOutgoingEdges().get(fromNode).add(edge);
-
+		
 		if (!getIncomingEdges().containsKey(toNode)) {
 			getIncomingEdges().put(toNode, new BasicEList<ServiceCallGraphEdge>());
 		}
 		getIncomingEdges().get(toNode).add(edge);
-
+		
 		// add globally
 		getEdges().add(edge);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -230,7 +262,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -244,18 +275,17 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public ServiceCallGraphNode hasNode(final ResourceDemandingSEFF node, final ResourceContainer host) {
-		return getNodes().stream().filter(n -> nodeEqual(node, host, n.getSeff(), n.getHost())).findFirst()
-				.orElse(null);
+		return getNodes().stream()
+				.filter(n -> nodeEqual(node, host, n.getSeff(), n.getHost()))
+				.findFirst().orElse(null);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -263,10 +293,10 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 			final ResourceDemandingSEFF node2, final ResourceContainer host2) {
 		boolean nullEqual1 = node == null && node2 == null;
 		boolean nullEqual2 = host == null && host2 == null;
-
+		
 		boolean anyNull1 = node == null || node2 == null;
 		boolean anyNull2 = host == null || host2 == null;
-
+		
 		if (nullEqual1 && nullEqual2) {
 			return true;
 		} else if (nullEqual2 && !anyNull1) {
@@ -282,7 +312,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
@@ -290,30 +319,29 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		// remove from all sub lists
 		getOutgoingEdges().get(edge.getFrom()).remove(edge);
 		getIncomingEdges().get(edge.getTo()).remove(edge);
-
+		
 		// remove from global list
 		getEdges().remove(edge);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public void rebuild() {
 		getIncomingEdges().clear();
 		getOutgoingEdges().clear();
-
+		
 		for (ServiceCallGraphEdge edge : getEdges()) {
 			if (!getOutgoingEdges().containsKey(edge.getFrom())) {
 				getOutgoingEdges().put(edge.getFrom(), new BasicEList<ServiceCallGraphEdge>());
 			}
-
+		
 			if (!getIncomingEdges().containsKey(edge.getTo())) {
 				getIncomingEdges().put(edge.getTo(), new BasicEList<ServiceCallGraphEdge>());
 			}
-
+		
 			getOutgoingEdges().get(edge.getFrom()).add(edge);
 			getIncomingEdges().get(edge.getTo()).add(edge);
 		}
@@ -321,117 +349,119 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
-			return ((InternalEList<?>) getNodes()).basicRemove(otherEnd, msgs);
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
-			return ((InternalEList<?>) getEdges()).basicRemove(otherEnd, msgs);
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
-			return ((InternalEList<?>) getOutgoingEdges()).basicRemove(otherEnd, msgs);
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
-			return ((InternalEList<?>) getIncomingEdges()).basicRemove(otherEnd, msgs);
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
+				return ((InternalEList<?>)getNodes()).basicRemove(otherEnd, msgs);
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
+				return ((InternalEList<?>)getEdges()).basicRemove(otherEnd, msgs);
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
+				return ((InternalEList<?>)getOutgoingEdges()).basicRemove(otherEnd, msgs);
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
+				return ((InternalEList<?>)getIncomingEdges()).basicRemove(otherEnd, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
-			return getNodes();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
-			return getEdges();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
-			if (coreType)
-				return getOutgoingEdges();
-			else
-				return getOutgoingEdges().map();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
-			if (coreType)
-				return getIncomingEdges();
-			else
-				return getIncomingEdges().map();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
+				return getNodes();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
+				return getEdges();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
+				if (coreType) return getOutgoingEdges();
+				else return getOutgoingEdges().map();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
+				if (coreType) return getIncomingEdges();
+				else return getIncomingEdges().map();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
+				if (resolve) return getRepository();
+				return basicGetRepository();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
-			getNodes().clear();
-			getNodes().addAll((Collection<? extends ServiceCallGraphNode>) newValue);
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
-			getEdges().clear();
-			getEdges().addAll((Collection<? extends ServiceCallGraphEdge>) newValue);
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
-			((EStructuralFeature.Setting) getOutgoingEdges()).set(newValue);
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
-			((EStructuralFeature.Setting) getIncomingEdges()).set(newValue);
-			return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
+				getNodes().clear();
+				getNodes().addAll((Collection<? extends ServiceCallGraphNode>)newValue);
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
+				getEdges().clear();
+				getEdges().addAll((Collection<? extends ServiceCallGraphEdge>)newValue);
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
+				((EStructuralFeature.Setting)getOutgoingEdges()).set(newValue);
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
+				((EStructuralFeature.Setting)getIncomingEdges()).set(newValue);
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
+				setRepository((Repository)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public void eUnset(int featureID) {
 		switch (featureID) {
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
-			getNodes().clear();
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
-			getEdges().clear();
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
-			getOutgoingEdges().clear();
-			return;
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
-			getIncomingEdges().clear();
-			return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
+				getNodes().clear();
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
+				getEdges().clear();
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
+				getOutgoingEdges().clear();
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
+				getIncomingEdges().clear();
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
+				setRepository((Repository)null);
+				return;
 		}
 		super.eUnset(featureID);
 	}
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
 	 * @generated
 	 */
 	@Override
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
-			return nodes != null && !nodes.isEmpty();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
-			return edges != null && !edges.isEmpty();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
-			return outgoingEdges != null && !outgoingEdges.isEmpty();
-		case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
-			return incomingEdges != null && !incomingEdges.isEmpty();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:
+				return nodes != null && !nodes.isEmpty();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__EDGES:
+				return edges != null && !edges.isEmpty();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__OUTGOING_EDGES:
+				return outgoingEdges != null && !outgoingEdges.isEmpty();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
+				return incomingEdges != null && !incomingEdges.isEmpty();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
+				return repository != null;
 		}
 		return super.eIsSet(featureID);
 	}

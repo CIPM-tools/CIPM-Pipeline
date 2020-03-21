@@ -39,10 +39,8 @@ var rest = {
 		instrument : "/design/instrument",
 		instrumentStatus : "/design/instrument/status",
 		
-		callgraph : {
-			build : "/design/system/graph",
-			finished : "/design/system/graph/finished",
-			get : "/design/system/graph/get"
+		repository : {
+			get : "/design/system/repository/get"
 		},
 		
 		build : {

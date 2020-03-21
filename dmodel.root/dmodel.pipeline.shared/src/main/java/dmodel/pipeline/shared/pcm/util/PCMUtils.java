@@ -17,10 +17,10 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.pcm.PcmPackage;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
+import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
@@ -54,7 +54,8 @@ public class PCMUtils {
 		return (ResourceRepository) resource.getContents().get(0);
 	}
 
-	public static Optional<RequiredRole> getRequiredRoleBySignature(BasicComponent comp, Signature toSig) {
+	// TODO move to PCMSystemUtils
+	public static Optional<RequiredRole> getRequiredRoleBySignature(RepositoryComponent comp, Signature toSig) {
 		return comp.getRequiredRoles_InterfaceRequiringEntity().stream().filter(r -> {
 			if (r instanceof OperationRequiredRole) {
 				return ((OperationRequiredRole) r).getRequiredInterface__OperationRequiredRole()
@@ -65,7 +66,8 @@ public class PCMUtils {
 		}).findFirst();
 	}
 
-	public static Optional<ProvidedRole> getProvidedRoleBySignature(BasicComponent comp, Signature toSig) {
+	// TODO move to PCMSystemUtils
+	public static Optional<ProvidedRole> getProvidedRoleBySignature(RepositoryComponent comp, Signature toSig) {
 		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> {
 			if (r instanceof OperationProvidedRole) {
 				return ((OperationProvidedRole) r).getProvidedInterface__OperationProvidedRole()
@@ -140,6 +142,17 @@ public class PCMUtils {
 		PCMRandomVariable var = CoreFactory.eINSTANCE.createPCMRandomVariable();
 		var.setSpecification(string);
 		return var;
+	}
+
+	public static ProvidedRole getProvideRoleByRequiredRole(RepositoryComponent comp, OperationRequiredRole reqRole) {
+		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
+			if (pr instanceof OperationProvidedRole) {
+				OperationProvidedRole opr = (OperationProvidedRole) pr;
+				return opr.getProvidedInterface__OperationProvidedRole().getId()
+						.equals(reqRole.getRequiredInterface__OperationRequiredRole().getId());
+			}
+			return false;
+		}).findFirst().orElse(null);
 	}
 
 }

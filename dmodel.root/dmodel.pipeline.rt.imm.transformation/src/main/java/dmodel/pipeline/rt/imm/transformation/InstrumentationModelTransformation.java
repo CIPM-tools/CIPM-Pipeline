@@ -29,6 +29,11 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 
 	@InputPorts({ @InputPort(PortIDs.T_VAL_IMM) })
 	public void adjustInstrumentationModel(ValidationData validation) {
+		if (validation.isEmpty()) {
+			getBlackboard().getPerformanceEvaluation().trackInstrumentationModel(0);
+			return;
+		}
+
 		long start = getBlackboard().getPerformanceEvaluation().getTime();
 
 		Set<String> deInstrumentServices = Sets.newHashSet();

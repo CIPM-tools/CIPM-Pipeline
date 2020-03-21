@@ -9,4 +9,8 @@ public class ValidationData {
 
 	private List<ValidationPoint> validationPoints;
 
+	public boolean isEmpty() {
+		return validationPoints == null || validationPoints.isEmpty();
+	}
+
 }

@@ -11,6 +11,7 @@ import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.PipelineEntryPoint;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import kieker.common.record.IMonitoringRecord;
@@ -23,7 +24,10 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 	@EntryInputPort
 	@OutputPorts({ @OutputPort(id = PortIDs.T_VAL_PRE, to = PrePipelineValidationTask.class, async = false),
 			@OutputPort(id = PortIDs.T_RAW_ROUTER, to = AccuracySwitch.class, async = false) })
-	public List<PCMContextRecord> filterMonitoringData(List<IMonitoringRecord> records) {
+	public PartitionedMonitoringData<PCMContextRecord> filterMonitoringData(
+			PartitionedMonitoringData<IMonitoringRecord> monitoringData) {
+		List<IMonitoringRecord> records = monitoringData.getAllData();
+
 		// EVALUATION
 		getBlackboard().getPerformanceEvaluation().enterPipelineExecution();
 		getBlackboard().getPerformanceEvaluation().trackRecordCount(records.size());
@@ -37,7 +41,7 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 
 		getBlackboard().getPerformanceEvaluation().trackPreFilter(start);
 
-		return result;
+		return new PartitionedMonitoringData<PCMContextRecord>(result, monitoringData.getValidationSplit());
 	}
 
 }

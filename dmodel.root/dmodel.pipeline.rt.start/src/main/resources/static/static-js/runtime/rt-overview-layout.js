@@ -8,25 +8,25 @@ function layoutPipeline(width, height, size) {
 		x : size / 2 + 20,
 		y : height / 2,
 		size : size,
-		text : "Validation"
+		text : "Self-Validation"
 	};
 	positions["t-resourceenv"] = {
 		x : step * width + size / 2,
 		y : height / 2,
 		size : size,
-		text : "Resource Environment"
+		text : "Update Resource\nEnvironment Model"
 	};
 	positions["t-allocation"] = {
 		x : step * 2 * width + size / 2,
 		y : height / 2,
 		size : size,
-		text : "Allocation"
+		text : "Update Allocation Model"
 	};
 	positions["t-system"] = {
 		x : step * 3 * width + size / 2,
 		y : height / 2,
 		size : size,
-		text : "System"
+		text : "Update System Model"
 	};
 
 	// switch
@@ -34,13 +34,13 @@ function layoutPipeline(width, height, size) {
 		x : step * 4 * width + size / 2,
 		y : height / 4,
 		size : size,
-		text : "Usage"
+		text : "Update Usage Model"
 	};
 	positions["t-repository1"] = {
 		x : step * 4 * width + size / 2,
 		y : (height / 4) * 3,
 		size : size,
-		text : "Calibration"
+		text : "Calibrate Resource Demands"
 	};
 
 	// after switch simulation
@@ -48,35 +48,35 @@ function layoutPipeline(width, height, size) {
 		x : step * 5 * width + size / 2,
 		y : height / 4,
 		size : size,
-		text : "Validation"
+		text : "Self-Validation 2"
 	};
 	
 	positions["t-validation2-2"] = {
 			x : step * 5 * width + size / 2,
 			y : (height / 4) * 3,
 			size : size,
-			text : "Validation"
+			text : "Self-Validation 3"
 		};
 
 	positions["t-usagemodel2"] = {
-		x : step * 6 * width + size / 2,
+		x : step * 6.25 * width + size / 2,
 		y : height / 4,
 		size : size,
-		text : "Usage"
+		text : "Update Usage Model"
 	};
 	positions["t-repository2"] = {
-		x : step * 6 * width + size / 2,
+		x : step * 6.25 * width + size / 2,
 		y : (height / 4) * 3,
 		size : size,
-		text : "Calibration"
+		text : "Calibrate Resource Demands"
 	};
 
 	// final
 	positions["t-validation3"] = {
-		x : step * 7 * width + size / 2,
+		x : step * 7.25 * width + size / 2,
 		y : height / 2,
 		size : size,
-		text : "Validation"
+		text : "Final Self-Validation"
 	};
 
 	layout.positions = positions;

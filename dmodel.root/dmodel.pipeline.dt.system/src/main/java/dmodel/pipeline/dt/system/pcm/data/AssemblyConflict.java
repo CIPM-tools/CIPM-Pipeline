@@ -1,12 +1,13 @@
 package dmodel.pipeline.dt.system.pcm.data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
-import org.palladiosimulator.pcm.repository.RequiredRole;
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.palladiosimulator.pcm.repository.RepositoryComponent;
 
+import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
+import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
+import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,19 +15,18 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class AssemblyConflict extends AbstractConflict<AssemblyContext> {
 	@EqualsAndHashCode.Exclude
-	private List<AssemblyContext> poss;
+	private List<AssemblyContext> solutions;
 
 	@EqualsAndHashCode.Exclude
-	private RequiredRole reqRole;
+	private Xor<AssemblyRequiredRole, SystemProvidedRole> target;
+
+	@EqualsAndHashCode.Exclude
+	private RepositoryComponent correspondingComponent;
 
 	private long id;
 
-	@EqualsAndHashCode.Exclude
-	private ResourceDemandingSEFF serviceTo;
-
 	public AssemblyConflict(long id) {
 		super();
-		this.poss = new ArrayList<>();
 		this.id = id;
 	}
 

@@ -7,6 +7,7 @@ import org.eclipse.emf.common.util.EMap;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
@@ -24,6 +25,7 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getEdges <em>Edges</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getOutgoingEdges <em>Outgoing Edges</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getIncomingEdges <em>Incoming Edges</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository <em>Repository</em>}</li>
  * </ul>
  *
  * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraph()
@@ -80,6 +82,28 @@ public interface ServiceCallGraph extends EObject {
 	 * @generated
 	 */
 	EMap<Object, EList<ServiceCallGraphEdge>> getIncomingEdges();
+
+	/**
+	 * Returns the value of the '<em><b>Repository</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Repository</em>' reference.
+	 * @see #setRepository(Repository)
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraph_Repository()
+	 * @model
+	 * @generated
+	 */
+	Repository getRepository();
+
+	/**
+	 * Sets the value of the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository <em>Repository</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Repository</em>' reference.
+	 * @see #getRepository()
+	 * @generated
+	 */
+	void setRepository(Repository value);
 
 	/**
 	 * <!-- begin-user-doc -->

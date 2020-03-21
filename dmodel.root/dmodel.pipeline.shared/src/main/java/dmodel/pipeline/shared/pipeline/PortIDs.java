@@ -6,10 +6,8 @@ public interface PortIDs {
 	String T_VAL_PRE = "validation-pre";
 
 	String T_SC_PCM_RESENV = "sc->resenv";
-	String T_SC_PCM_ALLOCATION = "sc->allocation";
-	String T_RESENV_PCM_ALLOCATION = "resenv->allocation";
 
-	String T_ALLOCATION_PCM_SYSTEM = "allocation->system";
+	String T_RESENV_PCM_SYSTEM = "resenv->system";
 	String T_SC_PCM_SYSTEM = "sc->system";
 
 	String T_SYSTEM_ROUTER = "system->router";

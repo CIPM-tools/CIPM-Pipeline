@@ -26,6 +26,7 @@ import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
 import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
+import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
@@ -55,7 +56,8 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
-	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls, List<PCMContextRecord> rawMonitoringData) {
+	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls,
+			PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
 
 		// create deep copies
@@ -93,7 +95,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			long starti = getBlackboard().getPerformanceEvaluation().getTime();
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
 					ETransformationState.RUNNING);
-			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForRepository,
+			repositoryTransformation.calibrateRepository(rawMonitoringData.getTrainingData(), copyForRepository,
 					getBlackboard().getBorder().getRuntimeMapping(),
 					getBlackboard().getValidationResultContainer().getPreValidationResults(),
 					fineGrainedInstrumentedServices);
@@ -118,7 +120,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
 				ETransformationState.RUNNING);
 		ValidationData pathRepository = getBlackboard().getValidationFeedbackComponent().process(copyForRepository,
-				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData, "ValidateRepo");
+				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData.getValidationData(), "ValidateRepo");
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
 				ETransformationState.FINISHED);
 		getBlackboard().getPerformanceEvaluation().trackValidationRepository(start);
@@ -127,7 +129,8 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
 				ETransformationState.RUNNING);
 		ValidationData pathUsageModel = getBlackboard().getValidationFeedbackComponent().process(copyForUsage,
-				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData, "ValidateUsage");
+				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData.getValidationData(),
+				"ValidateUsage");
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
 				ETransformationState.FINISHED);
 		getBlackboard().getPerformanceEvaluation().trackValidationUsage(start);
@@ -137,10 +140,12 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		getBlackboard().getValidationResultContainer().setAfterUsageModelResults(pathUsageModel);
 
 		// 3.1. check which one is better
+		// TODO outsource
 		start = getBlackboard().getPerformanceEvaluation().getTime();
 		double sum = 0;
 		Map<Triple<String, String, ValidationMetricType>, ValidationMetricValue> mappingA = Maps.newHashMap();
-		if (pathRepository != null && pathUsageModel != null) {
+		if (pathRepository != null && pathUsageModel != null && !pathRepository.isEmpty()
+				&& !pathUsageModel.isEmpty()) {
 			pathRepository.getValidationPoints().forEach(m -> {
 				m.getMetricValues().forEach(metricValue -> {
 					mappingA.put(Triple.of(m.getId(), m.getMetricDescription().getId(), metricValue.type()),
@@ -184,7 +189,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					ETransformationState.RUNNING);
 
 			// usagemodel was better
-			repositoryTransformation.calibrateRepository(rawMonitoringData, copyForUsage,
+			repositoryTransformation.calibrateRepository(rawMonitoringData.getTrainingData(), copyForUsage,
 					getBlackboard().getBorder().getRuntimeMapping(), pathUsageModel, fineGrainedInstrumentedServices);
 
 			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,

@@ -10,12 +10,12 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
-import dmodel.pipeline.rt.pcm.allocation.AllocationDerivation;
 import dmodel.pipeline.rt.pcm.resourceenv.data.EnvironmentData;
 import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
 import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
 import dmodel.pipeline.rt.pcm.resourceenv.finalize.IResourceEnvironmentDeduction;
 import dmodel.pipeline.rt.pcm.resourceenv.finalize.ResourceEnvironmentTransformer;
+import dmodel.pipeline.rt.pcm.system.RuntimeSystemDerivation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -38,7 +38,7 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 	}
 
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_RESENV) })
-	@OutputPorts(@OutputPort(to = AllocationDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_ALLOCATION))
+	@OutputPorts(@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_SYSTEM))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
 		long start = getBlackboard().getPerformanceEvaluation().getTime();
 		log.info("Deriving resource environment.");

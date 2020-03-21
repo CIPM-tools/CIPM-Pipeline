@@ -69,7 +69,12 @@ allprojects {
 	}
 
     repositories {
-		maven {url project.rootDir.toString() + project.properties['api.baseline']}
+		maven {
+			url uri(project.rootDir.toString() + project.properties['api.baseline'])
+			metadataSources {
+            	artifact()
+        	}
+		}
 		maven {url 'http://repo.typesafe.com/typesafe/maven-releases/'}
 		maven {url 'http://www.jabylon.org/maven/'}
 		mavenCentral()

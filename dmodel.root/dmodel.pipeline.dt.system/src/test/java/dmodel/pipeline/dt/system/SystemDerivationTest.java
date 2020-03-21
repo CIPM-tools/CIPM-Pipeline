@@ -4,15 +4,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-import org.palladiosimulator.pcm.repository.Repository;
+import java.io.File;
 
-import InstrumentationMetamodel.InstrumentationModel;
-import InstrumentationMetamodel.InstrumentationModelFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.palladiosimulator.pcm.repository.OperationInterface;
+import org.palladiosimulator.pcm.repository.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import com.google.common.collect.Lists;
+
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
+import dmodel.pipeline.dt.system.pcm.impl.util.ConflictBuilder;
 import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.records.instrument.ApplicationProject;
@@ -25,14 +35,35 @@ import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import spoon.Launcher;
 
-// TODO please refactor this soon, otherwise i need to puke
+// TODO refactor absolute paths
+@RunWith(SpringRunner.class)
 public class SystemDerivationTest {
 
-	@Test
-	public void test() {
+	@TestConfiguration
+	static class SystemBuilderTestConfiguration {
+		@Bean
+		public PCMSystemBuilder systemBuilder() {
+			return new PCMSystemBuilder();
+		}
+
+		@Bean
+		public ConflictBuilder conflictBuilder() {
+			return new ConflictBuilder();
+		}
+	}
+
+	@Autowired
+	private PCMSystemBuilder systemBuilder;
+
+	@BeforeClass
+	public static void setup() {
 		CorrespondenceUtil.initVitruv();
 		PCMUtils.loadPCMModels();
 		MappingPackage.eINSTANCE.eClass();
+	}
+
+	@Test
+	public void buildingTest() {
 
 		ApplicationProject project = new ApplicationProject();
 		project.setRootPath(
@@ -42,8 +73,9 @@ public class SystemDerivationTest {
 		SpoonApplicationTransformer transformer = new SpoonApplicationTransformer();
 
 		InstrumentationMetadata meta = new InstrumentationMetadata();
-		meta.setRepository(ModelUtil.readFromFile(
-				"/Users/david/Desktop/Dynamic Approach/Implementation/git/dModel/dmodel.root/dmodel.pipeline.rexample/models/prime_generator.repository",
+		meta.setRepository(ModelUtil.readFromFile(new File(
+				"/Users/david/Desktop/Dynamic Approach/Implementation/git/dModel/dmodel.root/dmodel.pipeline.rexample/models/prime_generator.repository")
+						.getAbsolutePath(),
 				Repository.class));
 
 		// agent config
@@ -62,27 +94,26 @@ public class SystemDerivationTest {
 		SpoonCorrespondence spoonMapping = SpoonCorrespondenceUtil.buildFromMapping(fileBackedMapping, model.getModel(),
 				meta.getRepository());
 
-		// build instrumentation model
-		InstrumentationModel iModel = InstrumentationModelFactory.eINSTANCE.createInstrumentationModel();
-
 		// analyze it
 		ISystemCompositionAnalyzer systemExtractor = new StaticCodeReferenceAnalyzer();
 		ServiceCallGraph callGraph = systemExtractor.deriveSystemComposition(model, spoonMapping);
+		callGraph.setRepository(meta.getRepository());
 
 		// derive system
-		PCMSystemBuilder extractor = new PCMSystemBuilder();
-		boolean finished = extractor.startBuildingSystem(callGraph);
+		OperationInterface systemProvidedRole = PCMUtils.getElementById(meta.getRepository(), OperationInterface.class,
+				"_lx40IJYGEempGaXtj6ezAw");
+		boolean finished = systemBuilder.startBuildingSystem(callGraph, Lists.newArrayList(systemProvidedRole));
 		assertFalse(finished);
-		assertEquals(extractor.getCurrentConflict().getClass(), ConnectionConflict.class);
+		assertEquals(systemBuilder.getCurrentConflict().getClass(), ConnectionConflict.class);
 
-		ConnectionConflict conf = (ConnectionConflict) extractor.getCurrentConflict();
+		ConnectionConflict conf = (ConnectionConflict) systemBuilder.getCurrentConflict();
 		conf.setSolved(true);
-		conf.setSolution(conf.getProvided().get(0));
+		conf.setSolution(conf.getSolutions().get(0));
 
-		finished = extractor.continueBuilding();
+		finished = systemBuilder.continueBuilding();
 		assertTrue(finished);
 
-		ModelUtil.saveToFile(extractor.getCurrentSystem(), "output/test1.system");
+		ModelUtil.saveToFile(systemBuilder.getCurrentSystem(), "output/test1.system");
 	}
 
 }

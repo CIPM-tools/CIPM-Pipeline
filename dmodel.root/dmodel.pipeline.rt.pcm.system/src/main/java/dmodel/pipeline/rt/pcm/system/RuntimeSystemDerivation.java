@@ -63,7 +63,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		this.creationCache = new HashMap<>();
 	}
 
-	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_ALLOCATION_PCM_SYSTEM) })
+	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_RESENV_PCM_SYSTEM) })
 	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
 		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);

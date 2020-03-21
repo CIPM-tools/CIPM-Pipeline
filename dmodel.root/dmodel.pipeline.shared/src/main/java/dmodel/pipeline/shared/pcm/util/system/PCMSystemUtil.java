@@ -2,17 +2,22 @@ package dmodel.pipeline.shared.pcm.util.system;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
+import org.palladiosimulator.pcm.core.composition.ComposedStructure;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
+import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
+import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
+import org.palladiosimulator.pcm.repository.RepositoryFactory;
 import org.palladiosimulator.pcm.system.System;
 
 public class PCMSystemUtil {
 
-	public static AssemblyConnector createAssemblyConnector(System system, OperationProvidedRole prov,
-			AssemblyContext providing, OperationRequiredRole req, AssemblyContext requiring) {
+	public static AssemblyConnector createAssemblyConnector(ComposedStructure currentOuterStructure,
+			OperationProvidedRole prov, AssemblyContext providing, OperationRequiredRole req,
+			AssemblyContext requiring) {
 		AssemblyConnector nConnector = CompositionFactory.eINSTANCE.createAssemblyConnector();
 		nConnector.setProvidedRole_AssemblyConnector(prov);
 		nConnector.setRequiredRole_AssemblyConnector(req);
@@ -21,24 +26,26 @@ public class PCMSystemUtil {
 
 		nConnector.setEntityName("Connector " + requiring.getEntityName() + " -> " + providing.getEntityName());
 
-		system.getConnectors__ComposedStructure().add(nConnector);
+		currentOuterStructure.getConnectors__ComposedStructure().add(nConnector);
 
 		return nConnector;
 	}
 
-	public static ProvidedDelegationConnector createProvidedDelegation(System system, OperationProvidedRole role,
-			AssemblyContext ctx, OperationProvidedRole spr) {
-		return createProvidedDelegation(system, role, ctx, spr, true);
+	public static ProvidedDelegationConnector createProvidedDelegation(System system,
+			OperationProvidedRole outerProvidedRole, AssemblyContext ctx, OperationProvidedRole innerProvidedRole) {
+		return createProvidedDelegation(system, outerProvidedRole, ctx, innerProvidedRole, true);
 	}
 
-	public static ProvidedDelegationConnector createProvidedDelegation(System system, OperationProvidedRole role,
-			AssemblyContext ctx, OperationProvidedRole spr, boolean add) {
+	public static ProvidedDelegationConnector createProvidedDelegation(System system,
+			OperationProvidedRole outerProvidedRole, AssemblyContext ctx, OperationProvidedRole innerProvidedRole,
+			boolean add) {
 		ProvidedDelegationConnector conn = CompositionFactory.eINSTANCE.createProvidedDelegationConnector();
 
 		conn.setAssemblyContext_ProvidedDelegationConnector(ctx);
-		conn.setInnerProvidedRole_ProvidedDelegationConnector(role);
-		conn.setOuterProvidedRole_ProvidedDelegationConnector(spr);
-		conn.setEntityName("ProvDelegation " + spr.getEntityName() + " -> " + role.getEntityName());
+		conn.setInnerProvidedRole_ProvidedDelegationConnector(innerProvidedRole);
+		conn.setOuterProvidedRole_ProvidedDelegationConnector(outerProvidedRole);
+		conn.setEntityName(
+				"ProvDelegation " + outerProvidedRole.getEntityName() + " -> " + innerProvidedRole.getEntityName());
 
 		if (add) {
 			conn.setParentStructure__Connector(system);
@@ -51,7 +58,47 @@ public class PCMSystemUtil {
 	public static AssemblyContext createAssemblyContext(System system, RepositoryComponent comp) {
 		AssemblyContext ctx = CompositionFactory.eINSTANCE.createAssemblyContext();
 		ctx.setEncapsulatedComponent__AssemblyContext(comp);
+		system.getAssemblyContexts__ComposedStructure().add(ctx);
 		return ctx;
+	}
+
+	public static AssemblyContext createAssemblyContext(System system, RepositoryComponent comp, String name) {
+		AssemblyContext ctx = CompositionFactory.eINSTANCE.createAssemblyContext();
+		ctx.setEncapsulatedComponent__AssemblyContext(comp);
+		system.getAssemblyContexts__ComposedStructure().add(ctx);
+		ctx.setEntityName(name);
+		return ctx;
+	}
+
+	public static OperationProvidedRole createProvidedRole(System currentSystem, OperationInterface entryPoint) {
+		OperationProvidedRole output = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
+		output.setProvidedInterface__OperationProvidedRole(entryPoint);
+		output.setEntityName("SystemProvided_" + entryPoint.getEntityName());
+		currentSystem.getProvidedRoles_InterfaceProvidingEntity().add(output);
+
+		return output;
+	}
+
+	public static OperationRequiredRole createRequiredRole(System currentSystem, OperationInterface reqInterface) {
+		OperationRequiredRole output = RepositoryFactory.eINSTANCE.createOperationRequiredRole();
+		output.setRequiredInterface__OperationRequiredRole(reqInterface);
+		currentSystem.getRequiredRoles_InterfaceRequiringEntity().add(output);
+
+		return output;
+	}
+
+	public static RequiredDelegationConnector createRequiredDelegation(AssemblyContext ctx, OperationRequiredRole irr,
+			System system, OperationRequiredRole role) {
+		RequiredDelegationConnector conn = CompositionFactory.eINSTANCE.createRequiredDelegationConnector();
+
+		conn.setAssemblyContext_RequiredDelegationConnector(ctx);
+		conn.setInnerRequiredRole_RequiredDelegationConnector(role);
+		conn.setOuterRequiredRole_RequiredDelegationConnector(role);
+		conn.setEntityName("ProvDelegation " + irr.getEntityName() + " -> " + role.getEntityName());
+		conn.setParentStructure__Connector(system);
+		system.getConnectors__ComposedStructure().add(conn);
+
+		return conn;
 	}
 
 }

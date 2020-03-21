@@ -1,107 +1,145 @@
 package dmodel.pipeline.dt.system.pcm.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
-import org.palladiosimulator.pcm.core.composition.ComposedStructure;
-import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
-import org.palladiosimulator.pcm.core.entity.InterfaceProvidingEntity;
-import org.palladiosimulator.pcm.repository.BasicComponent;
+import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
-import org.palladiosimulator.pcm.repository.ProvidedRole;
+import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
-import org.palladiosimulator.pcm.repository.RepositoryFactory;
-import org.palladiosimulator.pcm.repository.RequiredRole;
-import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.system.SystemFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.beust.jcommander.internal.Lists;
-import com.google.common.collect.Maps;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
-import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
-import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
 import dmodel.pipeline.dt.system.pcm.IAssemblySelectionListener;
 import dmodel.pipeline.dt.system.pcm.IConnectionConflictListener;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.dt.system.pcm.impl.util.ConflictBuilder;
+import dmodel.pipeline.dt.system.pcm.impl.util.ServiceCallGraphProcessor;
+import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
+import dmodel.pipeline.shared.pcm.util.repository.PCMRepositoryUtil;
+import dmodel.pipeline.shared.pcm.util.system.PCMSystemUtil;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.java.Log;
 
-// TODO simplify building method
-// TODO add logging
-// TODO outsource in other helping classes
-// TODO use PCMSystemUtil
 @Component
 @Log
+/**
+ * Main building block for creating system models at design-time. Implements a
+ * user-guided procedure which is conflict driven. The conflicts are resolved
+ * automatically by using a corresponding service call graph (SCG). If there are
+ * conflicts which cannot be resolved at design-time with the help of the given
+ * SCG, the user needs to resolve them manually.
+ * 
+ * @author David Monschein
+ *
+ */
 public class PCMSystemBuilder {
-	private long conflictCounter = 0;
+	/**
+	 * Listeners for events of the system building procedure.
+	 */
 	private List<IConnectionConflictListener> connectionConflictListener;
 	private List<IAssemblySelectionListener> assemblySelectionListener;
 
+	/**
+	 * Excluded procedures for creating conflicts.
+	 */
+	@Autowired
+	private ConflictBuilder conflictBuilder;
+
 	// current data
+	@Getter
 	private AbstractConflict<?> currentConflict;
+
+	/**
+	 * Open required and provided roles of existing assembly contexts.
+	 */
 	private List<AssemblyProvidedRole> openProvidedRoles;
+	private List<AssemblyRequiredRole> openRequiredRoles;
+
+	/**
+	 * Excluded procedures for processing the service call graph (SCG).
+	 */
+	private ServiceCallGraphProcessor scgProcessor;
+
+	/**
+	 * Simple counter to keep the entity names of the assembly contexts unique.
+	 */
+	private int assemblyNamingId;
+
+	/**
+	 * Current system that is built and the repository which is used.
+	 */
+	@Getter
 	private System currentSystem;
-	private Iterator<ServiceCallGraphNode> entryPoints;
-	private LinkedList<List<AssemblyEdge>> currentEdges; // clustered over signature
+	private Repository baseRepository;
 
-	private List<AssemblyEdge> currentEdge;
-	private ServiceCallGraph currentServiceCallGraph;
-	private Map<ProvidedRole, RequiredRole> provReqMapping;
-	private Map<RequiredRole, ProvidedRole> reqProvMapping;
-	private ComposedStructure currentOuterStructure;
+	/**
+	 * Used to iterate over the interfaces that should be provided by the resulting
+	 * system in the end.
+	 */
+	private Iterator<OperationInterface> entryPoints;
 
-	private int currentAssemblyID;
-
+	/**
+	 * Creates a new instance and initializes empty listener lists.
+	 */
 	public PCMSystemBuilder() {
 		this.assemblySelectionListener = new ArrayList<>();
 		this.connectionConflictListener = new ArrayList<>();
 	}
 
-	public boolean startBuildingSystem(ServiceCallGraph serviceCallGraph) {
+	/**
+	 * Starts the System model building procedure.
+	 * 
+	 * @param serviceCallGraph an input SCG that represents the calls structure of
+	 *                         the services
+	 * @param systemInterfaces the interfaces that should be provided by the whole
+	 *                         System in the end
+	 * @return true if the building process finished, false if there is a conflict
+	 *         that needs to be resolved
+	 */
+	public boolean startBuildingSystem(ServiceCallGraph serviceCallGraph, List<OperationInterface> systemInterfaces) {
 		// 0. create output system
-		currentAssemblyID = 1;
 		currentSystem = SystemFactory.eINSTANCE.createSystem();
-		currentOuterStructure = currentSystem;
+		baseRepository = serviceCallGraph.getRepository();
 
 		// 1.1. find entry points to the call graph
-		entryPoints = serviceCallGraph.getNodes().stream()
-				.filter(n -> serviceCallGraph.getIncomingEdges().get(n) == null)
-				.collect(Collectors.toCollection(LinkedHashSet::new)).iterator();
+		entryPoints = systemInterfaces.iterator();
 
 		// 1.2. containers
 		openProvidedRoles = Lists.newArrayList();
-		currentEdges = Lists.newLinkedList();
+		openRequiredRoles = Lists.newArrayList();
 
 		// 1.3. default values
+		assemblyNamingId = 0;
 		currentConflict = null;
-		currentServiceCallGraph = serviceCallGraph;
-		provReqMapping = Maps.newHashMap();
-		reqProvMapping = Maps.newHashMap();
-		currentEdge = null;
+		scgProcessor = new ServiceCallGraphProcessor(serviceCallGraph);
 
 		// 2. try to build a system and corresponding conflicts that need to be
 		// resolved
 		return buildingStep();
 	}
 
+	/**
+	 * Continues the building process after a conflict.
+	 * 
+	 * @return true if the building process is finished, false if there is a another
+	 *         conflict
+	 */
 	public boolean continueBuilding() {
 		if (currentConflict != null && currentConflict.isSolved()) {
 			if (currentConflict instanceof ConnectionConflict) {
@@ -110,67 +148,85 @@ public class PCMSystemBuilder {
 				return resolveAssemblyConflict((AssemblyConflict) currentConflict);
 			}
 		} else {
-			throw new IllegalStateException("Cannot continue if there is no resolved conflict.");
+			throw new IllegalStateException("Cannot continue if there is a conflict that is not resolved.");
 		}
 		return false;
 	}
 
+	/**
+	 * Resolves the current {@link AssemblyConflict} if there is a solution and it
+	 * is marked as solved. Afterwards, the building procedure is triggered again.
+	 * 
+	 * @param currentConflict the current conflict which should be resolved
+	 * @return true, if the consecutive building procedure is finished, false if
+	 *         there is another conflict that needs to be resolved
+	 */
 	private boolean resolveAssemblyConflict(AssemblyConflict currentConflict) {
-		if (currentConflict.getReqRole() == null) {
-			clusterAndAddOutgoingEdges(currentConflict.getServiceTo(), currentConflict.getSolution());
-		} else {
-			AssemblyContext currentCtx = currentEdge.get(0).assemblyFrom;
-			OperationRequiredRole reqRole = (OperationRequiredRole) currentConflict.getReqRole();
-			ProvidedRole provRole = currentConflict.getSolution().getEncapsulatedComponent__AssemblyContext()
-					.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
-						if (pr instanceof OperationProvidedRole) {
-							OperationProvidedRole opr = (OperationProvidedRole) pr;
-							return opr.getProvidedInterface__OperationProvidedRole().getId()
-									.equals(reqRole.getRequiredInterface__OperationRequiredRole().getId());
-						}
-						return false;
-					}).findFirst().get();
+		if (currentConflict.getTarget().anyPresent()) {
+			if (currentConflict.getSolution() == null) {
+				// => new assembly
+				AssemblyContext ctx = createNewAssembly(currentConflict.getCorrespondingComponent());
+				currentConflict.setSolution(ctx);
+			}
 
-			// link the assembly
-			linkAssemblys(currentCtx, reqRole, currentConflict.getSolution(), provRole);
+			AssemblyProvidedRole provRole = pickOpenProvidedRole(currentConflict.getSolution(),
+					getTargetInterface(currentConflict.getTarget()));
+			connect(currentConflict.getTarget(), provRole);
 
-			// add outgoing edges
-			clusterAndAddOutgoingEdges(currentConflict.getServiceTo(), currentConflict.getSolution());
+			// conflict solved
+			this.currentConflict = null;
+			return buildingStep();
 		}
-		// we solved the conflict
-		currentConflict = null;
 
-		return buildingStep();
+		return false;
 	}
 
-	private boolean resolveConnectionConflict(ConnectionConflict conf) {
-		Optional<AssemblyEdge> selectedEdge = currentEdge.stream().filter(t -> {
-			return t.assemblyFrom.getEncapsulatedComponent__AssemblyContext()
-					.getRequiredRoles_InterfaceRequiringEntity().stream()
-					.anyMatch(r -> conf.getRequired().getId().equals(r.getId()));
-		}).findFirst();
-		if (!selectedEdge.isPresent()) {
-			log.log(Level.WARNING,
-					"Could not resolve the current conflict because the required role could not be found.");
-			return false;
+	/**
+	 * Resolves a {@link ConnectionConflict} if there is a solution and it is marked
+	 * as solved. Afterwards the building procedure is resumed.
+	 * 
+	 * @param currentConflict the current conflict which should be resolved
+	 * @return true, if the consecutive building procedure is finished, false if
+	 *         there is another conflict that needs to be resolved
+	 */
+	private boolean resolveConnectionConflict(ConnectionConflict currentConflict) {
+		if (currentConflict.getTarget().anyPresent()) {
+			if (currentConflict.getSolution() != null) {
+				// get inner provided role
+				if (currentConflict.getTarget().anyPresent()) {
+					AssemblyProvidedRole suppliedAssembly = supplyAssembly(currentConflict.getTarget(),
+							currentConflict.getSolution(), getTargetInterface(currentConflict.getTarget()));
+
+					if (suppliedAssembly != null) {
+						connect(currentConflict.getTarget(), suppliedAssembly);
+					}
+				}
+			} else {
+				// link to outside -> required delegation
+				if (currentConflict.getTarget().leftPresent()) {
+					// right present does not make sense at this point
+					OperationRequiredRole outerRequiredRole = PCMSystemUtil.createRequiredRole(currentSystem,
+							getTargetInterface(currentConflict.getTarget()));
+					PCMSystemUtil.createRequiredDelegation(currentConflict.getTarget().getLeft().ctx,
+							currentConflict.getTarget().getLeft().role, currentSystem, outerRequiredRole);
+				}
+			}
+
+			this.currentConflict = null;
+			return buildingStep();
 		}
-		// process the edge
-		AssemblyContext belAssembly = processSingleEdge(selectedEdge.get(), conf.getRequired(), conf.getSolution());
-		if (belAssembly == null) {
-			// conflict
-			return false;
-		}
-
-		// add outgoing edges
-		clusterAndAddOutgoingEdges(selectedEdge.get().serviceTo, belAssembly);
-
-		// we solved the conflict
-		currentConflict = null;
-
-		// recursion step
-		return buildingStep();
+		return false;
 	}
 
+	/**
+	 * Triggers a single step in the system model building procedure. Consecutive
+	 * steps are triggered if no conflict occurs. The procedure is stopped when
+	 * there is a conflict.
+	 * 
+	 * @return true if the procedure finished without any conflict, false if there
+	 *         is a conflict that needs to be resolved before the procedure can
+	 *         continue
+	 */
 	private boolean buildingStep() {
 		log.info("Executing a building step.");
 		// if there is a conflict we cannot do anything
@@ -178,313 +234,365 @@ public class PCMSystemBuilder {
 			return false;
 		}
 
-		if (currentEdges.isEmpty()) {
-			// we search for an entry point
-			if (!entryPoints.hasNext()) {
-				log.info("Finished the building process and linking free roles to the system border.");
-				linkFreeRolesToSystemBorder();
-				// we are finished
-				return true;
+		// open entry point?
+		Optional<Boolean> entryPointResult = processEntryPoints();
+		if (entryPointResult.isPresent()) {
+			return entryPointResult.get();
+		}
+
+		// process open provided roles
+		return processOpenRequiredRoles();
+	}
+
+	/**
+	 * Processes an interface that should be provided by the system in the end. It
+	 * creates a provided role of the system and tries to delegate it. If there is
+	 * no interface left that should be provided by the system the method exits
+	 * without doing anything.
+	 * 
+	 * @return an empty optional if there were no interfaces left that should be
+	 *         provided by the system, otherwise an optional which contains a value
+	 *         analogous to the return of {@link PCMSystemBuilder#buildingStep()}
+	 */
+	private Optional<Boolean> processEntryPoints() {
+		if (entryPoints.hasNext()) {
+			// pop an entry point
+			OperationInterface entryPoint = entryPoints.next();
+
+			// create the belonging role
+			OperationProvidedRole outerProvidedRole = PCMSystemUtil.createProvidedRole(currentSystem, entryPoint);
+			SystemProvidedRole outerProvidedRolePlain = new SystemProvidedRole(outerProvidedRole, currentSystem);
+
+			// get inner provided role
+			AssemblyProvidedRole innerProvidedRole = supplyProvidedRole(
+					Xor.<AssemblyRequiredRole, SystemProvidedRole>right(outerProvidedRolePlain), null);
+
+			if (innerProvidedRole != null) {
+				// => no conflict
+				createDelegation(outerProvidedRolePlain, innerProvidedRole);
+
+				return Optional.of(buildingStep());
 			} else {
-				// pop an entry point and get all edges
-				ServiceCallGraphNode node = entryPoints.next();
-				// collect them and put to the list
-				AssemblyContext ctx = resolveAssemblyForEntryPoint(node.getSeff());
-
-				if (ctx == null) {
-					log.log(Level.WARNING, "Assembly for an entry point was null.");
-					return false;
+				if (currentConflict != null) {
+					// conflict has already been created
+					return Optional.of(false);
+				} else {
+					// => next step
+					return Optional.of(buildingStep());
 				}
+			}
+		}
 
-				log.info("Adding outgoing edges of entry point '" + node.getSeff().getId() + "'.");
-				clusterAndAddOutgoingEdges(node.getSeff(), ctx);
+		return Optional.empty();
+	}
 
-				// recursion -> next step
+	/**
+	 * Processes a required role that is not satisfied yet.
+	 * 
+	 * @return analogous to {@link PCMSystemBuilder#buildingStep()} it returns true
+	 *         if the procedure finished without any conflict, false if there is a
+	 *         conflict that needs to be resolved before the procedure can continue
+	 */
+	private boolean processOpenRequiredRoles() {
+		if (!openRequiredRoles.isEmpty()) {
+			// pop a required role
+			AssemblyRequiredRole requiredRole = openRequiredRoles.remove(0);
+
+			// get provided role
+			AssemblyProvidedRole connectedProvidedRole = supplyProvidedRole(
+					Xor.<AssemblyRequiredRole, SystemProvidedRole>left(requiredRole),
+					requiredRole.ctx.getEncapsulatedComponent__AssemblyContext());
+
+			if (connectedProvidedRole != null) {
+				// no conflict
+				createConnector(requiredRole, connectedProvidedRole);
+
 				return buildingStep();
-			}
-		} else {
-			// pop a edge and process it
-			currentEdge = currentEdges.removeFirst();
-			return processEdgeSet();
-		}
-	}
-
-	private void linkFreeRolesToSystemBorder() {
-		for (AssemblyProvidedRole freeRole : openProvidedRoles) {
-			if (freeRole.ctx.getParentStructure__AssemblyContext().getId().equals(currentSystem.getId())) {
-				// it is directly under the parent
-				log.info("Link free provided role to the system border.");
-
-				if (freeRole.role instanceof OperationProvidedRole) {
-					OperationProvidedRole innerProvided = (OperationProvidedRole) freeRole.role;
-
-					OperationProvidedRole nProvided = RepositoryFactory.eINSTANCE.createOperationProvidedRole();
-					nProvided.setProvidingEntity_ProvidedRole(currentSystem);
-					nProvided.setProvidedInterface__OperationProvidedRole(
-							innerProvided.getProvidedInterface__OperationProvidedRole());
-					currentSystem.getProvidedRoles_InterfaceProvidingEntity().add(nProvided);
-
-					// delegation now
-					ProvidedDelegationConnector nConnector = CompositionFactory.eINSTANCE
-							.createProvidedDelegationConnector();
-					nConnector.setOuterProvidedRole_ProvidedDelegationConnector(nProvided);
-					nConnector.setInnerProvidedRole_ProvidedDelegationConnector(innerProvided);
-					nConnector.setAssemblyContext_ProvidedDelegationConnector(freeRole.ctx);
-					nConnector.setParentStructure__Connector(currentSystem);
-					currentSystem.getConnectors__ComposedStructure().add(nConnector);
-				}
-			}
-		}
-	}
-
-	private boolean processEdgeSet() {
-		log.info("Processing set of edges with size " + currentEdge.size() + ".");
-		if (currentEdge.size() > 0) {
-			// resolve corresponding seffs
-			AssemblyEdge firstEdge = currentEdge.get(0);
-			ResourceDemandingSEFF from = firstEdge.serviceFrom; // for all in the set equal
-			Signature toSig = firstEdge.serviceTo.getDescribedService__SEFF();
-
-			// get components for this seff
-			BasicComponent cfrom = from.getBasicComponent_ServiceEffectSpecification();
-
-			// get the required role
-			Optional<RequiredRole> reqRole = PCMUtils.getRequiredRoleBySignature(cfrom, toSig);
-
-			if (!reqRole.isPresent()) {
-				throw new RuntimeException(
-						"Could not find required role for a specific service call. Please check the consistency of your repository model.");
-			}
-
-			// edges > 1?
-			if (currentEdge.size() > 1) {
-				log.info("Found edge conflict. Please resolve and continue the building prodcedure.");
-				createEdgeConflict(currentEdge, reqRole.get(), toSig);
-				return false;
-			}
-
-			// process the edge
-			AssemblyContext belAssembly = processSingleEdge(currentEdge.get(0), reqRole.get(), toSig);
-			if (belAssembly == null) {
-				// conflict
-				return false;
-			}
-
-			// add outgoing edges
-			clusterAndAddOutgoingEdges(firstEdge.serviceTo, belAssembly);
-
-			// recursion step
-			return buildingStep();
-		} else {
-			return buildingStep();
-		}
-	}
-
-	private AssemblyContext processSingleEdge(AssemblyEdge edge, RequiredRole reqRole, Signature callSig) {
-		ResourceDemandingSEFF linkTo = edge.serviceTo;
-		Optional<ProvidedRole> provRole = PCMUtils
-				.getProvidedRoleBySignature(linkTo.getBasicComponent_ServiceEffectSpecification(), callSig);
-
-		return processSingleEdge(edge, reqRole, provRole.get());
-	}
-
-	private AssemblyContext processSingleEdge(AssemblyEdge edge, RequiredRole reqRole, ProvidedRole provRole) {
-		// resolve assembly for service
-		AssemblyContext resolvedContext = resolveAssemblyFor(edge, reqRole, provRole);
-		if (resolvedContext == null) {
-			return null;
-		}
-
-		// link the assembly
-		linkAssemblys(edge.assemblyFrom, reqRole, resolvedContext, provRole);
-
-		return resolvedContext;
-	}
-
-	private void linkAssemblys(AssemblyContext assemblyFrom, RequiredRole reqRole, AssemblyContext resolvedContext,
-			ProvidedRole provRole) {
-		if (reqRole instanceof OperationRequiredRole && provRole instanceof OperationProvidedRole) {
-			AssemblyConnector connector = CompositionFactory.eINSTANCE.createAssemblyConnector();
-			connector.setProvidedRole_AssemblyConnector((OperationProvidedRole) provRole);
-			connector.setProvidingAssemblyContext_AssemblyConnector(resolvedContext);
-			connector.setParentStructure__Connector(currentOuterStructure);
-			connector.setRequiredRole_AssemblyConnector((OperationRequiredRole) reqRole);
-			connector.setRequiringAssemblyContext_AssemblyConnector(assemblyFrom);
-			currentOuterStructure.getConnectors__ComposedStructure().add(connector);
-
-			// map the roles
-			provReqMapping.put(provRole, reqRole);
-			reqProvMapping.put(reqRole, provRole);
-
-			// remove the provided
-			openProvidedRoles = openProvidedRoles.parallelStream().filter(op -> {
-				if (op.ctx.getId().equals(resolvedContext.getId()) && op.role.getId().equals(provRole.getId())) {
+			} else {
+				if (currentConflict != null) {
+					// conflict has already been created
 					return false;
+				} else {
+					// => next step
+					return buildingStep();
 				}
-				return true;
-			}).collect(Collectors.toList());
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Gets the target interface of a required role or a provided role by the
+	 * system.
+	 * 
+	 * @param target a required role or a provided role by the system
+	 * @return the interface that is required or provided by the parameter
+	 */
+	private OperationInterface getTargetInterface(Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
+		if (target.leftPresent()) {
+			return target.getLeft().getRole().getRequiredInterface__OperationRequiredRole();
+		} else if (target.rightPresent()) {
+			return target.getRight().getRole().getProvidedInterface__OperationProvidedRole();
+		}
+		return null;
+	}
+
+	/**
+	 * Either creates a connector between a required and a provided role or creates
+	 * a delegation from a system provided role to a provided role of an assembly,
+	 * depending on the parameter.
+	 * 
+	 * @param target   a required role of an assembly or a provided role of the
+	 *                 surrounding system
+	 * @param provRole inner provided role of an assembly the outer provided role or
+	 *                 the inner required role should be connected to
+	 */
+	private void connect(Xor<AssemblyRequiredRole, SystemProvidedRole> target, AssemblyProvidedRole provRole) {
+		if (target.leftPresent()) {
+			createConnector(target.getLeft(), provRole);
+		} else if (target.rightPresent()) {
+			createDelegation(target.getRight(), provRole);
 		}
 	}
 
-	private AssemblyContext resolveAssemblyForEntryPoint(ResourceDemandingSEFF seff) {
-		// search for matching assemblies
-		List<AssemblyProvidedRole> possAssemblys = getMatchingAssemblys(
-				seff.getBasicComponent_ServiceEffectSpecification());
-		if (possAssemblys.size() > 0) {
-			// conflict
-			createAssemblyConflict(possAssemblys, seff);
-			return null;
-		}
-
-		// new one
-		return instantiateAssembly(seff.getBasicComponent_ServiceEffectSpecification());
+	/**
+	 * Connect a required role of an assembly with a provided role of an assembly
+	 * using a {@link AssemblyConnector}.
+	 * 
+	 * @param reqRole  required role of an assembly
+	 * @param provRole provided role of an assembly
+	 */
+	private void createConnector(AssemblyRequiredRole reqRole, AssemblyProvidedRole provRole) {
+		PCMSystemUtil.createAssemblyConnector(currentSystem, provRole.role, provRole.ctx, reqRole.role, reqRole.ctx);
 	}
 
-	private AssemblyContext resolveAssemblyFor(AssemblyEdge edge, RequiredRole reqRole, ProvidedRole provRole) {
-		// search for matching assemblies
-		List<AssemblyProvidedRole> possAssemblys = getMatchingAssemblys(provRole);
-		if (possAssemblys.size() > 0) {
-			// conflict
-			createAssemblyConflict(possAssemblys, reqRole, edge);
-			return null;
-		}
-
-		// new one
-		return instantiateAssembly(provRole.getProvidingEntity_ProvidedRole());
+	/**
+	 * Delegates a provided role of the system to a provided role of an assembly
+	 * that is contained in the system using a {@link ProvidedDelegationConnector}.
+	 * 
+	 * @param provRole      provided role of the system
+	 * @param provRoleInner provided role of an assembly
+	 */
+	private void createDelegation(SystemProvidedRole provRole, AssemblyProvidedRole provRoleInner) {
+		PCMSystemUtil.createProvidedDelegation(provRole.system, provRole.role, provRoleInner.ctx, provRoleInner.role);
 	}
 
-	private AssemblyContext instantiateAssembly(InterfaceProvidingEntity comp) {
-		if (!(comp instanceof RepositoryComponent)) {
+	/**
+	 * Supplies a provided role of an assembly for a given target (either a required
+	 * role of an assembly or a provided role of the surrounding system). It creates
+	 * a conflict if the information that is provided is not enough to determine the
+	 * corresponding assembly and provided role.
+	 * 
+	 * @param target either a required role of an assembly or a provided role of the
+	 *               surrounding system
+	 * @param from   the component of the target assembly, or null if the target is
+	 *               the system
+	 * @return a provided role of an assembly context or null if there was a
+	 *         conflict
+	 */
+	private AssemblyProvidedRole supplyProvidedRole(Xor<AssemblyRequiredRole, SystemProvidedRole> target,
+			RepositoryComponent from) {
+		OperationInterface targetInterface = getTargetInterface(target);
+		RepositoryComponent comp = supplyComponent(target, targetInterface, from);
+
+		if (comp == null) {
+			if (currentConflict == null) {
+				// no possible solution => delegate required role
+				if (target.leftPresent()) {
+					OperationRequiredRole outerRequiredRole = PCMSystemUtil.createRequiredRole(currentSystem,
+							targetInterface);
+					PCMSystemUtil.createRequiredDelegation(target.getLeft().ctx, target.getLeft().role, currentSystem,
+							outerRequiredRole);
+				} else {
+					log.warning(
+							"A provided role of the system can not be satisfied because there is no component that provides the corresponding interface.");
+				}
+			}
+
 			return null;
 		}
 
-		AssemblyContext nAssembly = CompositionFactory.eINSTANCE.createAssemblyContext();
-		nAssembly.setEntityName("Assembly" + currentAssemblyID++);
-		nAssembly.setEncapsulatedComponent__AssemblyContext((RepositoryComponent) comp);
-		nAssembly.setParentStructure__AssemblyContext(currentOuterStructure); // TODO
-		currentOuterStructure.getAssemblyContexts__ComposedStructure().add(nAssembly);
+		return supplyAssembly(target, comp, targetInterface);
+	}
 
-		// add open roles
-		comp.getProvidedRoles_InterfaceProvidingEntity().forEach(pr -> {
-			AssemblyProvidedRole apr = new AssemblyProvidedRole();
-			apr.ctx = nAssembly;
-			apr.role = pr;
-			openProvidedRoles.add(apr);
+	/**
+	 * Supplies an assembly with a corresponding provided role for a given component
+	 * and a given target (either a required role of an assembly or a provided role
+	 * of the surrounding system).
+	 * 
+	 * @param target either a required role of an assembly or a provided role of the
+	 *               surrounding system
+	 * @param comp   a component which should be used to satisfy the target
+	 * @param iface  the interface of the target and the role that should be
+	 *               provided
+	 * @return an assembly with a corresponding provided role for a given component
+	 *         and a given target, null if there is a conflict
+	 */
+	private AssemblyProvidedRole supplyAssembly(Xor<AssemblyRequiredRole, SystemProvidedRole> target,
+			RepositoryComponent comp, OperationInterface iface) {
+		List<AssemblyProvidedRole> possibleRoles = openProvidedRoles.stream()
+				.filter(opr -> opr.ctx.getEncapsulatedComponent__AssemblyContext().getId().equals(comp.getId()))
+				.collect(Collectors.toList());
+
+		if (possibleRoles.size() == 0) {
+			// create one necessarily
+			return pickOpenProvidedRole(createNewAssembly(comp), iface);
+		} else {
+			// collect possibilities and create conflict
+			List<AssemblyContext> possibleACtxs = possibleRoles.stream().map(pr -> pr.ctx).collect(Collectors.toList());
+			publishConflict(conflictBuilder.createAssemblyConflict(target, possibleACtxs, comp));
+			return null;
+		}
+	}
+
+	/**
+	 * Supplies a component a given target (either a required role of an assembly or
+	 * a provided role of the surrounding system), a given interface that should be
+	 * provided and a given component that uses the component that should be
+	 * selected. The third parameter (component) is used to filter the possible
+	 * components using the service call graph (SCG).
+	 * 
+	 * @param target either a required role of an assembly or a provided role of the
+	 *               surrounding system
+	 * @param iface  interface that should be provided
+	 * @param from   component that uses the component that should be selected
+	 * @return component which provides the needed interface for the given target
+	 */
+	private RepositoryComponent supplyComponent(Xor<AssemblyRequiredRole, SystemProvidedRole> target,
+			OperationInterface iface, RepositoryComponent from) {
+		List<RepositoryComponent> possibleComponents = PCMRepositoryUtil.getComponentsProvidingInterface(baseRepository,
+				iface);
+		List<RepositoryComponent> filteredComponents = scgProcessor.filterComponents(possibleComponents, from, iface);
+
+		if (filteredComponents.size() > 1) {
+			// => conflict
+			publishConflict(conflictBuilder.createConnectionConflict(target, filteredComponents));
+			return null;
+		} else if (filteredComponents.size() == 1) {
+			return filteredComponents.iterator().next();
+		} else {
+			log.warning(
+					"A required role can not be satisfied because there is no component in the repository that provides the required interface.");
+			return null;
+		}
+	}
+
+	/**
+	 * Provides an assembly and a corresponding provided role for a given
+	 * {@link AssemblyContext} and a given {@link OperationInterface}.
+	 * 
+	 * @param ctx   the assembly context
+	 * @param iface the interface to search for
+	 * @return an assembly and a corresponding provided role for the given interface
+	 *         or null if there is no open provided role for that interface of the
+	 *         given assembly
+	 */
+	private AssemblyProvidedRole pickOpenProvidedRole(AssemblyContext ctx, OperationInterface iface) {
+		AssemblyProvidedRole selectedRole = openProvidedRoles.stream().filter(opr -> {
+			return opr.ctx.getId().equals(ctx.getId())
+					&& iface.getId().equals(opr.role.getProvidedInterface__OperationProvidedRole().getId());
+		}).findFirst().orElse(null);
+
+		if (selectedRole != null) {
+			openProvidedRoles.remove(selectedRole);
+			return selectedRole;
+		} else {
+			log.severe(
+					"There is no available open role, even after creating a specific assembly (this should never happen).");
+			return null;
+		}
+	}
+
+	/**
+	 * Creates a new assembly context for a given component. Adds the provided and
+	 * required roles to the corresponding internal lists.
+	 * 
+	 * @param comp the component
+	 * @return a new assembly context for the given component type
+	 */
+	private AssemblyContext createNewAssembly(RepositoryComponent comp) {
+		AssemblyContext ctx = PCMSystemUtil.createAssemblyContext(currentSystem, comp,
+				comp.getEntityName() + "_" + (assemblyNamingId++));
+
+		// add all provided and required roles
+		ctx.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity()
+				.forEach(provRole -> {
+					if (provRole instanceof OperationProvidedRole) {
+						openProvidedRoles.add(new AssemblyProvidedRole(ctx, (OperationProvidedRole) provRole));
+					}
+				});
+		ctx.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().forEach(reqRole -> {
+			if (reqRole instanceof OperationRequiredRole) {
+				openRequiredRoles.add(new AssemblyRequiredRole(ctx, (OperationRequiredRole) reqRole));
+			}
 		});
 
-		return nAssembly;
+		return ctx;
 	}
 
-	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, RequiredRole reqRole,
-			AssemblyEdge selEdge) {
-		AssemblyConflict conflict = new AssemblyConflict(conflictCounter++);
-		conflict.setPoss(possAssemblys.stream().map(a -> a.ctx).collect(Collectors.toList()));
-		conflict.setReqRole(reqRole);
-		conflict.setServiceTo(selEdge.serviceTo);
-
+	/**
+	 * Publishes a {@link ConnectionConflict}, which notifies all listeners and
+	 * marks the conflict as active.
+	 * 
+	 * @param conflict the conflict that should be published
+	 */
+	private void publishConflict(ConnectionConflict conflict) {
 		this.currentConflict = conflict;
-
-		assemblySelectionListener.forEach(l -> l.conflict(conflict));
+		this.connectionConflictListener.forEach(l -> l.conflict(conflict));
 	}
 
-	private void createAssemblyConflict(List<AssemblyProvidedRole> possAssemblys, ResourceDemandingSEFF seff) {
-		AssemblyConflict conflict = new AssemblyConflict(conflictCounter++);
-		conflict.setPoss(possAssemblys.stream().map(a -> a.ctx).collect(Collectors.toList()));
-		conflict.setReqRole(null);
-		conflict.setServiceTo(seff);
-
+	/**
+	 * Publishes a {@link AssemblyConflict}, which notifies all listeners and marks
+	 * the conflict as active.
+	 * 
+	 * @param conflict the conflict that should be published
+	 */
+	private void publishConflict(AssemblyConflict conflict) {
 		this.currentConflict = conflict;
-
-		assemblySelectionListener.forEach(l -> l.conflict(conflict));
+		this.assemblySelectionListener.forEach(l -> l.conflict(conflict));
 	}
 
-	private List<AssemblyProvidedRole> getMatchingAssemblys(ProvidedRole provRole) {
-		return openProvidedRoles.parallelStream().filter(r -> {
-			boolean compMatching = r.ctx.getEncapsulatedComponent__AssemblyContext().getId()
-					.equals(provRole.getProvidingEntity_ProvidedRole().getId());
-			boolean roleMatching = r.role.getId().equals(provRole.getId());
-			return compMatching && roleMatching;
-		}).collect(Collectors.toList());
-	}
-
-	private List<AssemblyProvidedRole> getMatchingAssemblys(BasicComponent comp) {
-		return openProvidedRoles.parallelStream().filter(r -> {
-			return r.ctx.getEncapsulatedComponent__AssemblyContext().getId().equals(comp.getId());
-		}).collect(Collectors.toList());
-	}
-
-	private void createEdgeConflict(List<AssemblyEdge> edges, RequiredRole reqRole, Signature toSig) {
-		// => conflict
-		ConnectionConflict conflict = new ConnectionConflict(conflictCounter++);
-		conflict.setRequired(reqRole);
-		conflict.setProvided(edges.parallelStream().map(e -> {
-			ResourceDemandingSEFF toSeff = e.serviceTo;
-			Optional<ProvidedRole> provRole = PCMUtils
-					.getProvidedRoleBySignature(toSeff.getBasicComponent_ServiceEffectSpecification(), toSig);
-			if (!provRole.isPresent()) {
-				throw new RuntimeException(
-						"Could not find provided role for a specific service call. Please check the consistency of your repository model.");
-			}
-			return provRole.get();
-		}).collect(Collectors.toList()));
-
-		this.currentConflict = conflict;
-
-		connectionConflictListener.forEach(l -> l.conflict(conflict));
-	}
-
-	private void clusterAndAddOutgoingEdges(ResourceDemandingSEFF current, AssemblyContext ctx) {
-		List<ServiceCallGraphEdge> edges = currentServiceCallGraph.getOutgoingEdges().get(resolveNode(current));
-		Map<String, List<AssemblyEdge>> signatureClusteredEdges = new HashMap<>();
-
-		if (edges != null) {
-			edges.stream().forEach(edge -> {
-				ResourceDemandingSEFF calledSeff = edge.getTo().getSeff();
-
-				if (!signatureClusteredEdges.containsKey(calledSeff.getDescribedService__SEFF().getId())) {
-					signatureClusteredEdges.put(calledSeff.getDescribedService__SEFF().getId(), Lists.newArrayList());
-				}
-				signatureClusteredEdges.get(calledSeff.getDescribedService__SEFF().getId())
-						.add(new AssemblyEdge(current, edge.getTo().getSeff(), ctx));
-			});
-
-			// add all
-			signatureClusteredEdges.values().forEach(l -> {
-				currentEdges.addLast(l);
-			});
-		}
-	}
-
-	private ServiceCallGraphNode resolveNode(ResourceDemandingSEFF seff) {
-		return currentServiceCallGraph.getNodes().stream()
-				.filter(n -> n.getSeff().getId().equals(seff.getId()) && n.getHost() == null).findFirst().orElse(null);
-	}
-
-	public System getCurrentSystem() {
-		return currentSystem;
-	}
-
-	public AbstractConflict<?> getCurrentConflict() {
-		return currentConflict;
-	}
-
-	private class AssemblyProvidedRole {
+	/**
+	 * Simple data structure which contains an assembly context and a corresponding
+	 * provided role.
+	 * 
+	 * @author David Monschein
+	 *
+	 */
+	@AllArgsConstructor
+	@Getter
+	public class AssemblyProvidedRole {
 		private AssemblyContext ctx;
-		private ProvidedRole role;
+		private OperationProvidedRole role;
 	}
 
-	private class AssemblyEdge {
-		private ResourceDemandingSEFF serviceFrom;
-		private ResourceDemandingSEFF serviceTo;
+	/**
+	 * Simple data structure which contains an assembly context and a corresponding
+	 * required role.
+	 * 
+	 * @author David Monschein
+	 *
+	 */
+	@AllArgsConstructor
+	@Getter
+	public class AssemblyRequiredRole {
+		private AssemblyContext ctx;
+		private OperationRequiredRole role;
+	}
 
-		private AssemblyContext assemblyFrom;
-
-		private AssemblyEdge(ResourceDemandingSEFF serviceFrom, ResourceDemandingSEFF serviceTo,
-				AssemblyContext assemblyCtxFrom) {
-			this.serviceFrom = serviceFrom;
-			this.serviceTo = serviceTo;
-			this.assemblyFrom = assemblyCtxFrom;
-		}
+	/**
+	 * Simple data structure which contains a system and a corresponding provided
+	 * role.
+	 * 
+	 * @author David Monschein
+	 *
+	 */
+	@AllArgsConstructor
+	@Getter
+	public class SystemProvidedRole {
+		private OperationProvidedRole role;
+		private System system;
 	}
 
 }
