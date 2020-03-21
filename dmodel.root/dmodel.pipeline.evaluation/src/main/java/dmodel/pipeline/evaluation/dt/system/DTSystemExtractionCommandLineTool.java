@@ -10,6 +10,8 @@ import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage;
@@ -19,15 +21,18 @@ import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
-import dmodel.pipeline.dt.system.pcm.impl.util.ConflictBuilder;
 import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
+@Service
 public class DTSystemExtractionCommandLineTool {
 	private BufferedReader inputReader;
 	private DTSystemExtractionConfiguration configuration;
+
+	@Autowired
 	private PCMSystemBuilder systemBuilder;
+
 	private ServiceCallGraph serviceCallGraph;
 
 	public DTSystemExtractionCommandLineTool() {
@@ -38,8 +43,6 @@ public class DTSystemExtractionCommandLineTool {
 	public void startSystemExtraction(DTSystemExtractionConfiguration config) {
 		inputReader = new BufferedReader(new InputStreamReader(System.in));
 		configuration = config;
-		systemBuilder = new PCMSystemBuilder();
-		systemBuilder.setConflictBuilder(new ConflictBuilder());
 		serviceCallGraph = ModelUtil.readFromFile(config.getScgFile().getAbsolutePath(), ServiceCallGraph.class);
 		serviceCallGraph.rebuild();
 
