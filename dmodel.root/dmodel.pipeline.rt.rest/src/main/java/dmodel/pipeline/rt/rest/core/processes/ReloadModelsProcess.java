@@ -1,21 +1,21 @@
 package dmodel.pipeline.rt.rest.core.processes;
 
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.shared.config.ModelConfiguration;
 
 public class ReloadModelsProcess implements Runnable {
 
-	private RuntimePipelineBlackboard blackboard;
+	private CentralModelAdminstrator modelContainer;
 	private ModelConfiguration config;
 
-	public ReloadModelsProcess(RuntimePipelineBlackboard blackboard, ModelConfiguration config) {
-		this.blackboard = blackboard;
+	public ReloadModelsProcess(CentralModelAdminstrator modelContainer, ModelConfiguration config) {
+		this.modelContainer = modelContainer;
 		this.config = config;
 	}
 
 	@Override
 	public void run() {
-		this.blackboard.loadArchitectureModel(config);
+		this.modelContainer.loadArchitectureModel(config);
 	}
 
 }

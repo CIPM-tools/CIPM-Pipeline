@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.palladiosimulator.pcm.repository.Repository;
-import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 
 import com.google.common.collect.Lists;
 
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.IUsageDataExtractor;
 import dmodel.pipeline.rt.pcm.usagemodel.ServiceCallSession;
@@ -45,8 +45,8 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 	}
 
 	@Override
-	public List<UsageScenario> extract(List<Tree<ServiceCallRecord>> callSequences, Repository repository,
-			System system) {
+	public List<UsageScenario> extract(List<Tree<ServiceCallRecord>> callSequences, IRepositoryQueryFacade repository,
+			ISystemQueryFacade system) {
 		// reset old
 		currentGroupId = 0;
 		// 1. create entry call tree

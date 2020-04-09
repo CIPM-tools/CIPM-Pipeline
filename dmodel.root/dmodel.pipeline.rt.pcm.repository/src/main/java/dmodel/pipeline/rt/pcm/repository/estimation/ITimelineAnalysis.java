@@ -1,7 +1,9 @@
 package dmodel.pipeline.rt.pcm.repository.estimation;
 
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
+
 public interface ITimelineAnalysis {
 
-	public void analyze(IResourceDemandTimeline timeline);
+	public RepositoryStoexChanges analyze(IResourceDemandTimeline timeline);
 
 }

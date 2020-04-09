@@ -1,8 +1,8 @@
 package dmodel.pipeline.dt.inmodel;
 
-import InstrumentationMetamodel.InstrumentationModel;
-import InstrumentationMetamodel.InstrumentationModelFactory;
-import InstrumentationMetamodel.ServiceInstrumentationPoint;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModelFactory;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.ServiceInstrumentationPoint;
 
 public class SerializationTest {
 

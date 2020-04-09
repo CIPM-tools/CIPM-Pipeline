@@ -1,22 +1,25 @@
 package dmodel.pipeline.rt.router;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Triple;
+import org.palladiosimulator.pcm.usagemodel.UsageModel;
+import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Maps;
-
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.state.EPipelineTransformation;
+import dmodel.pipeline.core.state.ETransformationState;
+import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.repository.RepositoryDerivation;
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
 import dmodel.pipeline.rt.pcm.usagemodel.transformation.UsageDataDerivation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
@@ -24,13 +27,8 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
-import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.validation.data.ValidationData;
-import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
-import dmodel.pipeline.rt.validation.data.ValidationPoint;
-import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
@@ -38,16 +36,26 @@ import lombok.extern.java.Log;
 
 @Log
 @Service
-// TODO refactoring
 public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
-
-	private ExecutorService executorService;
-
+	// sub transformations
 	@Autowired
 	private UsageDataDerivation usageDataTransformation;
 
 	@Autowired
 	private RepositoryDerivation repositoryTransformation;
+
+	// needed internals
+	private ExecutorService executorService;
+	private CountDownLatch waitLatch;
+	private InMemoryPCM copyForUsage;
+	private InMemoryPCM copyForRepository;
+	private Set<String> fineGrainedInstrumentedServices;
+
+	private ValidationData validationRepository;
+	private ValidationData validationUsage;
+
+	private RepositoryStoexChanges extractedStoexChanges;
+	private List<UsageScenario> extractedUsageScenarios;
 
 	public AccuracySwitch() {
 		executorService = Executors.newFixedThreadPool(2);
@@ -61,50 +69,21 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		log.info("Running usage model and repository derivation.");
 
 		// create deep copies
-		getBlackboard().getArchitectureModel().clearListeners();
-		InMemoryPCM copyForUsage = getBlackboard().getArchitectureModel().copyDeep();
-		InMemoryPCM copyForRepository = getBlackboard().getArchitectureModel().copyDeep();
-		copyForUsage.clearListeners();
-		copyForRepository.clearListeners();
+		createDeepCopies();
 
 		// 1. invoke the transformations
-		CountDownLatch waitLatch = new CountDownLatch(2);
+		waitLatch = new CountDownLatch(2);
 
 		// 1.0. get services that are instrumented fine grained
-		Set<String> fineGrainedInstrumentedServices = getBlackboard().getInstrumentationModel().getPoints().stream()
-				.filter(instr -> {
-					return instr.getActionInstrumentationPoints().stream().anyMatch(ac -> ac.isActive());
-				}).map(instr -> instr.getService().getId()).collect(Collectors.toSet());
+		fineGrainedInstrumentedServices = getFineGrainedInstrumentedServices();
 
 		// 1.1 submit usage derivation
-		executorService.submit(() -> {
-			long start = getBlackboard().getPerformanceEvaluation().getTime();
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-					ETransformationState.RUNNING);
-			usageDataTransformation.deriveUsageData(entryCalls, copyForUsage,
-					getBlackboard().getValidationResultContainer().getPreValidationResults());
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL1,
-					ETransformationState.FINISHED);
-			getBlackboard().getPerformanceEvaluation().trackUsage1(start);
-
-			waitLatch.countDown();
-		});
+		submitUsageDataTransformation(entryCalls, ExecutionMeasuringPoint.T_USAGE_1,
+				EPipelineTransformation.T_USAGEMODEL1, ValidationSchedulePoint.PRE_PIPELINE);
 
 		// 1.2. submit repository derivation
-		executorService.submit(() -> {
-			long starti = getBlackboard().getPerformanceEvaluation().getTime();
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-					ETransformationState.RUNNING);
-			repositoryTransformation.calibrateRepository(rawMonitoringData.getTrainingData(), copyForRepository,
-					getBlackboard().getBorder().getRuntimeMapping(),
-					getBlackboard().getValidationResultContainer().getPreValidationResults(),
-					fineGrainedInstrumentedServices);
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY1,
-					ETransformationState.FINISHED);
-			getBlackboard().getPerformanceEvaluation().trackCalibration1(starti);
-
-			waitLatch.countDown();
-		});
+		submitRepositoryTransformation(rawMonitoringData, ExecutionMeasuringPoint.T_DEMAND_CALIBRATION_1,
+				EPipelineTransformation.T_REPOSITORY1, ValidationSchedulePoint.PRE_PIPELINE);
 
 		// 2. wait for the transformations to finish
 		try {
@@ -114,103 +93,128 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 			return;
 		}
 
+		// 2.1 apply the changes
+		extractedStoexChanges.apply(copyForRepository.getRepository());
+		applyUsageScenarios(extractedUsageScenarios, copyForUsage.getUsageModel());
+
 		// 3. simulate the resulting models
-		// TODO maybe do this in parallel if it works flawless
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
-				ETransformationState.RUNNING);
-		ValidationData pathRepository = getBlackboard().getValidationFeedbackComponent().process(copyForRepository,
-				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData.getValidationData(), "ValidateRepo");
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION22,
-				ETransformationState.FINISHED);
-		getBlackboard().getPerformanceEvaluation().trackValidationRepository(start);
-
-		start = getBlackboard().getPerformanceEvaluation().getTime();
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
-				ETransformationState.RUNNING);
-		ValidationData pathUsageModel = getBlackboard().getValidationFeedbackComponent().process(copyForUsage,
-				getBlackboard().getBorder().getRuntimeMapping(), rawMonitoringData.getValidationData(),
-				"ValidateUsage");
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_VALIDATION21,
-				ETransformationState.FINISHED);
-		getBlackboard().getPerformanceEvaluation().trackValidationUsage(start);
-
-		// add them to the blackboard
-		getBlackboard().getValidationResultContainer().setAfterRepositoryResults(pathRepository);
-		getBlackboard().getValidationResultContainer().setAfterUsageModelResults(pathUsageModel);
+		simulateResultingModels(rawMonitoringData);
+		validationRepository = getBlackboard().getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_REPO);
+		validationUsage = getBlackboard().getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_USAGE);
 
 		// 3.1. check which one is better
-		// TODO outsource
-		start = getBlackboard().getPerformanceEvaluation().getTime();
-		double sum = 0;
-		Map<Triple<String, String, ValidationMetricType>, ValidationMetricValue> mappingA = Maps.newHashMap();
-		if (pathRepository != null && pathUsageModel != null && !pathRepository.isEmpty()
-				&& !pathUsageModel.isEmpty()) {
-			pathRepository.getValidationPoints().forEach(m -> {
-				m.getMetricValues().forEach(metricValue -> {
-					mappingA.put(Triple.of(m.getId(), m.getMetricDescription().getId(), metricValue.type()),
-							metricValue);
-				});
-			});
-			for (ValidationPoint validationPoint : pathUsageModel.getValidationPoints()) {
-				for (ValidationMetricValue val : validationPoint.getMetricValues()) {
-					Triple<String, String, ValidationMetricType> query = Triple.of(validationPoint.getId(),
-							validationPoint.getMetricDescription().getId(), val.type());
-					if (mappingA.containsKey(query)) {
-						double comp = mappingA.get(query).compare(val);
-						if (comp > 0) {
-							sum += 1;
-						} else if (comp < 0) {
-							sum -= 1;
-						}
-					}
-				}
-			}
-		}
-		getBlackboard().getPerformanceEvaluation().trackCrossValidation(start);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_CROSS_VALIDATION);
+		int crossValidationResult = getBlackboard().getValidationQuery().compare(validationRepository, validationUsage);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_CROSS_VALIDATION);
 
 		// 4. execute one final transformation on the better model
-		if (sum >= 0) {
-			start = getBlackboard().getPerformanceEvaluation().getTime();
-			getBlackboard().getPerformanceEvaluation().trackPath(true);
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL2,
-					ETransformationState.RUNNING);
-
-			// repository was better
-			usageDataTransformation.deriveUsageData(entryCalls, copyForRepository, pathRepository);
-
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_USAGEMODEL2,
-					ETransformationState.FINISHED);
-			getBlackboard().getPerformanceEvaluation().trackUsage2(start);
-		} else {
-			start = getBlackboard().getPerformanceEvaluation().getTime();
-			getBlackboard().getPerformanceEvaluation().trackPath(false);
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
-					ETransformationState.RUNNING);
-
-			// usagemodel was better
-			repositoryTransformation.calibrateRepository(rawMonitoringData.getTrainingData(), copyForUsage,
-					getBlackboard().getBorder().getRuntimeMapping(), pathUsageModel, fineGrainedInstrumentedServices);
-
-			getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_REPOSITORY2,
-					ETransformationState.FINISHED);
-			getBlackboard().getPerformanceEvaluation().trackCalibration2(start);
-		}
-
-		// 5. set it as final
-		if (sum >= 0) {
+		waitLatch = new CountDownLatch(1);
+		if (crossValidationResult >= 0) {
 			log.info("Selected repository path.");
-			getBlackboard().setArchitectureModel(copyForRepository);
-			copyForRepository.syncWithFilesystem(getBlackboard().getFilesystemPCM());
+			getBlackboard().getQuery().trackPath(true);
+
+			submitUsageDataTransformation(entryCalls, ExecutionMeasuringPoint.T_USAGE_2,
+					EPipelineTransformation.T_USAGEMODEL2, ValidationSchedulePoint.AFTER_T_REPO);
 		} else {
 			log.info("Selected usage path.");
-			getBlackboard().setArchitectureModel(copyForUsage);
-			copyForUsage.syncWithFilesystem(getBlackboard().getFilesystemPCM());
+			getBlackboard().getQuery().trackPath(false);
+
+			submitRepositoryTransformation(rawMonitoringData, ExecutionMeasuringPoint.T_DEMAND_CALIBRATION_2,
+					EPipelineTransformation.T_REPOSITORY2, ValidationSchedulePoint.AFTER_T_USAGE);
 		}
 
+		// 4.1. wait for transformation to finish
+		try {
+			waitLatch.await();
+		} catch (InterruptedException e) {
+			log.warning("Waiting for the subtransformations has been interrupted.");
+			return;
+		}
+
+		// 5. apply to current model
+		extractedStoexChanges.apply(getBlackboard().getPcmQuery().getRaw().getRepository());
+		applyUsageScenarios(extractedUsageScenarios, getBlackboard().getPcmQuery().getRaw().getUsageModel());
+
+		// 6. reset caches (soft) because the may invalid now
+		getBlackboard().reset(false);
+
 		// evaluation
-		getBlackboard().getPerformanceEvaluation().trackUsageScenarios(
-				getBlackboard().getArchitectureModel().getUsageModel().getUsageScenario_UsageModel().size());
+		getBlackboard().getQuery().trackUsageScenarios(getBlackboard().getPcmQuery().getUsage().getScnearioCount());
+	}
+
+	private void simulateResultingModels(PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_2);
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION22, ETransformationState.RUNNING);
+
+		getBlackboard().getValidationQuery().process(copyForRepository, rawMonitoringData.getValidationData(),
+				ValidationSchedulePoint.AFTER_T_REPO);
+
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION22, ETransformationState.FINISHED);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_2);
+
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_3);
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION21, ETransformationState.RUNNING);
+
+		getBlackboard().getValidationQuery().process(copyForUsage, rawMonitoringData.getValidationData(),
+				ValidationSchedulePoint.AFTER_T_USAGE);
+
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION21, ETransformationState.FINISHED);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_3);
+	}
+
+	private void createDeepCopies() {
+		getBlackboard().getPcmQuery().getRaw().clearListeners();
+		copyForUsage = getBlackboard().getPcmQuery().getDeepCopy();
+		copyForRepository = getBlackboard().getPcmQuery().getDeepCopy();
+		copyForUsage.clearListeners();
+		copyForRepository.clearListeners();
+	}
+
+	private Set<String> getFineGrainedInstrumentedServices() {
+		return getBlackboard().getInmQuery().getFineGrainedInstrumentedServices().stream()
+				.map(sip -> sip.getService().getId()).collect(Collectors.toSet());
+	}
+
+	private void submitRepositoryTransformation(PartitionedMonitoringData<PCMContextRecord> rawMonitoringData,
+			ExecutionMeasuringPoint measuringPoint, EPipelineTransformation transformation,
+			ValidationSchedulePoint reference) {
+		executorService.submit(() -> {
+			getBlackboard().getQuery().track(measuringPoint);
+			getBlackboard().getQuery().updateState(transformation, ETransformationState.RUNNING);
+
+			extractedStoexChanges = repositoryTransformation.calibrateRepository(rawMonitoringData,
+					getBlackboard().getPcmQuery(), getBlackboard().getValidationResultsQuery().get(reference),
+					fineGrainedInstrumentedServices);
+
+			getBlackboard().getQuery().updateState(transformation, ETransformationState.FINISHED);
+			getBlackboard().getQuery().track(measuringPoint);
+
+			waitLatch.countDown();
+		});
+	}
+
+	private void submitUsageDataTransformation(List<Tree<ServiceCallRecord>> entryCalls,
+			ExecutionMeasuringPoint measuringPoint, EPipelineTransformation transformation,
+			ValidationSchedulePoint reference) {
+		executorService.submit(() -> {
+			getBlackboard().getQuery().track(measuringPoint);
+			getBlackboard().getQuery().updateState(transformation, ETransformationState.RUNNING);
+
+			extractedUsageScenarios = usageDataTransformation.deriveUsageData(entryCalls, getBlackboard().getPcmQuery(),
+					getBlackboard().getValidationResultsQuery().get(reference));
+
+			getBlackboard().getQuery().track(measuringPoint);
+			getBlackboard().getQuery().updateState(transformation, ETransformationState.RUNNING);
+
+			waitLatch.countDown();
+		});
+	}
+
+	private void applyUsageScenarios(List<UsageScenario> scenarios, UsageModel usage) {
+		if (scenarios != null && scenarios.size() > 0) {
+			usage.getUsageScenario_UsageModel().clear();
+			usage.getUsageScenario_UsageModel().addAll(scenarios);
+		}
 	}
 
 }

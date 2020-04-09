@@ -6,50 +6,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
+import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.shared.json.JsonEObject;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 @Service
 public class TemplateHelper {
-
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
-
-	@Autowired
-	private DModelConfigurationContainer config;
+	private IPcmModelProvider modelContainer;
 
 	public void addModelOverviewInformation(Model model) {
-		InMemoryPCM pcm = blackboard.getArchitectureModel();
-
-		if (pcm == null) {
-			blackboard.loadArchitectureModel(config.getModels());
-			pcm = blackboard.getArchitectureModel();
-			if (pcm == null) {
-				return;
-			}
-		}
-
 		// system
-		model.addAttribute("system", JsonEObject.create(pcm.getSystem()));
-		model.addAttribute("system_updated", new Date(pcm.getLastUpdatedSystem()));
+		model.addAttribute("system", JsonEObject.create(modelContainer.getSystem()));
+		model.addAttribute("system_updated", new Date());
 
 		// repository
-		model.addAttribute("repository", JsonEObject.create(pcm.getRepository()));
-		model.addAttribute("repository_updated", new Date(pcm.getLastUpdatedRepository()));
+		model.addAttribute("repository", JsonEObject.create(modelContainer.getRepository()));
+		model.addAttribute("repository_updated", new Date());
 
 		// allocation
-		model.addAttribute("allocation", JsonEObject.create(pcm.getAllocationModel()));
-		model.addAttribute("allocation_updated", new Date(pcm.getLastUpdatedAllocation()));
+		model.addAttribute("allocation", JsonEObject.create(modelContainer.getAllocation()));
+		model.addAttribute("allocation_updated", new Date());
 
 		// usage
-		model.addAttribute("usage", JsonEObject.create(pcm.getUsageModel()));
-		model.addAttribute("usage_updated", new Date(pcm.getLastUpdatedUsage()));
+		model.addAttribute("usage", JsonEObject.create(modelContainer.getUsage()));
+		model.addAttribute("usage_updated", new Date());
 
 		// resource environment
-		model.addAttribute("resenv", JsonEObject.create(pcm.getResourceEnvironmentModel()));
-		model.addAttribute("resenv_updated", new Date(pcm.getLastUpdatedResourceEnv()));
+		model.addAttribute("resenv", JsonEObject.create(modelContainer.getResourceEnvironment()));
+		model.addAttribute("resenv_updated", new Date());
 	}
 
 }

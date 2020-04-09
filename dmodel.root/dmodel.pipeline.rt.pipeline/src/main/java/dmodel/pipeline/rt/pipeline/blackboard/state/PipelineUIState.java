@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
+import dmodel.pipeline.core.state.EPipelineTransformation;
+import dmodel.pipeline.core.state.ETransformationState;
 import lombok.Data;
 
 @Service

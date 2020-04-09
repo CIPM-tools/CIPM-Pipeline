@@ -9,6 +9,9 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.state.EPipelineTransformation;
+import dmodel.pipeline.core.state.ETransformationState;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.resourceenv.data.EnvironmentData;
 import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
@@ -22,8 +25,6 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
-import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
@@ -40,10 +41,10 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_RESENV) })
 	@OutputPorts(@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_SYSTEM))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_RESOURCE_ENVIRONMENT);
+
 		log.info("Deriving resource environment.");
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
-				ETransformationState.RUNNING);
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_RESOURCEENV, ETransformationState.RUNNING);
 
 		Set<String> hostIds = new HashSet<>();
 		Map<String, String> hostIdMapping = new HashMap<>();
@@ -64,12 +65,10 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 		});
 
 		// trigger deduction
-		transformer.processEnvironmentData(getBlackboard().getArchitectureModel(),
-				getBlackboard().getBorder().getRuntimeMapping(), data);
+		transformer.processEnvironmentData(getBlackboard().getRemQuery(), getBlackboard().getVsumQuery(), data);
 
-		getBlackboard().getPerformanceEvaluation().trackResourceEnvironment(start);
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_RESOURCEENV,
-				ETransformationState.FINISHED);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_RESOURCE_ENVIRONMENT);
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_RESOURCEENV, ETransformationState.FINISHED);
 	}
 
 	private void traverseNode(TreeNode<ServiceCallRecord> node, Set<String> hosts, Map<String, String> mapping,

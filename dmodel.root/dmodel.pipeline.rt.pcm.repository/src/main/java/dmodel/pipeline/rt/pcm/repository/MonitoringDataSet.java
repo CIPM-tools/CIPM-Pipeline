@@ -11,15 +11,17 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
-import org.palladiosimulator.pcm.allocation.Allocation;
-import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.core.composition.AssemblyContext;
+import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
+import org.palladiosimulator.pcm.seff.AbstractBranchTransition;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-import org.pcm.headless.api.util.PCMUtil;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
+import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.monitoring.records.BranchRecord;
 import dmodel.pipeline.monitoring.records.LoopRecord;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
@@ -27,7 +29,11 @@ import dmodel.pipeline.monitoring.records.ResourceUtilizationRecord;
 import dmodel.pipeline.monitoring.records.ResponseTimeRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
+import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
+import lombok.extern.java.Log;
 
+@Log
 public class MonitoringDataSet {
 	private List<PCMContextRecord> rawData;
 
@@ -46,21 +52,25 @@ public class MonitoringDataSet {
 
 	private Map<String, ServiceParametersWrapper> parameterMapping;
 
-	private PalladioRuntimeMapping runtimeMapping;
-	private Allocation allocationModel;
-	private Repository repositoryModel;
+	private ISpecificVsumFacade mapping;
+
+	private IAllocationQueryFacade allocationModel;
+	private IRepositoryQueryFacade repositoryModel;
+	private IRuntimeEnvironmentQueryFacade rem;
 
 	private Cache<String, String> containerCache = new Cache2kBuilder<String, String>() {
 	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 	private Cache<Pair<String, String>, String> assemblyCache = new Cache2kBuilder<Pair<String, String>, String>() {
 	}.expireAfterWrite(5, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
-	public MonitoringDataSet(List<PCMContextRecord> records, PalladioRuntimeMapping runtimeMapping,
-			Allocation allocationModel, Repository repositoryModel) {
+	public MonitoringDataSet(List<PCMContextRecord> records, ISpecificVsumFacade mapping,
+			IRuntimeEnvironmentQueryFacade rem, IAllocationQueryFacade allocationModel,
+			IRepositoryQueryFacade repositoryModel) {
 		this.rawData = records;
-		this.runtimeMapping = runtimeMapping;
+		this.mapping = mapping;
 		this.allocationModel = allocationModel;
 		this.repositoryModel = repositoryModel;
+		this.rem = rem;
 
 		prepare(records);
 	}
@@ -75,18 +85,22 @@ public class MonitoringDataSet {
 		if (assemblyCache.containsKey(queuingPair)) {
 			return assemblyCache.get(queuingPair);
 		} else {
-			ResourceDemandingSEFF seff = PCMUtil.getElementById(repositoryModel, ResourceDemandingSEFF.class,
-					serviceCall.getServiceId());
-			String assemblyId = allocationModel.getAllocationContexts_Allocation().stream().filter(ac -> {
-				return ac.getResourceContainer_AllocationContext().getId().equals(queuingPair.getRight())
-						&& ac.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext().getId()
-								.equals(seff.getBasicComponent_ServiceEffectSpecification().getId());
-			}).map(ac -> ac.getAssemblyContext_AllocationContext().getId()).findFirst().orElse(null);
+			ResourceDemandingSEFF seff = repositoryModel.getServiceById(serviceCall.getServiceId());
+			RuntimeResourceContainer remContainer = rem.getContainerById(serviceCall.getHostId());
+			ResourceContainer envContainer = mapping.getCorrespondingResourceContainer(remContainer).orElse(null);
 
-			if (assemblyId != null) {
-				assemblyCache.put(queuingPair, assemblyId);
+			if (envContainer != null) {
+				List<AssemblyContext> assemblyCtx = allocationModel
+						.getDeployedAssembly(seff.getBasicComponent_ServiceEffectSpecification(), envContainer);
+				if (assemblyCtx.size() == 1) {
+					assemblyCache.put(queuingPair, assemblyCtx.get(0).getId());
+					return assemblyCtx.get(0).getId();
+				}
+			} else {
+				log.warning("Failed to resolve mapped container. The previous transformations maybe failed.");
 			}
-			return assemblyId;
+
+			return null;
 		}
 	}
 
@@ -113,10 +127,12 @@ public class MonitoringDataSet {
 		branchMapping = Maps.newHashMap();
 
 		records.stream().filter(f -> f instanceof BranchRecord).map(BranchRecord.class::cast).forEach(e -> {
-			if (!branchMapping.containsKey(e.getBranchId())) {
-				branchMapping.put(e.getBranchId(), Lists.newArrayList());
+			AbstractBranchTransition transition = repositoryModel.getBranchTransition(e.getExecutedBranchId());
+			String correspondingBranchId = transition.getBranchAction_AbstractBranchTransition().getId();
+			if (!branchMapping.containsKey(correspondingBranchId)) {
+				branchMapping.put(correspondingBranchId, Lists.newArrayList());
 			}
-			branchMapping.get(e.getBranchId()).add(e);
+			branchMapping.get(correspondingBranchId).add(e);
 		});
 	}
 
@@ -125,10 +141,17 @@ public class MonitoringDataSet {
 		if (containerCache.containsKey(hostId)) {
 			containerId = containerCache.get(hostId);
 		} else {
-			containerId = runtimeMapping.getHostMappings().stream().filter(m -> m.getHostID().equals(hostId))
-					.map(m -> m.getPcmContainerID()).findFirst().orElse(null);
+			RuntimeResourceContainer belContainer = resolveRuntimeResourceContainer(hostId);
+			ResourceContainer belEnvContainer = mapping.getCorrespondingResourceContainer(belContainer).orElse(null);
+
+			containerCache.put(hostId, belEnvContainer.getId());
+			containerId = belEnvContainer.getId();
 		}
 		return containerId;
+	}
+
+	private RuntimeResourceContainer resolveRuntimeResourceContainer(String hostId) {
+		return rem.getContainerById(hostId);
 	}
 
 	private void prepareResourceUtilizations(List<PCMContextRecord> records) {

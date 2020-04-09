@@ -9,15 +9,15 @@ import java.util.SortedMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
-import org.pcm.headless.api.util.PCMUtil;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.repository.MonitoringDataSet;
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
 import dmodel.pipeline.rt.pcm.repository.estimation.IResourceDemandTimeline;
 import dmodel.pipeline.rt.pcm.repository.estimation.ResourceDemandTimeline;
 import dmodel.pipeline.rt.pcm.repository.estimation.ResourceDemandTimelineInterval;
@@ -26,15 +26,14 @@ import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
 import dmodel.pipeline.rt.pcm.repository.tree.TreeNode;
 import dmodel.pipeline.rt.pcm.repository.usage.AdvancedPOSIXUsageEstimation;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 public class ResourceDemandEstimatorAlternative implements IResourceDemandEstimator {
 
-	private InMemoryPCM pcm;
+	private IPCMQueryFacade pcm;
 
 	private List<IResourceDemandTimeline> timelines;
 
-	public ResourceDemandEstimatorAlternative(InMemoryPCM pcm) {
+	public ResourceDemandEstimatorAlternative(IPCMQueryFacade pcm) {
 		this.pcm = pcm;
 		this.timelines = new ArrayList<>();
 	}
@@ -87,9 +86,8 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 		// process all roots
 		for (TreeNode<ServiceCallRecord> root : callRoots) {
 			String assembly = data.getAssemblyContextId(root.data);
-			AssemblyContext ctx = PCMUtil.getElementById(pcm.getSystem(), AssemblyContext.class, assembly);
-			ResourceDemandingSEFF seff = PCMUtil.getElementById(pcm.getRepository(), ResourceDemandingSEFF.class,
-					root.data.getServiceId());
+			AssemblyContext ctx = pcm.getSystem().getAssemblyById(assembly);
+			ResourceDemandingSEFF seff = pcm.getRepository().getServiceById(root.data.getServiceId());
 
 			ResourceContainer container = getContainerByAssemblyId(ctx);
 
@@ -128,12 +126,14 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 	}
 
 	@Override
-	public void derive(Map<String, Double> currentValidationAdjustment) {
+	public RepositoryStoexChanges derive(Map<String, Double> currentValidationAdjustment) {
+		RepositoryStoexChanges result = new RepositoryStoexChanges();
 		TimelineAnalyzer analyzer = new TimelineAnalyzer(pcm, TimelineAnalyzer.UnrollStrategy.COMPLETE,
 				new AdvancedPOSIXUsageEstimation(), currentValidationAdjustment); // 20 s
 		for (IResourceDemandTimeline tl : this.timelines) {
-			analyzer.analyze(tl);
+			result.inherit(analyzer.analyze(tl));
 		}
+		return result;
 	}
 
 	private Set<String> getDemandingResources(ResourceDemandingSEFF seff) {
@@ -144,9 +144,7 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 	}
 
 	private ResourceContainer getContainerByAssemblyId(AssemblyContext asCtx) {
-		return ModelUtil.getObjects(pcm.getAllocationModel(), AllocationContext.class).stream().filter(ctx -> {
-			return ctx.getAssemblyContext_AllocationContext().getId().equals(asCtx.getId());
-		}).map(t -> t.getResourceContainer_AllocationContext()).findFirst().orElse(null);
+		return pcm.getAllocation().getContainerByAssembly(asCtx);
 	}
 
 }

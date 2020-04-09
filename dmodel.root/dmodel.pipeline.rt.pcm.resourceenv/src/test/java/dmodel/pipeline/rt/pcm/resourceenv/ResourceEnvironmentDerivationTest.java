@@ -10,14 +10,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceenvironmentFactory;
 
-import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
+// TODO broken because it needs VSUM
 public class ResourceEnvironmentDerivationTest {
 
 	private ResourceEnvironmentTransformation transformation;
@@ -46,10 +45,6 @@ public class ResourceEnvironmentDerivationTest {
 		// create pcm
 		InMemoryPCM pcm = new InMemoryPCM();
 		pcm.setResourceEnvironmentModel(ResourceenvironmentFactory.eINSTANCE.createResourceEnvironment());
-		this.transformation.getBlackboard().setArchitectureModel(pcm);
-		this.transformation.getBlackboard().setBorder(new RunTimeDesignTimeBorder());
-		this.transformation.getBlackboard().getBorder()
-				.setRuntimeMapping(MappingFactory.eINSTANCE.createPalladioRuntimeMapping());
 
 		// trigger it
 		transformation.deriveResourceEnvironment(MonitoringDataUtil.buildServiceCallTree(l));

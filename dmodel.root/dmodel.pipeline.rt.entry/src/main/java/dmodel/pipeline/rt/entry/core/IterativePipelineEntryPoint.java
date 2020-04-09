@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.entry.core;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.pcm.validation.PrePipelineValidationTask;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
@@ -29,17 +30,16 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 		List<IMonitoringRecord> records = monitoringData.getAllData();
 
 		// EVALUATION
-		getBlackboard().getPerformanceEvaluation().enterPipelineExecution();
-		getBlackboard().getPerformanceEvaluation().trackRecordCount(records.size());
+		getBlackboard().getQuery().trackStartPipelineExecution();
+		getBlackboard().getQuery().trackRecordCount(records.size());
 
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
-
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_PRE_FILTER);
 		// original logic
 		log.info("Reached entry (size = " + records.size() + ").");
 		List<PCMContextRecord> result = records.stream().filter(r -> r instanceof PCMContextRecord)
 				.map(PCMContextRecord.class::cast).collect(Collectors.toList());
 
-		getBlackboard().getPerformanceEvaluation().trackPreFilter(start);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_PRE_FILTER);
 
 		return new PartitionedMonitoringData<PCMContextRecord>(result, monitoringData.getValidationSplit());
 	}

@@ -1,32 +1,40 @@
 package dmodel.pipeline.rt.pcm.repository;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
 import org.apache.commons.math3.stat.StatUtils;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 
-import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
+import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.pcm.repository.branch.impl.BranchEstimationImpl;
 import dmodel.pipeline.rt.pcm.repository.core.ResourceDemandEstimatorAlternative;
 import dmodel.pipeline.rt.pcm.repository.loop.impl.LoopEstimationImpl;
 import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
+import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
 import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.rt.validation.data.metric.value.DoubleMetricValue;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
 import lombok.extern.java.Log;
 
 @Service
 @Log
 public class RepositoryDerivation {
+	@Autowired
+	private ISpecificVsumFacade mappingFacade;
+
+	@Autowired
+	private IRuntimeEnvironmentQueryFacade remQuery;
+
 	private static final double ADJUSTMENT_FACTOR = 0.1d;
 	private static final double ADDITIVE_INCREASE = 0.02d;
 	private static final double MULTIPLE_DECREASE = 0.5d;
@@ -44,24 +52,29 @@ public class RepositoryDerivation {
 		this.branchEstimation = new BranchEstimationImpl();
 	}
 
-	public void calibrateRepository(List<PCMContextRecord> data, InMemoryPCM pcm, PalladioRuntimeMapping mapping,
-			ValidationData validation, Set<String> toPrepare) {
+	public RepositoryStoexChanges calibrateRepository(PartitionedMonitoringData<PCMContextRecord> data,
+			IPCMQueryFacade pcm, ValidationData validation, Set<String> toPrepare) {
 		try {
 			prepareAdjustment(validation, toPrepare);
-			java.lang.System.out.println(currentValidationAdjustment);
 
-			MonitoringDataSet monitoringDataSet = new MonitoringDataSet(data, mapping, pcm.getAllocationModel(),
-					pcm.getRepository());
+			MonitoringDataSet monitoringDataSet = new MonitoringDataSet(data.getTrainingData(), mappingFacade, remQuery,
+					pcm.getAllocation(), pcm.getRepository());
+
+			// TODO integrate loop and branch estimation
 
 			IResourceDemandEstimator estimation = new ResourceDemandEstimatorAlternative(pcm);
 			estimation.prepare(monitoringDataSet);
-			estimation.derive(currentValidationAdjustment);
+			RepositoryStoexChanges result = estimation.derive(currentValidationAdjustment);
 
 			log.info("Finished calibration of internal actions.");
 			log.info("Finished repository calibration.");
+
+			return result;
 		} catch (Exception e) {
 			log.info("Calibration failed.");
 			log.log(Level.INFO, "Calibrate Repository failed.", e);
+
+			return null;
 		}
 
 	}
@@ -87,7 +100,6 @@ public class RepositoryDerivation {
 						}
 					}
 
-					java.lang.System.out.println(valueAbsDist);
 					if (valueRelDist != null) {
 						double relDist = (double) valueRelDist.value();
 

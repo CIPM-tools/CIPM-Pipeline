@@ -16,4 +16,4 @@ read version
 
 mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file -Dfile="$jar" -DgroupId=$group -DartifactId=$id -Dpackaging=jar -Dversion=$version -DlocalRepositoryPath="$repo"
 
-echo "compile $group:$id:$version"
+echo "compile '$group:$id:$version'"

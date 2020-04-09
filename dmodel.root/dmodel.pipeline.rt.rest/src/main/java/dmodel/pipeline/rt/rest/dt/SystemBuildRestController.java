@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
@@ -37,8 +38,6 @@ import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
 import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.rt.rest.dt.async.BuildServiceCallGraphProcess;
 import dmodel.pipeline.rt.rest.dt.async.StartBuildingSystemProcess;
 import dmodel.pipeline.rt.rest.dt.data.JsonPCMSystem;
@@ -73,13 +72,10 @@ public class SystemBuildRestController {
 	private ScheduledExecutorService executorService;
 
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
+	private IPCMQueryFacade pcmQuery;
 
 	@Autowired
 	private IApplicationInstrumenter transformer;
-
-	@Autowired
-	private RunTimeDesignTimeBorder border;
 
 	// DATA
 	private boolean finishedBuilding = true;
@@ -92,9 +88,8 @@ public class SystemBuildRestController {
 			JsonBuildingStartMessage parsedMessage = objectMapper.readValue(coreInterfaces,
 					JsonBuildingStartMessage.class);
 
-			List<OperationInterface> systemInterfaces = parsedMessage.getInterfaceIds().stream().map(id -> PCMUtils
-					.getElementById(blackboard.getArchitectureModel().getRepository(), OperationInterface.class, id))
-					.collect(Collectors.toList());
+			List<OperationInterface> systemInterfaces = parsedMessage.getInterfaceIds().stream()
+					.map(id -> pcmQuery.getRepository().getOperationInterface(id)).collect(Collectors.toList());
 
 			BuildServiceCallGraphProcess process1 = new BuildServiceCallGraphProcess(config.getProject(),
 					systemAnalyzer, border, transformer, blackboard);

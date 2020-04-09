@@ -1,6 +1,5 @@
 package dmodel.pipeline.rt.rest.core.config;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.palladiosimulator.pcm.allocation.Allocation;
@@ -17,21 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.core.CentralModelAdminstrator;
+import dmodel.pipeline.dt.inmodel.InstrumentationModelUtil;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.rest.data.config.ModelPathContainer;
 import dmodel.pipeline.rt.rest.data.config.ModelPathResponse;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.config.ModelConfiguration;
+import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
 
 @RestController
 public class ConfigModelsRestController {
-	private static final String[] DEFAULT_PATH_ALLOCATION = new String[] { "models", "temp_allocation.allocation" };
-	private static final String[] DEFAULT_PATH_REPOSITORY = new String[] { "models", "temp_repository.repository" };
-	private static final String[] DEFAULT_PATH_RESENV = new String[] { "models", "temp_resenv.resourceenvironment" };
-	private static final String[] DEFAULT_PATH_USAGE = new String[] { "models", "temp_usage.usagemodel" };
-	private static final String[] DEFAULT_PATH_SYSTEM = new String[] { "models", "temp_system.system" };
-
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -39,7 +35,10 @@ public class ConfigModelsRestController {
 	private DModelConfigurationContainer config;
 
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
+	private CentralModelAdminstrator modelContainer;
+
+	@Autowired
+	private ISpecificVsumFacade vsumFacade;
 
 	@GetMapping("/config/models/get")
 	public String getModelConfig() {
@@ -57,7 +56,6 @@ public class ConfigModelsRestController {
 			ModelPathResponse val = validateModelPaths(req);
 
 			ModelConfiguration into = config.getModels();
-			enrichWithProjectConfig(req);
 			if (val.isAlloc()) {
 				into.setAllocationPath(req.getAlloc());
 			}
@@ -73,7 +71,7 @@ public class ConfigModelsRestController {
 			if (val.isUsage()) {
 				into.setUsagePath(req.getUsage());
 			}
-			blackboard.loadArchitectureModel(into);
+			modelContainer.loadArchitectureModel(into);
 
 			return config.syncWithFilesystem() ? "{\"success\" : true}" : "{\"success\" : false}";
 		} catch (IOException e) {
@@ -92,30 +90,23 @@ public class ConfigModelsRestController {
 		}
 	}
 
-	private void enrichWithProjectConfig(ModelPathContainer req) {
-		if (config.getProject() != null && config.getProject().getRootPath() != null) {
-			File basePath = new File(config.getProject().getRootPath());
-
-			if (req.getAlloc().length() == 0) {
-				req.setAlloc(buildDefaultPath(basePath, DEFAULT_PATH_ALLOCATION));
-			}
-			if (req.getRepo().length() == 0) {
-				req.setRepo(buildDefaultPath(basePath, DEFAULT_PATH_REPOSITORY));
-			}
-			if (req.getRes().length() == 0) {
-				req.setRes(buildDefaultPath(basePath, DEFAULT_PATH_RESENV));
-			}
-			if (req.getSys().length() == 0) {
-				req.setSys(buildDefaultPath(basePath, DEFAULT_PATH_SYSTEM));
-			}
-			if (req.getUsage().length() == 0) {
-				req.setUsage(buildDefaultPath(basePath, DEFAULT_PATH_USAGE));
-			}
+	// TODO provide it in the web ui
+	private void enrichInitialInstrumentationModel(InstrumentationModel instrumentationModel) {
+		// create an initial instrumentation model
+		if (instrumentationModel.getPoints().size() == 0) {
+			InstrumentationModelUtil.enrichInitialInstrumentationModel(instrumentationModel,
+					modelContainer.getRepository());
+			propagateInitialInstrumentationModelChanges(instrumentationModel);
 		}
 	}
 
-	private String buildDefaultPath(File basePath, String[] exts) {
-		return new File(new File(basePath, exts[0]), exts[1]).getAbsolutePath();
+	private void propagateInitialInstrumentationModelChanges(InstrumentationModel instrumentationModel) {
+		instrumentationModel.getPoints().forEach(sip -> {
+			vsumFacade.createdObject(sip);
+			sip.getActionInstrumentationPoints().forEach(aip -> {
+				vsumFacade.createdObject(aip);
+			});
+		});
 	}
 
 	private ModelPathResponse validateModelPaths(ModelPathContainer req) {

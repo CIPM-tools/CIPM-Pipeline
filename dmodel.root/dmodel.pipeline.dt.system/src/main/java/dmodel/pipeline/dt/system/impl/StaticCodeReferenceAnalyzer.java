@@ -1,146 +1,139 @@
 package dmodel.pipeline.dt.system.impl;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
-import org.palladiosimulator.pcm.repository.Repository;
+import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
-import dmodel.pipeline.dt.system.util.SpoonUtil;
-import dmodel.pipeline.monitoring.util.ManualMapping;
-import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import dmodel.pipeline.instrumentation.project.ParsedApplicationProject;
+import dmodel.pipeline.instrumentation.tuid.JavaTuidGeneratorAndResolver;
+import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.java.Log;
-import spoon.Launcher;
-import spoon.reflect.code.CtBlock;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.declaration.CtType;
-import spoon.reflect.factory.Factory;
-import spoon.reflect.visitor.filter.TypeFilter;
 
 @Component
 @Log
 public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
+	private JavaTuidGeneratorAndResolver tuidResolver;
+
 	public StaticCodeReferenceAnalyzer() {
+		this.tuidResolver = new JavaTuidGeneratorAndResolver();
 	}
 
 	@Override
-	public SpoonCorrespondence resolveManualMapping(Repository repository, Launcher model) {
-		SpoonCorrespondence correspondenceOutput = new SpoonCorrespondence(model.getModel(), repository);
+	public ServiceCallGraph deriveSystemComposition(ParsedApplicationProject parsedApplication,
+			List<File> binaryJarFiles, IRepositoryQueryFacade repository, IJavaPCMCorrespondenceModel correspondence) {
+		ServiceCallGraph output = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
 
-		model.getModel().filterChildren(new TypeFilter<CtMethod<?>>(CtMethod.class)).list().forEach(method -> {
-			if (method instanceof CtMethod<?>) {
-				CtMethod<?> currentMethod = (CtMethod<?>) method;
-				if (currentMethod.hasAnnotation(ManualMapping.class)) {
-					ManualMapping mapping = currentMethod.getAnnotation(ManualMapping.class);
-					ResourceDemandingSEFF belSeff = PCMUtils.getElementById(repository, ResourceDemandingSEFF.class,
-							mapping.value());
-
-					if (belSeff != null) {
-						correspondenceOutput.linkService(currentMethod, belSeff);
-					} else {
-						log.warning("Service with ID '" + belSeff.getId() + "' could not be resolved.");
-					}
-				}
+		CombinedTypeSolver typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
+		for (File jarFile : binaryJarFiles) {
+			try {
+				typeSolver.add(new JarTypeSolver(jarFile));
+			} catch (IOException e) {
+				log.warning("Failed to resolve JAR '" + jarFile.getAbsolutePath() + "'.");
 			}
-		});
-		return correspondenceOutput;
-	}
+		}
 
-	@Override
-	public ServiceCallGraph deriveSystemComposition(Launcher model, SpoonCorrespondence spoonCorr) {
-		ServiceCallGraph serviceCallGraph = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
+		AnalyzerData analyzerData = new AnalyzerData(parsedApplication, typeSolver, output, repository, correspondence);
 
-		spoonCorr.getServiceMappingEntries().stream().forEach(service -> {
-			investigateService(service, serviceCallGraph, model, spoonCorr);
+		correspondence.getSeffCorrespondences().forEach(seffCorrespondence -> {
+			MethodDeclaration method = tuidResolver.resolveMethod(parsedApplication, seffCorrespondence.getLeft());
+			inspectMethodDeclaration(analyzerData, method, seffCorrespondence.getRight());
 		});
 
-		return serviceCallGraph;
+		return output;
 	}
 
-	private void investigateService(Entry<CtMethod<?>, ResourceDemandingSEFF> service, ServiceCallGraph callGraph,
-			Launcher model, SpoonCorrespondence spoonCorr) {
-		// get method and code block for the method
-		CtMethod<?> belongingMethod = service.getKey();
-		CtBlock<?> body = belongingMethod.getBody();
-
-		// get all invocations
-		body.filterChildren(new TypeFilter<CtInvocation<?>>(CtInvocation.class)).list().forEach(inv -> {
-			if (inv instanceof CtInvocation<?>) {
-				CtInvocation<?> invoc = (CtInvocation<?>) inv;
-
-				// get belonging method in the spoon model (if it exists)
-				CtMethod<?> resolvedMethod = SpoonUtil.getMethodFromExecutable(model.getModel(), invoc.getExecutable());
-
-				// get belonging method on the classpath (if it exists there)
-				Method classPathReference = SpoonUtil.getClassPathReferenceSoft(invoc.getExecutable());
-
-				// if found in one of these
-				List<ResourceDemandingSEFF> nLinks = Collections.emptyList();
-				if (resolvedMethod != null) {
-					nLinks = resolveCalledSeffs(resolvedMethod, spoonCorr);
-				} else if (classPathReference != null) {
-					nLinks = resolveCalledSeffs(classPathReference, model, spoonCorr);
-				}
-
-				// create links
-				nLinks.forEach(link -> {
-					callGraph.incrementEdge(service.getValue(), link, null, null);
-				});
+	private void inspectMethodDeclaration(AnalyzerData data, MethodDeclaration method, String seffId) {
+		ResourceDemandingSEFF seff = data.repository.getServiceById(seffId);
+		if (seff != null) {
+			// get method declarations
+			List<MethodCallExpr> innerMethodCalls = method.findAll(MethodCallExpr.class);
+			for (MethodCallExpr methodCall : innerMethodCalls) {
+				inspectMethodCall(data, methodCall, seff);
 			}
-		});
-
-	}
-
-	private List<ResourceDemandingSEFF> resolveCalledSeffs(Method classPathReference, Launcher model,
-			SpoonCorrespondence spoonCorr) {
-		List<CtMethod<?>> matchingMethods = getMatchingMethods(classPathReference, model.getFactory(), spoonCorr);
-		return matchingMethods.stream().map(m -> spoonCorr.resolveService(m)).collect(Collectors.toList());
-	}
-
-	private List<ResourceDemandingSEFF> resolveCalledSeffs(CtMethod<?> resolvedMethod, SpoonCorrespondence spoonCorr) {
-		ResourceDemandingSEFF belongingSeff = spoonCorr.resolveService(resolvedMethod);
-		if (belongingSeff != null) {
-			// this is an easy case, we link the both services with a safe call
-			return Lists.newArrayList(belongingSeff);
-		} else {
-			List<CtMethod<?>> matchingMethods = getMatchingMethods(resolvedMethod, spoonCorr);
-			return matchingMethods.stream().map(m -> spoonCorr.resolveService(m)).collect(Collectors.toList());
 		}
 	}
 
-	private List<CtMethod<?>> getMatchingMethods(Method classPathReference, Factory spoonFactory,
-			SpoonCorrespondence corr) {
-		return corr.getServiceMappingEntries().stream().filter(entry -> {
-			CtType<?> enclosingType = entry.getKey().getDeclaringType();
-			if (enclosingType
-					.isSubtypeOf(spoonFactory.createReference(classPathReference.getDeclaringClass().getName()))) {
-				return SpoonUtil.executableReferencesEqual(classPathReference, entry.getKey().getReference());
+	private void inspectMethodCall(AnalyzerData data, MethodCallExpr methodCall, ResourceDemandingSEFF source) {
+		for (Pair<String, String> seffCorrespondence : data.cpm.getSeffCorrespondences()) {
+			MethodDeclaration correspondingMethod = this.tuidResolver.resolveMethod(data.pap,
+					seffCorrespondence.getLeft());
+			if (methodConformsTo(data, correspondingMethod, methodCall)) {
+				ResourceDemandingSEFF target = data.repository.getServiceById(seffCorrespondence.getRight());
+				data.graph.incrementEdge(source, target, null, null);
 			}
-
-			return false;
-		}).map(e -> e.getKey()).collect(Collectors.toList());
+		}
 	}
 
-	private List<CtMethod<?>> getMatchingMethods(CtMethod<?> method, SpoonCorrespondence corr) {
-		return corr.getServiceMappingEntries().stream().filter(entry -> {
-			CtType<?> enclosingType = entry.getKey().getDeclaringType();
-			if (enclosingType.isSubtypeOf(method.getDeclaringType().getReference())) {
-				return SpoonUtil.executableReferencesEqual(method.getReference(), entry.getKey().getReference());
-			}
+	private boolean methodConformsTo(AnalyzerData data, MethodDeclaration correspondingMethod,
+			MethodCallExpr methodCall) {
+		if (methodCall.getScope().isPresent()) {
+			if (correspondingMethod.getNameAsString().equals(methodCall.getNameAsString())) {
+				Expression scope = methodCall.getScope().get();
 
-			return false;
-		}).map(e -> e.getKey()).collect(Collectors.toList());
+				System.out.println(getType(methodCall, data));
+
+				// switch on scope
+				if (scope instanceof NameExpr) {
+					getType((NameExpr) scope, data);
+				} else if (scope instanceof MethodCallExpr) {
+					getType((MethodCallExpr) scope, data);
+				} else {
+					log.warning(
+							"Currently the type deduction for '" + scope.getClass().getName() + "' is not supported.");
+				}
+
+				System.out.println(JavaParserFacade.get(data.solver).getType(methodCall.getScope().get()));
+			}
+		}
+
+		return false;
+	}
+
+	private ResolvedType getType(MethodCallExpr scope, AnalyzerData data) {
+		// TODO
+		System.out.println(JavaParserFacade.get(data.solver).solve(scope));
+
+		return null;
+	}
+
+	private ResolvedType getType(NameExpr expr, AnalyzerData data) {
+		SymbolReference<? extends ResolvedDeclaration> reference = JavaParserFacade.get(data.solver).solve(expr);
+		System.out.println(reference.getCorrespondingDeclaration().getClass().getName());
+
+		return null;
+	}
+
+	@Data
+	@AllArgsConstructor
+	private class AnalyzerData {
+		ParsedApplicationProject pap;
+		TypeSolver solver;
+		ServiceCallGraph graph;
+		IRepositoryQueryFacade repository;
+		IJavaPCMCorrespondenceModel cpm;
 	}
 
 }

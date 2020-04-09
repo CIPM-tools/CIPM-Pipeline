@@ -31,13 +31,13 @@ public interface REModelFactory extends EFactory {
 	RuntimeEnvironmentModel createRuntimeEnvironmentModel();
 
 	/**
-	 * Returns a new object of class '<em>Resource Container</em>'.
+	 * Returns a new object of class '<em>Runtime Resource Container</em>'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return a new object of class '<em>Resource Container</em>'.
+	 * @return a new object of class '<em>Runtime Resource Container</em>'.
 	 * @generated
 	 */
-	ResourceContainer createResourceContainer();
+	RuntimeResourceContainer createRuntimeResourceContainer();
 
 	/**
 	 * Returns a new object of class '<em>Hardware Information</em>'.
@@ -47,6 +47,24 @@ public interface REModelFactory extends EFactory {
 	 * @generated
 	 */
 	HardwareInformation createHardwareInformation();
+
+	/**
+	 * Returns a new object of class '<em>Runtime Resource Container Connection</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>Runtime Resource Container Connection</em>'.
+	 * @generated
+	 */
+	RuntimeResourceContainerConnection createRuntimeResourceContainerConnection();
+
+	/**
+	 * Returns a new object of class '<em>Connection Specification</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>Connection Specification</em>'.
+	 * @generated
+	 */
+	ConnectionSpecification createConnectionSpecification();
 
 	/**
 	 * Returns the package supported by this factory.

@@ -13,27 +13,25 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.seff.InternalAction;
-import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.monitoring.util.ServiceParametersWrapper;
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
 import dmodel.pipeline.rt.pcm.repository.regression.ParametricLinearRegression;
 import dmodel.pipeline.rt.pcm.repository.tree.TreeNode;
 import dmodel.pipeline.rt.pcm.repository.usage.IUsageEstimation;
-import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 // TODO refactor
 public class TimelineAnalyzer implements ITimelineAnalysis {
 	private static final Logger LOG = Logger.getLogger(TimelineAnalyzer.class);
 
-	private InMemoryPCM pcm;
+	private IPCMQueryFacade pcm;
 	private UnrollStrategy strategy;
 	private IUsageEstimation usageEstimation;
 
 	private Map<String, Double> adjustmentFactors;
 
-	public TimelineAnalyzer(InMemoryPCM pcm, UnrollStrategy strategy, IUsageEstimation estimationStrategy,
+	public TimelineAnalyzer(IPCMQueryFacade pcm, UnrollStrategy strategy, IUsageEstimation estimationStrategy,
 			Map<String, Double> adjustmentFactors) {
 		this.pcm = pcm;
 		this.strategy = strategy;
@@ -42,7 +40,7 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 	}
 
 	@Override
-	public void analyze(IResourceDemandTimeline timeline) {
+	public RepositoryStoexChanges analyze(IResourceDemandTimeline timeline) {
 		LOG.info("Starting timeline analysis.");
 		// get max duration
 		long maxDuration = timeline.maxDuration();
@@ -252,18 +250,17 @@ public class TimelineAnalyzer implements ITimelineAnalysis {
 		}
 
 		// write back to model
-		LOG.info("Writing info back to the model.");
+		RepositoryStoexChanges changes = new RepositoryStoexChanges();
 		stoexMapping.entrySet().forEach(wb -> {
-			InternalAction action = PCMUtils.getElementById(pcm.getRepository(), InternalAction.class, wb.getKey());
+			InternalAction action = pcm.getRepository().getInternalAction(wb.getKey());
+			LOG.info("Adjusted internal action with id '" + wb.getKey() + "'.");
+			LOG.info("-> " + action.getEntityName());
 			if (action != null) {
-				List<ParametricResourceDemand> inner = ModelUtil.getObjects(action, ParametricResourceDemand.class);
-				if (inner.size() == 1) {
-					inner.get(0).setSpecification_ParametericResourceDemand(wb.getValue());
-					LOG.info("Adjusted internal action with id '" + wb.getKey() + "'.");
-					LOG.info("-> " + action.getEntityName());
-				}
+				changes.put(action.getId(), wb.getValue());
 			}
 		});
+
+		return changes;
 	}
 
 	private Map<AbstractTimelineObject, Double> topDownUsageSplit(List<TreeNode<AbstractTimelineObject>> rootCalls,

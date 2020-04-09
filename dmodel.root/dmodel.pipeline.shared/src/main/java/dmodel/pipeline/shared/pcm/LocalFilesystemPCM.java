@@ -13,4 +13,10 @@ public class LocalFilesystemPCM {
 	private File allocationModelFile;
 	private File resourceEnvironmentFile;
 
+	public boolean isValid() {
+		return repositoryFile != null && systemFile != null && usageModelFile != null && allocationModelFile != null
+				&& resourceEnvironmentFile != null && repositoryFile.exists() && systemFile.exists()
+				&& usageModelFile.exists() && allocationModelFile.exists() && resourceEnvironmentFile.exists();
+	}
+
 }

@@ -8,14 +8,15 @@ import com.google.common.collect.Maps;
 
 import dmodel.pipeline.monitoring.records.ResponseTimeRecord;
 import dmodel.pipeline.rt.pcm.repository.MonitoringDataSet;
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
 import dmodel.pipeline.rt.pcm.repository.model.IResourceDemandEstimator;
 
 public class NeuralNetworkDemandEstimator implements IResourceDemandEstimator {
 
 	@Override
-	public void derive(Map<String, Double> currentValidationAdjustment) {
+	public RepositoryStoexChanges derive(Map<String, Double> currentValidationAdjustment) {
 		// TODO Auto-generated method stub
-
+		return null;
 	}
 
 	@Override

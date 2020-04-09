@@ -2,6 +2,8 @@
  */
 package dmodel.pipeline.rt.runtimeenvironment.REModel.util;
 
+import de.uka.ipd.sdq.identifier.Identifier;
+
 import dmodel.pipeline.rt.runtimeenvironment.REModel.*;
 
 import org.eclipse.emf.common.notify.Adapter;
@@ -10,6 +12,9 @@ import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.notify.impl.AdapterFactoryImpl;
 
 import org.eclipse.emf.ecore.EObject;
+
+import org.palladiosimulator.pcm.core.entity.Entity;
+import org.palladiosimulator.pcm.core.entity.NamedElement;
 
 /**
  * <!-- begin-user-doc -->
@@ -72,12 +77,32 @@ public class REModelAdapterFactory extends AdapterFactoryImpl {
 				return createRuntimeEnvironmentModelAdapter();
 			}
 			@Override
-			public Adapter caseResourceContainer(ResourceContainer object) {
-				return createResourceContainerAdapter();
+			public Adapter caseRuntimeResourceContainer(RuntimeResourceContainer object) {
+				return createRuntimeResourceContainerAdapter();
 			}
 			@Override
 			public Adapter caseHardwareInformation(HardwareInformation object) {
 				return createHardwareInformationAdapter();
+			}
+			@Override
+			public Adapter caseRuntimeResourceContainerConnection(RuntimeResourceContainerConnection object) {
+				return createRuntimeResourceContainerConnectionAdapter();
+			}
+			@Override
+			public Adapter caseConnectionSpecification(ConnectionSpecification object) {
+				return createConnectionSpecificationAdapter();
+			}
+			@Override
+			public Adapter caseIdentifier(Identifier object) {
+				return createIdentifierAdapter();
+			}
+			@Override
+			public Adapter caseNamedElement(NamedElement object) {
+				return createNamedElementAdapter();
+			}
+			@Override
+			public Adapter caseEntity(Entity object) {
+				return createEntityAdapter();
 			}
 			@Override
 			public Adapter defaultCase(EObject object) {
@@ -114,16 +139,16 @@ public class REModelAdapterFactory extends AdapterFactoryImpl {
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link dmodel.pipeline.rt.runtimeenvironment.REModel.ResourceContainer <em>Resource Container</em>}'.
+	 * Creates a new adapter for an object of class '{@link dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer <em>Runtime Resource Container</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see dmodel.pipeline.rt.runtimeenvironment.REModel.ResourceContainer
+	 * @see dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer
 	 * @generated
 	 */
-	public Adapter createResourceContainerAdapter() {
+	public Adapter createRuntimeResourceContainerAdapter() {
 		return null;
 	}
 
@@ -138,6 +163,76 @@ public class REModelAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createHardwareInformationAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainerConnection <em>Runtime Resource Container Connection</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainerConnection
+	 * @generated
+	 */
+	public Adapter createRuntimeResourceContainerConnectionAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link dmodel.pipeline.rt.runtimeenvironment.REModel.ConnectionSpecification <em>Connection Specification</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see dmodel.pipeline.rt.runtimeenvironment.REModel.ConnectionSpecification
+	 * @generated
+	 */
+	public Adapter createConnectionSpecificationAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link de.uka.ipd.sdq.identifier.Identifier <em>Identifier</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see de.uka.ipd.sdq.identifier.Identifier
+	 * @generated
+	 */
+	public Adapter createIdentifierAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.palladiosimulator.pcm.core.entity.NamedElement <em>Named Element</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.palladiosimulator.pcm.core.entity.NamedElement
+	 * @generated
+	 */
+	public Adapter createNamedElementAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.palladiosimulator.pcm.core.entity.Entity <em>Entity</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.palladiosimulator.pcm.core.entity.Entity
+	 * @generated
+	 */
+	public Adapter createEntityAdapter() {
 		return null;
 	}
 

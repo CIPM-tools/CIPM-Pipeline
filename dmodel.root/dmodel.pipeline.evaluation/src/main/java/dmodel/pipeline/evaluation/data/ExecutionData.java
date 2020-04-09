@@ -1,54 +1,69 @@
 package dmodel.pipeline.evaluation.data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Maps;
+
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 public class ExecutionData {
-	// EXECUTION TIMES
-	private long executionTimeCumulated;
+	@Getter(AccessLevel.PUBLIC)
+	@Setter(AccessLevel.NONE)
+	private Map<ExecutionMeasuringPoint, StartStopInterval> measuringPoints;
+
 	private long startTime;
+	private long executionTimeCumulated;
 
-	private long preFilter;
-	private long serviceCallTree;
-
-	private long resourceEnvironmentUpdates;
-	private long systemUpdates;
-
-	private long calibration1;
-	private long calibration2;
-
-	private long usage1;
-	private long usage2;
-
-	private long validation1;
-	private long validation2;
-	private long validation3;
-	private long validation4;
-
-	private long instrumentationModel;
-
-	private long crossValidation;
+	public ExecutionData() {
+		this.measuringPoints = Maps.newHashMap();
+	}
 
 	// LOGIC
 	private long recordCount;
 	private int usageScenarios;
 
-	private boolean path;
+	private boolean executedPath;
+
+	public void trackPoint(ExecutionMeasuringPoint point) {
+		if (!measuringPoints.containsKey(point)) {
+			measuringPoints.put(point, new StartStopInterval());
+		} else {
+			measuringPoints.get(point).stop();
+		}
+	}
 
 	@JsonProperty
 	public long validationCumulated() {
-		return validation1 + validation2 + validation3 + validation4;
+		return resolveOrZero(ExecutionMeasuringPoint.T_VALIDATION_1)
+				+ resolveOrZero(ExecutionMeasuringPoint.T_VALIDATION_2)
+				+ resolveOrZero(ExecutionMeasuringPoint.T_VALIDATION_3)
+				+ resolveOrZero(ExecutionMeasuringPoint.T_VALIDATION_4);
 	}
 
 	@JsonProperty
 	public long calibrationCumulated() {
-		return calibration1 + calibration2;
+		return resolveOrZero(ExecutionMeasuringPoint.T_DEMAND_CALIBRATION_1)
+				+ resolveOrZero(ExecutionMeasuringPoint.T_DEMAND_CALIBRATION_2);
 	}
 
 	@JsonProperty
 	public long usageCumulated() {
-		return usage1 + usage2;
+		return resolveOrZero(ExecutionMeasuringPoint.T_USAGE_1) + resolveOrZero(ExecutionMeasuringPoint.T_USAGE_2);
+	}
+
+	private long resolveOrZero(ExecutionMeasuringPoint measuringPoint) {
+		if (measuringPoints.containsKey(measuringPoint)) {
+			StartStopInterval ival = measuringPoints.get(measuringPoint);
+			if (ival.completed()) {
+				return ival.getDuration();
+			}
+		}
+		return 0;
 	}
 }

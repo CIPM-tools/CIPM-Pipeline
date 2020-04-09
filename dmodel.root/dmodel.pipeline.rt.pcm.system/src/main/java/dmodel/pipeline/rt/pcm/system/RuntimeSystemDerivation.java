@@ -11,7 +11,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.eclipse.emf.common.util.EList;
-import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.CompositionFactory;
 import org.palladiosimulator.pcm.repository.BasicComponent;
@@ -21,11 +20,13 @@ import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import com.beust.jcommander.internal.Lists;
 
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.state.EPipelineTransformation;
+import dmodel.pipeline.core.state.ETransformationState;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
-import dmodel.pipeline.models.mapping.HostIDMapping;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
@@ -33,11 +34,7 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.blackboard.state.EPipelineTransformation;
-import dmodel.pipeline.rt.pipeline.blackboard.state.ETransformationState;
 import dmodel.pipeline.rt.router.AccuracySwitch;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
-import dmodel.pipeline.shared.pcm.util.allocation.PCMAllocationUtil;
 import dmodel.pipeline.shared.pcm.util.deprecation.SimpleDeprecationProcessor;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
@@ -66,8 +63,8 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_RESENV_PCM_SYSTEM) })
 	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SYSTEM);
 
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();
@@ -76,12 +73,11 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 
 		List<ServiceCallGraph> runtimeGraph = buildGraphsFromMonitoringData(entryCalls);
 		List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> assemblyTrees = transformCallGraphs(runtimeGraph);
-		runtimeSystemBuilder.mergeSystem(getBlackboard().getArchitectureModel().getAllocationModel(),
-				getBlackboard().getArchitectureModel().getSystem(), assemblyTrees);
+		runtimeSystemBuilder.mergeSystem(getBlackboard().getPcmQuery(), assemblyTrees);
 
 		// finish
-		getBlackboard().getPerformanceEvaluation().trackSystem(start);
-		getBlackboard().getPipelineState().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.FINISHED);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SYSTEM);
+		getBlackboard().getQuery().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.FINISHED);
 	}
 
 	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraphs(
@@ -125,8 +121,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 					rec.getSeff().getBasicComponent_ServiceEffectSpecification().getId()), ret);
 
 			// deploy it
-			PCMAllocationUtil.deployAssemblyOnContainer(getBlackboard().getArchitectureModel().getAllocationModel(),
-					ret, rec.getHost());
+			getBlackboard().getPcmQuery().getAllocation().deployAssembly(ret, rec.getHost());
 
 			return ret;
 		}
@@ -154,14 +149,10 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	}
 
 	private AssemblyContext resolveFreeAssembly(BasicComponent belComponent) {
-		return PCMUtils.getElementsByType(getBlackboard().getArchitectureModel().getSystem(), AssemblyContext.class)
-				.stream().filter(ac -> {
-					return ac.getEncapsulatedComponent__AssemblyContext().getId().equals(belComponent.getId())
-							&& !PCMUtils.getElementsByType(getBlackboard().getArchitectureModel().getAllocationModel(),
-									AllocationContext.class).stream().anyMatch(r -> {
-										return r.getAssemblyContext_AllocationContext().getId().equals(ac.getId());
-									});
-				}).findFirst().orElse(null);
+		return getBlackboard().getPcmQuery().getSystem().getAssemblyContexts().stream().filter(ac -> {
+			return ac.getEncapsulatedComponent__AssemblyContext().getId().equals(belComponent.getId())
+					&& !getBlackboard().getPcmQuery().getAllocation().isDeployed(ac);
+		}).findFirst().orElse(null);
 	}
 
 	// TODO THAT SHOULD BE A MORE GENERAL METHOD
@@ -169,20 +160,13 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 			ResourceContainer belongingContainer) {
 		// here we use the assumption that only one assembly of one component can be
 		// deployed on the same container
-		List<AssemblyContext> matches = PCMUtils
-				.getElementsByType(getBlackboard().getArchitectureModel().getAllocationModel(), AllocationContext.class)
-				.stream().filter(a -> {
-					return belongingContainer != null
-							&& a.getResourceContainer_AllocationContext().getId().equals(belongingContainer.getId())
-							&& a.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext()
-									.getId().equals(belComponent.getId());
-				}).map(a -> a.getAssemblyContext_AllocationContext()).collect(Collectors.toList());
+		List<AssemblyContext> matches = getBlackboard().getPcmQuery().getAllocation().getDeployedAssembly(belComponent,
+				belongingContainer);
 
 		if (matches.size() == 0) {
 			AssemblyContext freeAlternative = resolveFreeAssembly(belComponent);
 			if (freeAlternative != null) {
-				PCMAllocationUtil.deployAssemblyOnContainer(getBlackboard().getArchitectureModel().getAllocationModel(),
-						freeAlternative, belongingContainer);
+				getBlackboard().getPcmQuery().getAllocation().deployAssembly(freeAlternative, belongingContainer);
 				return freeAlternative;
 			}
 
@@ -283,15 +267,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	}
 
 	private ResourceDemandingSEFF resolveServiceWithCache(String id) {
-		if (cache.containsKey(id)) {
-			return cache.get(id);
-		} else {
-			ResourceDemandingSEFF ret = PCMUtils.getElementById(
-					this.getBlackboard().getArchitectureModel().getRepository(), ResourceDemandingSEFF.class, id);
-
-			cache.put(id, ret);
-			return ret;
-		}
+		return getBlackboard().getPcmQuery().getRepository().getServiceById(id);
 	}
 
 	private ResourceContainer resolveResourceContainerWithCache(String hostId) {
@@ -300,33 +276,24 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		} else {
 			boolean present = true;
 			while (present) {
-				Optional<HostIDMapping> pcmContainerId = getMappedResourceContainerId(hostId);
-				if (pcmContainerId.isPresent()) {
-					ResourceContainer container = PCMUtils.getElementById(
-							this.getBlackboard().getArchitectureModel().getResourceEnvironmentModel(),
-							ResourceContainer.class, pcmContainerId.get().getPcmContainerID());
-					if (container != null) {
-						cacheResEnv.put(hostId, container);
-						return container;
-					} else {
-						log.warning("Failed to resolve container with ID '" + pcmContainerId.get()
-								+ "'. The resource environment model seems to be inconsistent.");
-
-						// remove this mapping
-						getBlackboard().getBorder().getRuntimeMapping().getHostMappings().remove(pcmContainerId.get());
+				Optional<ResourceContainer> container = getMappedResourceContainer(hostId);
+				if (container.isPresent()) {
+					if (container.get() != null) {
+						cacheResEnv.put(hostId, container.get());
+						return container.get();
 					}
 				} else {
-					present = false;
+					log.warning("Failed to resolve container corresponding to host ID '" + hostId
+							+ "'. The resource environment model seems to be inconsistent.");
 				}
 			}
 			return null;
 		}
 	}
 
-	private Optional<HostIDMapping> getMappedResourceContainerId(String hostId) {
-		return getBlackboard().getBorder().getRuntimeMapping().getHostMappings().stream().filter(m -> {
-			return m.getHostID().equals(hostId);
-		}).findFirst();
+	private Optional<ResourceContainer> getMappedResourceContainer(String hostId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

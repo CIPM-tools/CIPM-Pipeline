@@ -14,3 +14,10 @@ dependencies {
 	compile project(":dmodel.pipeline.shared")
 }
 
+task packSources(type: Zip) {
+    baseName = 'monitoring-agent'
+    from sourceSets*.allSource
+    exclude '**/LogarithmicScaleTest.java'
+    exclude 'dmodel/pipeline/monitoring/util/*'
+    destinationDir new File(project.rootDir, "/dmodel.pipeline.instrumentation/src/main/resources/")
+}

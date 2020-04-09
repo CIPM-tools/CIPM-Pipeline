@@ -6,7 +6,6 @@ import org.pcm.headless.shared.data.results.InMemoryResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationMetricValue;
@@ -26,12 +25,8 @@ public class ValidationFeedbackComponent implements IValidationProcessor {
 	@Autowired
 	private List<IValidationMetric<?>> metrics;
 
-	public ValidationFeedbackComponent() {
-	}
-
 	@Override
-	public ValidationData process(InMemoryPCM instance, PalladioRuntimeMapping mapping,
-			List<PCMContextRecord> monitoringData, String taskName) {
+	public ValidationData process(InMemoryPCM instance, List<PCMContextRecord> monitoringData, String taskName) {
 		// 1. simulate it
 		InMemoryResultRepository analysisResults = simulator.simulateBlocking(instance, taskName);
 		if (analysisResults == null) {
@@ -39,8 +34,7 @@ public class ValidationFeedbackComponent implements IValidationProcessor {
 		}
 
 		// 2. enrich with data
-		ValidationData preparedData = extractor.extractValidationData(analysisResults, instance, mapping,
-				monitoringData);
+		ValidationData preparedData = extractor.extractValidationData(analysisResults, instance, monitoringData);
 
 		// 3. derive metrics
 		preparedData.getValidationPoints().stream().forEach(valPoint -> {

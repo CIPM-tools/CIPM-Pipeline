@@ -1,22 +1,39 @@
 package dmodel.pipeline.rt.pipeline.blackboard.validation;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.stereotype.Service;
 
+import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.rt.validation.data.ValidationData;
-import lombok.Data;
 
 @Service
-@Data
 public class ValidationResultContainer {
-	private ValidationData preValidationResults;
+	private Map<ValidationSchedulePoint, ValidationData> dataContainer;
 
-	private ValidationData afterUsageModelResults;
-	private ValidationData afterRepositoryResults;
+	public ValidationData getData(ValidationSchedulePoint point) {
+		return dataContainer.get(point);
+	}
 
-	private ValidationData finalResults;
+	public boolean hasData(ValidationSchedulePoint point) {
+		return dataContainer.containsKey(point);
+	}
+
+	public List<ValidationSchedulePoint> getExistingPoints() {
+		return Stream.of(ValidationSchedulePoint.values()).filter(v -> hasData(v)).collect(Collectors.toList());
+	}
+
+	public void setData(ValidationSchedulePoint point, ValidationData data) {
+		if (point != ValidationSchedulePoint.EXTRAORDINARY) {
+			dataContainer.put(point, data);
+		}
+	}
 
 	public void reset() {
-		preValidationResults = afterUsageModelResults = afterRepositoryResults = finalResults = null;
+		dataContainer.clear();
 	}
 
 }

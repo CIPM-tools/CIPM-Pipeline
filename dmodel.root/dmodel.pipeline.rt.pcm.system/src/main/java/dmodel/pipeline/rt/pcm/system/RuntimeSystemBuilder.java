@@ -6,23 +6,23 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.palladiosimulator.pcm.allocation.Allocation;
-import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.ComposedStructure;
 import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
-import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
-import org.palladiosimulator.pcm.system.System;
 
 import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Sets;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
+import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
+import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyProvidedRole;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.pcm.util.deprecation.IDeprecationProcessor;
 import dmodel.pipeline.shared.pcm.util.system.PCMSystemUtil;
@@ -37,7 +37,7 @@ import lombok.extern.java.Log;
 // TODO refactor
 // TODO linking to outside wrong if there is a back change laterly -> use a timestamp to the roles which is used to calculate their oder
 public class RuntimeSystemBuilder {
-	private System system;
+	private ISystemQueryFacade system;
 	private Set<String> currentlyContainingAssemblyIds;
 	private Set<String> addedAssemblyIds;
 
@@ -47,11 +47,9 @@ public class RuntimeSystemBuilder {
 		this.deprecationProcessor = deprecationProcessor;
 	}
 
-	public void mergeSystem(Allocation allocationModel, System currentSystem,
-			List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees) {
-		system = currentSystem;
-		currentlyContainingAssemblyIds = currentSystem.getAssemblyContexts__ComposedStructure().stream()
-				.map(asmbly -> asmbly.getId()).collect(Collectors.toSet());
+	public void mergeSystem(IPCMQueryFacade pcmQuery, List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> trees) {
+		system = pcmQuery.getSystem();
+		currentlyContainingAssemblyIds = system.getAssemblyIds();
 		addedAssemblyIds = Sets.newHashSet();
 
 		// add all necessary assembly contexts
@@ -73,31 +71,28 @@ public class RuntimeSystemBuilder {
 		exposeProvidedRoles();
 
 		// remove unnecessary (soft)
-		findAndProcessUnnecessary(allocationModel);
+		findAndProcessUnnecessary(pcmQuery.getAllocation());
 	}
 
-	private void findAndProcessUnnecessary(Allocation allocation) {
+	private void findAndProcessUnnecessary(IAllocationQueryFacade allocation) {
 		DirectedGraph<String, Integer> assemblyInvocationGraph = new DirectedGraph<>();
 
 		// process connectors
 		// this is only linear and therefore better
-		system.getConnectors__ComposedStructure().stream().forEach(c -> {
-			if (c instanceof AssemblyConnector) {
-				assemblyInvocationGraph.addEdge(
-						((AssemblyConnector) c).getRequiringAssemblyContext_AssemblyConnector().getId(),
-						((AssemblyConnector) c).getProvidingAssemblyContext_AssemblyConnector().getId(), 0);
-			} else if (c instanceof ProvidedDelegationConnector) {
-				assemblyInvocationGraph.addEdge(
-						((ProvidedDelegationConnector) c).getOuterProvidedRole_ProvidedDelegationConnector()
-								.getProvidingEntity_ProvidedRole().getId(),
-						((ProvidedDelegationConnector) c).getAssemblyContext_ProvidedDelegationConnector().getId(), 0);
-			} else if (c instanceof RequiredDelegationConnector) {
-				assemblyInvocationGraph.addEdge(
-						((RequiredDelegationConnector) c).getAssemblyContext_RequiredDelegationConnector().getId(),
-						((RequiredDelegationConnector) c).getOuterRequiredRole_RequiredDelegationConnector()
-								.getRequiringEntity_RequiredRole().getId(),
-						0);
-			}
+		system.getAssemblyConnectors().stream().forEach(c -> {
+			assemblyInvocationGraph.addEdge(c.getRequiringAssemblyContext_AssemblyConnector().getId(),
+					c.getProvidingAssemblyContext_AssemblyConnector().getId(), 0);
+		});
+
+		system.getProvidedDelegationConnectors().stream().forEach(c -> {
+			assemblyInvocationGraph.addEdge(
+					c.getOuterProvidedRole_ProvidedDelegationConnector().getProvidingEntity_ProvidedRole().getId(),
+					c.getAssemblyContext_ProvidedDelegationConnector().getId(), 0);
+		});
+
+		system.getRequiredDelegationConnectors().stream().forEach(c -> {
+			assemblyInvocationGraph.addEdge(c.getAssemblyContext_RequiredDelegationConnector().getId(),
+					c.getOuterRequiredRole_RequiredDelegationConnector().getRequiringEntity_RequiredRole().getId(), 0);
 		});
 
 		Set<String> marked = Sets.newHashSet();
@@ -119,10 +114,9 @@ public class RuntimeSystemBuilder {
 		}
 
 		// process all assembly context that are not needed anymore
-		List<AssemblyContext> deprecatedAssemblys = PCMUtils.getElementsByType(system, AssemblyContext.class).stream()
-				.filter(ac -> {
-					return !marked.contains(ac.getId());
-				}).collect(Collectors.toList());
+		List<AssemblyContext> deprecatedAssemblys = system.getAssemblyContexts().stream().filter(ac -> {
+			return !marked.contains(ac.getId());
+		}).collect(Collectors.toList());
 
 		deprecatedAssemblys.forEach(da -> {
 			if (deprecationProcessor.shouldDelete(da)) {
@@ -131,35 +125,39 @@ public class RuntimeSystemBuilder {
 				cs.getAssemblyContexts__ComposedStructure().remove(da);
 
 				List<Connector> connectors = resolveCorrespondingConnectors(da);
-				system.getConnectors__ComposedStructure().removeAll(connectors);
+				system.removeConnectors(connectors);
 
-				// remove all allocations
-				PCMUtils.getElementsByType(allocation, AllocationContext.class).forEach(ac -> {
-					if (ac.getAssemblyContext_AllocationContext().getId().equals(da.getId())) {
-						allocation.getAllocationContexts_Allocation().remove(ac);
-					}
-				});
+				// remove allocations
+				allocation.deleteAllocation(da);
 			}
 		});
 		deprecationProcessor.iterationFinished();
 	}
 
 	private List<Connector> resolveCorrespondingConnectors(AssemblyContext da) {
-		return system.getConnectors__ComposedStructure().stream().filter(conn -> {
-			if (conn instanceof AssemblyConnector) {
-				return ((AssemblyConnector) conn).getProvidingAssemblyContext_AssemblyConnector().getId()
-						.equals(da.getId())
-						|| ((AssemblyConnector) conn).getRequiringAssemblyContext_AssemblyConnector().getId()
-								.equals(da.getId());
-			} else if (conn instanceof ProvidedDelegationConnector) {
-				return ((ProvidedDelegationConnector) conn).getAssemblyContext_ProvidedDelegationConnector().getId()
-						.equals(da.getId());
-			} else if (conn instanceof RequiredDelegationConnector) {
-				return ((RequiredDelegationConnector) conn).getAssemblyContext_RequiredDelegationConnector().getId()
-						.equals(da.getId());
+		List<Connector> results = Lists.newArrayList();
+
+		system.getAssemblyConnectors().forEach(conn -> {
+			if (conn.getProvidingAssemblyContext_AssemblyConnector().getId().equals(da.getId())
+					|| (conn.getRequiringAssemblyContext_AssemblyConnector().getId().equals(da.getId()))) {
+				results.add(conn);
+
 			}
-			return false;
-		}).collect(Collectors.toList());
+		});
+
+		system.getProvidedDelegationConnectors().forEach(conn -> {
+			if (conn.getAssemblyContext_ProvidedDelegationConnector().getId().equals(da.getId())) {
+				results.add(conn);
+			}
+		});
+
+		system.getRequiredDelegationConnectors().forEach(conn -> {
+			if (conn.getAssemblyContext_RequiredDelegationConnector().getId().equals(da.getId())) {
+				results.add(conn);
+			}
+		});
+
+		return results;
 	}
 
 	private void exposeProvidedRoles() {

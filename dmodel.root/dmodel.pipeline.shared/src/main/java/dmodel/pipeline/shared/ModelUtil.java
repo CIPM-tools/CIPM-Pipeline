@@ -17,6 +17,17 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
 public class ModelUtil {
 
+	public static <T> T readFromFile(File path, Class<T> clazz) {
+		ResourceSet resourceSet = new ResourceSetImpl();
+		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
+				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
+
+		URI filePathUri = org.eclipse.emf.common.util.URI.createFileURI(path.getAbsolutePath());
+
+		Resource resource = resourceSet.getResource(filePathUri, true);
+		return clazz.cast(resource.getContents().get(0));
+	}
+
 	/**
 	 * Reads a Model from file with a given class
 	 * 

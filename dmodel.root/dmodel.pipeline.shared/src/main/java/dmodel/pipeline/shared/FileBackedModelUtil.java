@@ -22,7 +22,8 @@ public class FileBackedModelUtil {
 		if (model == null) {
 			if (file.exists()) {
 				model = ModelUtil.readFromFile(file.getAbsolutePath(), clz);
-			} else {
+			}
+			if (model == null) {
 				if (createFunction != null) {
 					model = createFunction.apply(null);
 				} else {
@@ -64,7 +65,9 @@ public class FileBackedModelUtil {
 	}
 
 	public static void clear(EObject obj) {
-		obj.eAdapters().clear();
+		if (obj != null) {
+			obj.eAdapters().clear();
+		}
 	}
 
 }

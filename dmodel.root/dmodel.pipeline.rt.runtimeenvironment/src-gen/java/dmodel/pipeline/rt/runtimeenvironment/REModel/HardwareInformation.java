@@ -4,6 +4,8 @@ package dmodel.pipeline.rt.runtimeenvironment.REModel;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.palladiosimulator.pcm.core.entity.Entity;
+
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>Hardware Information</b></em>'.
@@ -21,7 +23,7 @@ import org.eclipse.emf.ecore.EObject;
  * @model
  * @generated
  */
-public interface HardwareInformation extends EObject {
+public interface HardwareInformation extends EObject, Entity {
 	/**
 	 * Returns the value of the '<em><b>Cores</b></em>' attribute.
 	 * <!-- begin-user-doc -->

@@ -25,8 +25,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.models.mapping.MappingPackage;
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
@@ -38,12 +38,11 @@ import dmodel.pipeline.shared.pcm.util.PCMUtils;
 @EnableConfigurationProperties
 @EnableWebMvc
 public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer, SchedulingConfigurer {
-
 	@Value("${config}")
 	private String configPath;
 
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
+	private CentralModelAdminstrator modelContainer;
 
 	@Autowired
 	private DModelConfigurationContainer config;
@@ -56,7 +55,7 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 		MappingPackage.eINSTANCE.eClass();
 
 		// load models into blackboard
-		blackboard.loadArchitectureModel(config.getModels());
+		modelContainer.loadArchitectureModel(config.getModels());
 	}
 
 	private static final String[] CLASSPATH_RESOURCE_LOCATIONS = { "classpath:/META-INF/resources/",

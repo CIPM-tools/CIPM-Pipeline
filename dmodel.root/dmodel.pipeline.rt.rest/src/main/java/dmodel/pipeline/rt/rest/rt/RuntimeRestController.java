@@ -1,17 +1,14 @@
 package dmodel.pipeline.rt.rest.rt;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.core.facade.IInstrumentationModelQueryFacade;
+import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
 import dmodel.pipeline.shared.JsonUtil;
 import lombok.extern.java.Log;
@@ -26,7 +23,10 @@ public class RuntimeRestController {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private RuntimePipelineBlackboard blackboard;
+	private IInstrumentationModelQueryFacade inmQueryFacade;
+
+	@Autowired
+	private PerformanceEvaluation performanceEvaluation;
 
 	@GetMapping("/runtime/pipeline/status")
 	public String pipelineStatus() {
@@ -41,20 +41,7 @@ public class RuntimeRestController {
 	public String instrumentationModel() {
 		log.fine("Instrumentation model has been polled.");
 		try {
-			return objectMapper
-					.writeValueAsString(blackboard.getInstrumentationModel().getPoints().stream().map(sip -> {
-						if (sip.isActive()) {
-							Set<String> inner = Sets.newHashSet(sip.getService().getId());
-							sip.getActionInstrumentationPoints().stream().forEach(aip -> {
-								if (aip.isActive()) {
-									inner.add(aip.getAction().getId());
-								}
-							});
-							return inner;
-						} else {
-							return Sets.newHashSet();
-						}
-					}).flatMap(Set::stream).collect(Collectors.toList()));
+			return objectMapper.writeValueAsString(inmQueryFacade.getInstrumentedActionIds());
 		} catch (JsonProcessingException e) {
 			return JsonUtil.wrapAsObject("error", true, false);
 		}
@@ -64,7 +51,7 @@ public class RuntimeRestController {
 	public String performanceDetails() {
 		log.fine("Performance details has been polled.");
 		try {
-			return objectMapper.writeValueAsString(blackboard.getPerformanceEvaluation().getData());
+			return objectMapper.writeValueAsString(performanceEvaluation.getData());
 		} catch (JsonProcessingException e) {
 			return JsonUtil.wrapAsObject("error", true, false);
 		}

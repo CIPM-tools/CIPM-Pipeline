@@ -22,7 +22,6 @@ import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import dmodel.pipeline.models.mapping.MappingFactory;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
 import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallKSTestMetric;
@@ -89,8 +88,7 @@ public class ValidationProcessorTest {
 	@Test
 	public void testSimulation() {
 		for (int i = 0; i < 25; i++) {
-			ValidationData data = feedback.process(pcm, MappingFactory.eINSTANCE.createPalladioRuntimeMapping(),
-					Lists.newArrayList(), "TestAnalysis");
+			ValidationData data = feedback.process(pcm, Lists.newArrayList(), "TestAnalysis");
 			assertNotNull(data);
 			assertTrue(data.getValidationPoints().size() > 2);
 		}

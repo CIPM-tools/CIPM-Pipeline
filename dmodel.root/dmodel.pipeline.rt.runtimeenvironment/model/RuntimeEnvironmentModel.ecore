@@ -2,19 +2,35 @@
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="REModel" nsURI="http://www.dmodel.com/RuntimeEnvironmentModel"
     nsPrefix="rem">
-  <eClassifiers xsi:type="ecore:EClass" name="RuntimeEnvironmentModel">
+  <eClassifiers xsi:type="ecore:EClass" name="RuntimeEnvironmentModel" eSuperTypes="../../org.palladiosimulator.pcm/model/pcm.ecore#//core/entity/Entity">
     <eStructuralFeatures xsi:type="ecore:EReference" name="containers" upperBound="-1"
-        eType="#//ResourceContainer" containment="true"/>
+        eType="#//RuntimeResourceContainer" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="hardwareSpecifications"
         upperBound="-1" eType="#//HardwareInformation" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connectionSpecifications"
+        upperBound="-1" eType="#//ConnectionSpecification" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connections" upperBound="-1"
+        eType="#//RuntimeResourceContainerConnection" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ResourceContainer">
+  <eClassifiers xsi:type="ecore:EClass" name="RuntimeResourceContainer">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="hostname" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hostID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hostID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="hardware" eType="#//HardwareInformation"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="HardwareInformation">
+  <eClassifiers xsi:type="ecore:EClass" name="HardwareInformation" eSuperTypes="../../org.palladiosimulator.pcm/model/pcm.ecore#//core/entity/Entity">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="cores" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="mainMemorySize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RuntimeResourceContainerConnection"
+      eSuperTypes="../../org.palladiosimulator.pcm/model/pcm.ecore#//core/entity/Entity">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containerFrom" lowerBound="1"
+        eType="#//RuntimeResourceContainer"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="containerTo" eType="#//RuntimeResourceContainer"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connectionSpecification"
+        eType="#//ConnectionSpecification"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ConnectionSpecification" eSuperTypes="../../org.palladiosimulator.pcm/model/pcm.ecore#//core/entity/Entity">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bandwidth" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
   </eClassifiers>
 </ecore:EPackage>

@@ -8,7 +8,6 @@ import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.config.ProjectConfiguration;
 import dmodel.pipeline.shared.util.AbstractObservable;
@@ -20,7 +19,6 @@ public class BuildServiceCallGraphProcess extends AbstractObservable<ServiceCall
 
 	private ProjectConfiguration config;
 	private ISystemCompositionAnalyzer analyzer;
-	private RunTimeDesignTimeBorder border;
 	private IApplicationInstrumenter transformer;
 	private RuntimePipelineBlackboard blackboard;
 

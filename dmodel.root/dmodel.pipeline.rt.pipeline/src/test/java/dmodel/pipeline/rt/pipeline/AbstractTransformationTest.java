@@ -15,18 +15,17 @@ import org.eclipse.emf.ecore.EObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
 
-import dmodel.pipeline.models.mapping.HostIDMapping;
-import dmodel.pipeline.models.mapping.MappingFactory;
-import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.pipeline.border.RunTimeDesignTimeBorder;
 import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
@@ -34,7 +33,10 @@ import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
 import dmodel.pipeline.shared.util.ExtendedEqualityHelper;
 
+@RunWith(SpringRunner.class)
+@Import(BaseSpringTestConfiguration.class)
 public abstract class AbstractTransformationTest {
+
 	private static final Pattern BRACKET_PATTERN = Pattern.compile("\\[(.*)\\]");
 	private static final Pattern PARAMETER_PATTERN = Pattern.compile("(\\{.*\\})");
 	private final static Pattern LTRIM = Pattern.compile("^\\s+");
@@ -51,15 +53,9 @@ public abstract class AbstractTransformationTest {
 	public void createBlackboard() {
 		blackboard = new RuntimePipelineBlackboard();
 
-		// border & mapping
-		RunTimeDesignTimeBorder border = new RunTimeDesignTimeBorder();
-		PalladioRuntimeMapping runtimeMapping = MappingFactory.eINSTANCE.createPalladioRuntimeMapping();
-		border.setRuntimeMapping(runtimeMapping);
-		blackboard.setBorder(border);
-
 		// configuration
 		try {
-			blackboard.setConfig(new ObjectMapper(new YAMLFactory()).readValue(
+			blackboard.setConfiguration(new ObjectMapper(new YAMLFactory()).readValue(
 					AbstractTransformationTest.class.getResourceAsStream("/defaultConfig.yml"),
 					DModelConfigurationContainer.class));
 		} catch (IOException e) {
@@ -75,20 +71,10 @@ public abstract class AbstractTransformationTest {
 
 	@Test
 	public void initialTest() {
-		assertNotNull(blackboard.getBorder());
-		assertNotNull(blackboard.getBorder().getRuntimeMapping());
-		assertNotNull(blackboard.getConfig());
+		assertNotNull(blackboard.getConfiguration());
 	}
 
 	protected abstract void loadPCMModels();
-
-	protected void addHostMapping(String pcmId, String hostId) {
-		HostIDMapping mp = MappingFactory.eINSTANCE.createHostIDMapping();
-		mp.setPcmContainerID(pcmId);
-		mp.setHostID(hostId);
-
-		blackboard.getBorder().getRuntimeMapping().getHostMappings().add(mp);
-	}
 
 	protected boolean modelsEqual(EObject o1, EObject o2) {
 		return new ExtendedEqualityHelper().equals(o1, o2, Sets.newHashSet());

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.rest.rt.validation.data.PipelineValidationPoint;
 import dmodel.pipeline.rt.validation.data.ValidationData;
@@ -75,16 +76,16 @@ public class ValidationRestController {
 		ValidationData data;
 		switch (point) {
 		case AFTER_REPO:
-			data = blackboard.getValidationResultContainer().getAfterRepositoryResults();
+			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_REPO);
 			break;
 		case AFTER_USAGE:
-			data = blackboard.getValidationResultContainer().getAfterUsageModelResults();
+			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_USAGE);
 			break;
 		case FINAL:
-			data = blackboard.getValidationResultContainer().getFinalResults();
+			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.FINAL);
 			break;
 		case PRE:
-			data = blackboard.getValidationResultContainer().getPreValidationResults();
+			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.PRE_PIPELINE);
 			break;
 		default:
 			return null;

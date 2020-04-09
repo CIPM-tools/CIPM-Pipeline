@@ -23,9 +23,6 @@ public class ProjectConfiguration {
 	@Setter(AccessLevel.NONE)
 	private String instrumentedPath;
 
-	@Setter(AccessLevel.NONE)
-	private String correspondencePath;
-
 	public ProjectConfiguration() {
 		this.listeners = new ArrayList<>();
 	}
@@ -42,11 +39,6 @@ public class ProjectConfiguration {
 
 	public void setInstrumentedPath(String instrumentedPath) {
 		this.instrumentedPath = instrumentedPath;
-		this.listeners.forEach(l -> l.configurationChanged(this));
-	}
-
-	public void setCorrespondencePath(String correspondencePath) {
-		this.correspondencePath = correspondencePath;
 		this.listeners.forEach(l -> l.configurationChanged(this));
 	}
 

@@ -2,9 +2,8 @@ package dmodel.pipeline.rt.pcm.usagemodel.tree.transition;
 
 import java.util.List;
 
-import org.palladiosimulator.pcm.repository.Repository;
-import org.palladiosimulator.pcm.system.System;
-
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.ServiceCallSession;
 import dmodel.pipeline.rt.pcm.usagemodel.data.UsageServiceCallDescriptor;
@@ -18,7 +17,7 @@ import lombok.extern.java.Log;
 public class ReferenceTransitionTreeExtractor implements ITransitionTreeExtractor {
 	@Override
 	public Tree<DescriptorTransition<UsageServiceCallDescriptor>> extractProbabilityCallTree(
-			List<ServiceCallSession> sessions, Repository repository, System system) {
+			List<ServiceCallSession> sessions, IRepositoryQueryFacade repository, ISystemQueryFacade system) {
 		// 1. first build our internal representation tree
 		Tree<ReferenceTreeTransition> innerTree = new Tree<>(new ReferenceTreeTransition(null));
 

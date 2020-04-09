@@ -1,32 +1,34 @@
 package dmodel.pipeline.rexample.prime.generator.impl;
 
-
-import dmodel.pipeline.monitoring.controller.ServiceParameters;
-import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
-import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import dmodel.pipeline.monitoring.util.ManualMapping;
+import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
+import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
+import dmodel.pipeline.monitoring.controller.ServiceParameters;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EratosthenesGeneratorImpl implements IPrimeGenerator {
+
     @Override
+    @ManualMapping("_PlFlUJYHEempGaXtj6ezAw")
     public List<Integer> generatePrimes(int amount) {
-        ThreadMonitoringController threadMonitoringController = dmodel.pipeline.monitoring.controller.ThreadMonitoringController.getInstance();
-        try  {
-            ServiceParameters serviceParametersMonitoring = new ServiceParameters();
-            serviceParametersMonitoring.addValue("amount", amount);
-            threadMonitoringController.enterService("_PlFlUJYHEempGaXtj6ezAw", this, serviceParametersMonitoring);
+        ThreadMonitoringController threadMonitoringController = ThreadMonitoringController.getInstance();
+        ServiceParameters monitoringServiceParameters = new ServiceParameters();
+        monitoringServiceParameters.addValue("amount", amount);
+        threadMonitoringController.enterService("_PlFlUJYHEempGaXtj6ezAw", this, monitoringServiceParameters);
+        try {
             int currentUpperlimit = amount * 10;
             boolean[] res = new boolean[0];
-            while ((res.length) < amount) {
+            while (res.length < amount) {
                 res = berechnePrimzahlen(currentUpperlimit);
                 currentUpperlimit *= 10;
-            } 
+            }
             boolean[] fres = res;
             List<Integer> results = new ArrayList<Integer>();
-            for (int k = 0; k < (res.length); k++) {
-                if ((results.size()) == amount) {
+            for (int k = 0; k < res.length; k++) {
+                if (results.size() == amount) {
                     break;
                 } else {
                     if (fres[k]) {
@@ -52,11 +54,10 @@ public class EratosthenesGeneratorImpl implements IPrimeGenerator {
                 while (momentanerWert <= obergrenze) {
                     primzahlen[momentanerWert] = false;
                     momentanerWert += i;
-                } 
+                }
             }
         }
-        return primzahlen;// Feld zurückgeben
-
+        // Feld zurückgeben
+        return primzahlen;
     }
 }
-

@@ -2,12 +2,17 @@
  */
 package dmodel.pipeline.rt.runtimeenvironment.REModel.util;
 
+import de.uka.ipd.sdq.identifier.Identifier;
+
 import dmodel.pipeline.rt.runtimeenvironment.REModel.*;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
 import org.eclipse.emf.ecore.util.Switch;
+
+import org.palladiosimulator.pcm.core.entity.Entity;
+import org.palladiosimulator.pcm.core.entity.NamedElement;
 
 /**
  * <!-- begin-user-doc -->
@@ -69,18 +74,42 @@ public class REModelSwitch<T> extends Switch<T> {
 			case REModelPackage.RUNTIME_ENVIRONMENT_MODEL: {
 				RuntimeEnvironmentModel runtimeEnvironmentModel = (RuntimeEnvironmentModel)theEObject;
 				T result = caseRuntimeEnvironmentModel(runtimeEnvironmentModel);
+				if (result == null) result = caseEntity(runtimeEnvironmentModel);
+				if (result == null) result = caseIdentifier(runtimeEnvironmentModel);
+				if (result == null) result = caseNamedElement(runtimeEnvironmentModel);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case REModelPackage.RESOURCE_CONTAINER: {
-				ResourceContainer resourceContainer = (ResourceContainer)theEObject;
-				T result = caseResourceContainer(resourceContainer);
+			case REModelPackage.RUNTIME_RESOURCE_CONTAINER: {
+				RuntimeResourceContainer runtimeResourceContainer = (RuntimeResourceContainer)theEObject;
+				T result = caseRuntimeResourceContainer(runtimeResourceContainer);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
 			case REModelPackage.HARDWARE_INFORMATION: {
 				HardwareInformation hardwareInformation = (HardwareInformation)theEObject;
 				T result = caseHardwareInformation(hardwareInformation);
+				if (result == null) result = caseEntity(hardwareInformation);
+				if (result == null) result = caseIdentifier(hardwareInformation);
+				if (result == null) result = caseNamedElement(hardwareInformation);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case REModelPackage.RUNTIME_RESOURCE_CONTAINER_CONNECTION: {
+				RuntimeResourceContainerConnection runtimeResourceContainerConnection = (RuntimeResourceContainerConnection)theEObject;
+				T result = caseRuntimeResourceContainerConnection(runtimeResourceContainerConnection);
+				if (result == null) result = caseEntity(runtimeResourceContainerConnection);
+				if (result == null) result = caseIdentifier(runtimeResourceContainerConnection);
+				if (result == null) result = caseNamedElement(runtimeResourceContainerConnection);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case REModelPackage.CONNECTION_SPECIFICATION: {
+				ConnectionSpecification connectionSpecification = (ConnectionSpecification)theEObject;
+				T result = caseConnectionSpecification(connectionSpecification);
+				if (result == null) result = caseEntity(connectionSpecification);
+				if (result == null) result = caseIdentifier(connectionSpecification);
+				if (result == null) result = caseNamedElement(connectionSpecification);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -104,17 +133,17 @@ public class REModelSwitch<T> extends Switch<T> {
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Resource Container</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>Runtime Resource Container</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Resource Container</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>Runtime Resource Container</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseResourceContainer(ResourceContainer object) {
+	public T caseRuntimeResourceContainer(RuntimeResourceContainer object) {
 		return null;
 	}
 
@@ -130,6 +159,81 @@ public class REModelSwitch<T> extends Switch<T> {
 	 * @generated
 	 */
 	public T caseHardwareInformation(HardwareInformation object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Runtime Resource Container Connection</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Runtime Resource Container Connection</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseRuntimeResourceContainerConnection(RuntimeResourceContainerConnection object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Connection Specification</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Connection Specification</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseConnectionSpecification(ConnectionSpecification object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Identifier</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Identifier</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseIdentifier(Identifier object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Named Element</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Named Element</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseNamedElement(NamedElement object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Entity</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Entity</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseEntity(Entity object) {
 		return null;
 	}
 

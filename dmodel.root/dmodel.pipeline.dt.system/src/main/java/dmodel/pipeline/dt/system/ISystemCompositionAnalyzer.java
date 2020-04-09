@@ -1,13 +1,15 @@
 package dmodel.pipeline.dt.system;
 
-import org.palladiosimulator.pcm.repository.Repository;
+import java.io.File;
+import java.util.List;
 
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
-import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
-import spoon.Launcher;
+import dmodel.pipeline.instrumentation.project.ParsedApplicationProject;
+import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 
 public interface ISystemCompositionAnalyzer {
-	public ServiceCallGraph deriveSystemComposition(Launcher model, SpoonCorrespondence spoonCorr);
+	public ServiceCallGraph deriveSystemComposition(ParsedApplicationProject parsedApplication,
+			List<File> binaryJarFiles, IRepositoryQueryFacade repository, IJavaPCMCorrespondenceModel correspondence);
 
-	public SpoonCorrespondence resolveManualMapping(Repository repository, Launcher model);
 }

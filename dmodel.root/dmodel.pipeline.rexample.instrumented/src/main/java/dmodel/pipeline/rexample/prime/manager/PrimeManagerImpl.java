@@ -1,13 +1,14 @@
 package dmodel.pipeline.rexample.prime.manager;
 
-
-import dmodel.pipeline.monitoring.controller.ServiceParameters;
-import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
-import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
 import java.util.List;
-
+import dmodel.pipeline.monitoring.util.ManualMapping;
+import dmodel.pipeline.rexample.prime.generator.IPrimeGenerator;
+import dmodel.pipeline.monitoring.controller.ThreadMonitoringController;
+import dmodel.pipeline.monitoring.controller.ServiceParameters;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PrimeManagerImpl implements IPrimeManager {
+
     private IPrimeGenerator generator;
 
     public IPrimeGenerator getGenerator() {
@@ -19,16 +20,16 @@ public class PrimeManagerImpl implements IPrimeManager {
     }
 
     @Override
+    @ManualMapping("_2RDcwKMhEemdKJpkeqfUZw")
     public List<Integer> generatePrimes(int amount) {
-        ThreadMonitoringController threadMonitoringController = dmodel.pipeline.monitoring.controller.ThreadMonitoringController.getInstance();
-        try  {
-            ServiceParameters serviceParametersMonitoring = new ServiceParameters();
-            serviceParametersMonitoring.addValue("amount", amount);
-            threadMonitoringController.enterService("_2RDcwKMhEemdKJpkeqfUZw", this, serviceParametersMonitoring);
+        ThreadMonitoringController threadMonitoringController = ThreadMonitoringController.getInstance();
+        ServiceParameters monitoringServiceParameters = new ServiceParameters();
+        monitoringServiceParameters.addValue("amount", amount);
+        threadMonitoringController.enterService("_2RDcwKMhEemdKJpkeqfUZw", this, monitoringServiceParameters);
+        try {
             return generator.generatePrimes(amount);
         } finally {
             threadMonitoringController.exitService("_2RDcwKMhEemdKJpkeqfUZw");
         }
     }
 }
-

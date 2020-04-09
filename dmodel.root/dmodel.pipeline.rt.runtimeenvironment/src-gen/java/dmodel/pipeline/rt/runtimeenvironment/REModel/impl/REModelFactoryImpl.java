@@ -57,8 +57,10 @@ public class REModelFactoryImpl extends EFactoryImpl implements REModelFactory {
 	public EObject create(EClass eClass) {
 		switch (eClass.getClassifierID()) {
 			case REModelPackage.RUNTIME_ENVIRONMENT_MODEL: return createRuntimeEnvironmentModel();
-			case REModelPackage.RESOURCE_CONTAINER: return createResourceContainer();
+			case REModelPackage.RUNTIME_RESOURCE_CONTAINER: return createRuntimeResourceContainer();
 			case REModelPackage.HARDWARE_INFORMATION: return createHardwareInformation();
+			case REModelPackage.RUNTIME_RESOURCE_CONTAINER_CONNECTION: return createRuntimeResourceContainerConnection();
+			case REModelPackage.CONNECTION_SPECIFICATION: return createConnectionSpecification();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
 		}
@@ -79,9 +81,9 @@ public class REModelFactoryImpl extends EFactoryImpl implements REModelFactory {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public ResourceContainer createResourceContainer() {
-		ResourceContainerImpl resourceContainer = new ResourceContainerImpl();
-		return resourceContainer;
+	public RuntimeResourceContainer createRuntimeResourceContainer() {
+		RuntimeResourceContainerImpl runtimeResourceContainer = new RuntimeResourceContainerImpl();
+		return runtimeResourceContainer;
 	}
 
 	/**
@@ -92,6 +94,26 @@ public class REModelFactoryImpl extends EFactoryImpl implements REModelFactory {
 	public HardwareInformation createHardwareInformation() {
 		HardwareInformationImpl hardwareInformation = new HardwareInformationImpl();
 		return hardwareInformation;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public RuntimeResourceContainerConnection createRuntimeResourceContainerConnection() {
+		RuntimeResourceContainerConnectionImpl runtimeResourceContainerConnection = new RuntimeResourceContainerConnectionImpl();
+		return runtimeResourceContainerConnection;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public ConnectionSpecification createConnectionSpecification() {
+		ConnectionSpecificationImpl connectionSpecification = new ConnectionSpecificationImpl();
+		return connectionSpecification;
 	}
 
 	/**

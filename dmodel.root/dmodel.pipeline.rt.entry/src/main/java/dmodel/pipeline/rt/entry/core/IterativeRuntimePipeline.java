@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
@@ -40,6 +41,9 @@ public class IterativeRuntimePipeline
 	private RuntimePipelineBlackboard blackboard;
 
 	@Autowired
+	private IPCMQueryFacade pcmQuery;
+
+	@Autowired
 	private ApplicationContext applicationContext;
 
 	private List<IterativeRuntimePipelineListener> listeners;
@@ -62,7 +66,6 @@ public class IterativeRuntimePipeline
 	@Override
 	public void initBlackboard() {
 		blackboard.reset();
-		blackboard.getValidationFeedbackComponent().clearSimulationData();
 	}
 
 	@Override
@@ -78,7 +81,7 @@ public class IterativeRuntimePipeline
 
 	@Override
 	protected void onIterationFinished(PartitionedMonitoringData<IMonitoringRecord> monitoring) {
-		blackboard.getPerformanceEvaluation().exitPipelineExecution();
+		blackboard.getQuery().trackEndPipelineExecution();
 		log.info("Finished execution of the pipeline.");
 
 		// listeners
@@ -113,7 +116,7 @@ public class IterativeRuntimePipeline
 			fileSys.setSystemFile(systemFile);
 			fileSys.setUsageModelFile(usageFile);
 
-			blackboard.getArchitectureModel().copyDeep().saveToFilesystem(fileSys);
+			pcmQuery.getDeepCopy().saveToFilesystem(fileSys);
 
 			// save monitoring data
 			saveMonitoringData(monitoring.getAllData(), new File(monitoringPath, EVALUATION_PATH_MONITORING_ALL));

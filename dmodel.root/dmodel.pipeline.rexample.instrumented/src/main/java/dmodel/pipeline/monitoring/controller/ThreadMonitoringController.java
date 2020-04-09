@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Executors;
@@ -15,8 +17,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.monitoring.controller.config.MonitoringConfiguration;
+import dmodel.pipeline.monitoring.controller.scale.IScaleController;
+import dmodel.pipeline.monitoring.controller.scale.LogarithmicScaleController;
+import dmodel.pipeline.monitoring.controller.scale.NoDecelerationScaleController;
 import dmodel.pipeline.monitoring.records.BranchRecord;
 import dmodel.pipeline.monitoring.records.LoopRecord;
 import dmodel.pipeline.monitoring.records.ResponseTimeRecord;
@@ -34,10 +42,6 @@ public class ThreadMonitoringController {
 	private static IMonitoringController MONITORING_CONTROLLER;
 	private static final ThreadMonitoringController instance;
 
-	private static final String serverHostname = "localhost";
-	private static final int restPort = 8090;
-	private static final String restAddress = "/runtime/pipeline/imm";
-
 	static {
 		createMonitoringController();
 		instance = new ThreadMonitoringController();
@@ -51,8 +55,11 @@ public class ThreadMonitoringController {
 	private static volatile String sessionId;
 
 	private final IDFactory idFactory;
+	private final IScaleController scaleController;
 
 	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
+	private ThreadLocal<InternalOptional<String>> remoteStack;
+	private ThreadLocal<Map<Pair<String, String>, Long>> startingTimesMap;
 
 	private Set<String> monitoredIds = new HashSet<>();
 	private boolean monitoredIdsInited = false;
@@ -77,7 +84,25 @@ public class ThreadMonitoringController {
 				return new Stack<ServiceCallTrack>();
 			}
 		});
+		this.remoteStack = ThreadLocal.withInitial(new Supplier<InternalOptional<String>>() {
+			@Override
+			public InternalOptional<String> get() {
+				return new InternalOptional<String>();
+			}
+		});
+		this.startingTimesMap = ThreadLocal.withInitial(new Supplier<Map<Pair<String, String>, Long>>() {
+			@Override
+			public Map<Pair<String, String>, Long> get() {
+				return new HashMap<Pair<String, String>, Long>();
+			}
+		});
 		this.cpuSamplerActive = false;
+
+		if (MonitoringConfiguration.LOGARITHMIC_SCALING) {
+			scaleController = new LogarithmicScaleController(MonitoringConfiguration.LOGARITHMIC_SCALING_INTERVAL);
+		} else {
+			scaleController = new NoDecelerationScaleController();
+		}
 	}
 
 	private static void createMonitoringController() {
@@ -127,7 +152,8 @@ public class ThreadMonitoringController {
 
 	private void pollInstrumentationModel() {
 		try {
-			final URL url = new URL("http://" + serverHostname + ":" + restPort + restAddress);
+			final URL url = new URL("http://" + MonitoringConfiguration.SERVER_HOSTNAME + ":"
+					+ MonitoringConfiguration.SERVER_REST_PORT + MonitoringConfiguration.SERVER_REST_INM_URL);
 			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.setRequestMethod("GET");
@@ -147,6 +173,14 @@ public class ThreadMonitoringController {
 			monitoredIdsInited = false;
 		}
 
+	}
+
+	public synchronized void continueFromRemote(final String callerId) {
+		this.remoteStack.get().set(callerId);
+	}
+
+	public synchronized void detachFromRemote() {
+		this.remoteStack.get().clear();
 	}
 
 	/**
@@ -180,8 +214,13 @@ public class ThreadMonitoringController {
 
 			ServiceCallTrack nTrack;
 			if (trace.empty()) {
-				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
-						String.valueOf(System.identityHashCode(exId)), null);
+				if (remoteStack.get().isPresent()) {
+					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+							String.valueOf(System.identityHashCode(exId)), remoteStack.get().value);
+				} else {
+					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+							String.valueOf(System.identityHashCode(exId)), null);
+				}
 			} else {
 				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
 						String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
@@ -243,8 +282,9 @@ public class ThreadMonitoringController {
 	 * @param executedBranchId The abstract action id of the executed branch
 	 *                         transition.
 	 */
-	public void logBranchExecution(final String branchId, final String executedBranchId) {
-		if (!monitoredIdsInited || monitoredIds.contains(branchId)) {
+	public void enterBranch(final String executedBranchId) {
+		if ((!monitoredIdsInited || monitoredIds.contains(executedBranchId))
+				&& scaleController.shouldLog(executedBranchId)) {
 			long start = analysis.enterOverhead();
 
 			Stack<ServiceCallTrack> trace = serviceCallStack.get();
@@ -255,12 +295,11 @@ public class ThreadMonitoringController {
 			}
 
 			ServiceCallTrack currentTrack = trace.peek();
-			BranchRecord record = new BranchRecord(sessionId, currentTrack.serviceExecutionId, branchId,
-					executedBranchId);
+			BranchRecord record = new BranchRecord(sessionId, currentTrack.serviceExecutionId, executedBranchId);
 
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
-			analysis.exitBranchOverhead(branchId, start);
+			analysis.exitBranchOverhead(executedBranchId, start);
 			currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
 		}
 	}
@@ -271,8 +310,8 @@ public class ThreadMonitoringController {
 	 * @param loopId             The abstract action id of the loop.
 	 * @param loopIterationCount The executed iterations of the loop.
 	 */
-	public void logLoopIterationCount(final String loopId, final long loopIterationCount) {
-		if (!monitoredIdsInited || monitoredIds.contains(loopId)) {
+	public void exitLoop(final String loopId, final long loopIterationCount) {
+		if ((!monitoredIdsInited || monitoredIds.contains(loopId)) && scaleController.shouldLog(loopId)) {
 			long start = analysis.enterOverhead();
 			Stack<ServiceCallTrack> trace = serviceCallStack.get();
 
@@ -298,24 +337,51 @@ public class ThreadMonitoringController {
 	 * @param resourceId       The id of the resource type.
 	 * @param startTime        The start time of the response time.
 	 */
-	public void logResponseTime(final String internalActionId, final String resourceId, final long startTime) {
-		if (!monitoredIdsInited || monitoredIds.contains(internalActionId)) {
+	public void enterInternalAction(final String internalActionId, final String resourceId) {
+		if ((!monitoredIdsInited || monitoredIds.contains(internalActionId))
+				&& scaleController.shouldLog(internalActionId)) {
 			long start = analysis.enterOverhead();
+			Map<Pair<String, String>, Long> threadMap = startingTimesMap.get();
+			threadMap.put(Pair.of(internalActionId, resourceId), TIME_SOURCE.getTime());
 
-			long end = TIME_SOURCE.getTime();
 			Stack<ServiceCallTrack> trace = serviceCallStack.get();
 
 			if (trace.empty()) {
 				throw new RuntimeException("The trace stack should never be empty when 'logResponseTime' is called.");
 			}
-
 			ServiceCallTrack currentTrack = trace.peek();
-			ResponseTimeRecord record = new ResponseTimeRecord(sessionId, currentTrack.serviceExecutionId,
-					internalActionId, resourceId, startTime, end);
-			MONITORING_CONTROLLER.newMonitoringRecord(record);
-
 			analysis.internalOverhead(internalActionId, start);
 			currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
+		}
+	}
+
+	public void exitInternalAction(final String internalActionId, final String resourceId) {
+		if (!monitoredIdsInited || monitoredIds.contains(internalActionId)) {
+			long start = analysis.enterOverhead();
+
+			Map<Pair<String, String>, Long> threadMap = startingTimesMap.get();
+			Pair<String, String> query = Pair.of(internalActionId, resourceId);
+
+			if (threadMap.containsKey(query)) {
+				long startTime = threadMap.get(query);
+
+				long end = TIME_SOURCE.getTime();
+				Stack<ServiceCallTrack> trace = serviceCallStack.get();
+
+				if (trace.empty()) {
+					throw new RuntimeException(
+							"The trace stack should never be empty when 'logResponseTime' is called.");
+				}
+
+				ServiceCallTrack currentTrack = trace.peek();
+				ResponseTimeRecord record = new ResponseTimeRecord(sessionId, currentTrack.serviceExecutionId,
+						internalActionId, resourceId, startTime, end);
+				MONITORING_CONTROLLER.newMonitoringRecord(record);
+				threadMap.remove(query);
+				currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
+			}
+
+			analysis.internalOverhead(internalActionId, start);
 		}
 	}
 
@@ -364,6 +430,35 @@ public class ThreadMonitoringController {
 			this.cumulatedMonitoringOverhead = 0;
 		}
 
+	}
+
+	// DUE TO COMPATIBILITY REASONS
+	// OPTIONAL IS AVAILABLE AT JAVA >= 8
+	private static class InternalOptional<T> {
+		private T value;
+		private boolean present;
+
+		private InternalOptional() {
+			this.present = false;
+		}
+
+		private InternalOptional(T value) {
+			this.set(value);
+		}
+
+		private boolean isPresent() {
+			return present;
+		}
+
+		private void set(T value) {
+			this.value = value;
+			this.present = true;
+		}
+
+		private void clear() {
+			this.present = false;
+			this.value = null;
+		}
 	}
 
 }

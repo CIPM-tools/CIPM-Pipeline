@@ -1,7 +1,6 @@
 package dmodel.pipeline.rt.validation.eval;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -15,18 +14,20 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 
-import dmodel.pipeline.models.mapping.HostIDMapping;
-import dmodel.pipeline.models.mapping.PalladioRuntimeMapping;
+import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ResourceUtilizationRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.rt.validation.data.TimeValueDistribution;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
 import dmodel.pipeline.rt.validation.eval.util.PCMValidationPointMatcher;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMElementIDCache;
+import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
 
 @Service
+// TODO a bit refactor (constants, long method,...)
 public class MonitoringDataEnrichment {
 	private Cache<Pair<String, String>, List<ValidationPoint>> resourceUtilCache = new Cache2kBuilder<Pair<String, String>, List<ValidationPoint>>() {
 	}.expireAfterWrite(2, TimeUnit.MINUTES).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
@@ -39,7 +40,13 @@ public class MonitoringDataEnrichment {
 	@Autowired
 	private PCMValidationPointMatcher pcmValidationPointMatcher;
 
-	public void enrichWithMonitoringData(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
+	@Autowired
+	private ISpecificVsumFacade vsumFacade;
+
+	@Autowired
+	private IRuntimeEnvironmentQueryFacade remFacade;
+
+	public void enrichWithMonitoringData(InMemoryPCM pcm, List<ValidationPoint> points,
 			List<PCMContextRecord> monitoring) {
 		// clear caches
 		resourceUtilCache.clear();
@@ -48,13 +55,12 @@ public class MonitoringDataEnrichment {
 		pcmValidationPointMatcher.clear();
 
 		monitoring.stream().forEach(rec -> {
-			processRecord(pcm, mapping, points, rec);
+			processRecord(pcm, points, rec);
 		});
 
 	}
 
-	private void processRecord(InMemoryPCM pcm, PalladioRuntimeMapping mapping, List<ValidationPoint> points,
-			PCMContextRecord rec) {
+	private void processRecord(InMemoryPCM pcm, List<ValidationPoint> points, PCMContextRecord rec) {
 		if (rec instanceof ResourceUtilizationRecord) {
 			ResourceUtilizationRecord utilRecord = (ResourceUtilizationRecord) rec;
 			Pair<String, String> key = Pair.of(utilRecord.getHostId(), utilRecord.getResourceId());
@@ -63,7 +69,7 @@ public class MonitoringDataEnrichment {
 			if (resourceUtilCache.containsKey(key)) {
 				assignedPoints = resourceUtilCache.get(key);
 			} else {
-				String resolvedTargetId = resolveResourceTargetId(pcm, mapping, utilRecord.getHostId(),
+				String resolvedTargetId = resolveResourceTargetId(pcm, utilRecord.getHostId(),
 						utilRecord.getResourceId());
 				if (resolvedTargetId == null) {
 					return;
@@ -91,7 +97,7 @@ public class MonitoringDataEnrichment {
 			if (serviceCallCache.containsKey(key)) {
 				assignedPoints = serviceCallCache.get(key);
 			} else {
-				List<String> resolvedTargetIds = resolveServiceCallTargetIds(pcm, mapping, serviceRec.getHostId(),
+				List<String> resolvedTargetIds = resolveServiceCallTargetIds(pcm, serviceRec.getHostId(),
 						serviceRec.getServiceId());
 				if (resolvedTargetIds == null) {
 					return;
@@ -128,32 +134,28 @@ public class MonitoringDataEnrichment {
 		}
 	}
 
-	private List<String> resolveServiceCallTargetIds(InMemoryPCM pcm, PalladioRuntimeMapping mapping, String hostId,
-			String serviceId) {
-		Optional<HostIDMapping> containerId = mapping.getHostMappings().stream()
-				.filter(mp -> mp.getHostID().equals(hostId)).findFirst();
-		if (containerId.isPresent()) {
-			ResourceContainer container = cacheResEnv.resolve(pcm.getResourceEnvironmentModel(),
-					containerId.get().getPcmContainerID());
-			if (container != null) {
-				return Lists.newArrayList(container.getId(), serviceId);
-			}
+	private List<String> resolveServiceCallTargetIds(InMemoryPCM pcm, String hostId, String serviceId) {
+		ResourceContainer container = getCorrespondingResourceCotnainer(hostId);
+		if (container != null) {
+			return Lists.newArrayList(container.getId(), serviceId);
 		}
 		return null;
 	}
 
-	private String resolveResourceTargetId(InMemoryPCM pcm, PalladioRuntimeMapping mapping, String hostId,
-			String resourceId) {
-		Optional<HostIDMapping> containerId = mapping.getHostMappings().stream()
-				.filter(mp -> mp.getHostID().equals(hostId)).findFirst();
-		if (containerId.isPresent()) {
-			ResourceContainer container = cacheResEnv.resolve(pcm.getResourceEnvironmentModel(),
-					containerId.get().getPcmContainerID());
-			if (container != null) {
-				return container.getActiveResourceSpecifications_ResourceContainer().stream()
-						.filter(r -> r.getActiveResourceType_ActiveResourceSpecification().getId().equals(resourceId))
-						.map(r -> r.getId()).findFirst().orElse(null);
-			}
+	private String resolveResourceTargetId(InMemoryPCM pcm, String hostId, String resourceId) {
+		ResourceContainer container = getCorrespondingResourceCotnainer(hostId);
+		if (container != null) {
+			return container.getActiveResourceSpecifications_ResourceContainer().stream()
+					.filter(r -> r.getActiveResourceType_ActiveResourceSpecification().getId().equals(resourceId))
+					.map(r -> r.getId()).findFirst().orElse(null);
+		}
+		return null;
+	}
+
+	private ResourceContainer getCorrespondingResourceCotnainer(String hostId) {
+		RuntimeResourceContainer remContainer = remFacade.getContainerById(hostId);
+		if (remContainer != null) {
+			return vsumFacade.getCorrespondingResourceContainer(remContainer).orElse(null);
 		}
 		return null;
 	}

@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.pcm.validation;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
@@ -33,14 +34,14 @@ public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<Runtim
 	})
 	/* @formatter:on */
 	public List<Tree<ServiceCallRecord>> buildServiceCallTree(PartitionedMonitoringData<PCMContextRecord> records) {
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SERVICE_CALL_TREE);
 
 		log.info("Start building of service call trees.");
 		List<Tree<ServiceCallRecord>> result = MonitoringDataUtil
 				.buildServiceCallTree(records.getAllData().stream().filter(f -> f instanceof ServiceCallRecord)
 						.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));
 
-		getBlackboard().getPerformanceEvaluation().trackServiceCallTreeExtraction(start);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SERVICE_CALL_TREE);
 
 		return result;
 	}

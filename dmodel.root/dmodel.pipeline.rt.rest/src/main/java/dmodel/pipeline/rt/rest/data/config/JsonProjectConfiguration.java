@@ -19,7 +19,6 @@ public class JsonProjectConfiguration {
 		out.setProjectPath(pconf.getRootPath());
 		out.setSourceFolders(pconf.getSourceFolders());
 		out.setInstrumentedPath(pconf.getInstrumentedPath());
-		out.setCorrespondencePath(pconf.getCorrespondencePath());
 
 		return out;
 	}
@@ -28,7 +27,6 @@ public class JsonProjectConfiguration {
 		conf.getProject().setInstrumentedPath(instrumentedPath);
 		conf.getProject().setRootPath(projectPath);
 		conf.getProject().setSourceFolders(sourceFolders);
-		conf.getProject().setCorrespondencePath(correspondencePath);
 	}
 
 	public String getProjectPath() {

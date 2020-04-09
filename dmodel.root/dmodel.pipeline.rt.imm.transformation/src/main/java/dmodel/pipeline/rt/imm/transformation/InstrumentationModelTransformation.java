@@ -1,8 +1,10 @@
 package dmodel.pipeline.rt.imm.transformation;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.pcm.headless.shared.data.results.PlainMeasuringPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
 
-import InstrumentationMetamodel.ServiceInstrumentationPoint;
+import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.rt.imm.transformation.predicate.ValidationPredicate;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
@@ -30,11 +33,11 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 	@InputPorts({ @InputPort(PortIDs.T_VAL_IMM) })
 	public void adjustInstrumentationModel(ValidationData validation) {
 		if (validation.isEmpty()) {
-			getBlackboard().getPerformanceEvaluation().trackInstrumentationModel(0);
+			getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
 			return;
 		}
 
-		long start = getBlackboard().getPerformanceEvaluation().getTime();
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
 
 		Set<String> deInstrumentServices = Sets.newHashSet();
 		Set<String> instrumentServices = Sets.newHashSet();
@@ -71,15 +74,15 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 			changeInstrumentationModel(instr, true);
 		});
 
-		getBlackboard().getPerformanceEvaluation().trackInstrumentationModel(start);
+		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
 	}
 
 	private void changeInstrumentationModel(String deInstr, boolean b) {
-		for (ServiceInstrumentationPoint instrPoint : getBlackboard().getInstrumentationModel().getPoints()) {
-			if (instrPoint.getService().getId().equals(deInstr)) {
-				instrPoint.getActionInstrumentationPoints().forEach(actionPoint -> actionPoint.setActive(b));
-				break;
-			}
+		ServiceEffectSpecification seff = getBlackboard().getPcmQuery().getRepository().getServiceById(deInstr);
+		Optional<ServiceInstrumentationPoint> instrPoint = getBlackboard().getVsumQuery()
+				.getCorrespondingInstrumentationPoint(seff);
+		if (instrPoint.isPresent()) {
+			instrPoint.get().getActionInstrumentationPoints().forEach(actionPoint -> actionPoint.setActive(b));
 		}
 	}
 

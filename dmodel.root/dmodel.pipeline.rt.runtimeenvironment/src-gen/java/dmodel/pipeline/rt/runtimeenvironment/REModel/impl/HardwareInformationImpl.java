@@ -10,7 +10,8 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EClass;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.palladiosimulator.pcm.core.entity.impl.EntityImpl;
 
 /**
  * <!-- begin-user-doc -->
@@ -26,7 +27,7 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  *
  * @generated
  */
-public class HardwareInformationImpl extends MinimalEObjectImpl.Container implements HardwareInformation {
+public class HardwareInformationImpl extends EntityImpl implements HardwareInformation {
 	/**
 	 * The default value of the '{@link #getCores() <em>Cores</em>}' attribute.
 	 * <!-- begin-user-doc -->
