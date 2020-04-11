@@ -61,4 +61,8 @@ public class ParsedApplicationProject {
 
 	}
 
+	public List<SourceRoot> getRoots() {
+		return roots.stream().map(p -> p.getLeft()).collect(Collectors.toList());
+	}
+
 }

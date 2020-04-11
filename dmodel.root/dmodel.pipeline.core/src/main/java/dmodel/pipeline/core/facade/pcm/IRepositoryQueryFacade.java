@@ -1,6 +1,9 @@
 package dmodel.pipeline.core.facade.pcm;
 
+import java.util.List;
+
 import org.palladiosimulator.pcm.repository.OperationInterface;
+import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.seff.AbstractBranchTransition;
 import org.palladiosimulator.pcm.seff.InternalAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
@@ -11,6 +14,8 @@ import dmodel.pipeline.core.facade.IResettableQueryFacade;
 public interface IRepositoryQueryFacade extends IResettableQueryFacade {
 
 	public <T extends Identifier> T getElementById(String id, Class<T> type);
+
+	public List<RepositoryComponent> getComponentsProvidingInterface(OperationInterface iface);
 
 	default public ResourceDemandingSEFF getServiceById(String id) {
 		return this.getElementById(id, ResourceDemandingSEFF.class);

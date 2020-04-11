@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import dmodel.pipeline.instrumentation.project.ParsedApplicationProject;
 import dmodel.pipeline.instrumentation.transformation.IApplicationProjectInstrumenter;
 import dmodel.pipeline.instrumentation.transformation.impl.sub.BranchActionInstrumenter;
+import dmodel.pipeline.instrumentation.transformation.impl.sub.ExternalCallInstrumenter;
 import dmodel.pipeline.instrumentation.transformation.impl.sub.InternalActionInstrumenter;
 import dmodel.pipeline.instrumentation.transformation.impl.sub.LoopActionInstrumenter;
 import dmodel.pipeline.instrumentation.transformation.impl.sub.ServiceCallInstrumenter;
@@ -43,6 +44,7 @@ public class ApplicationProjectInstrumenterImpl implements IApplicationProjectIn
 	private InternalActionInstrumenter internalActionInstrumenter;
 	private LoopActionInstrumenter loopActionInstrumenter;
 	private BranchActionInstrumenter branchActionInstrumenter;
+	private ExternalCallInstrumenter externalCallInstrumenter;
 
 	private Map<String, Statement> resolvedStatements;
 
@@ -54,6 +56,7 @@ public class ApplicationProjectInstrumenterImpl implements IApplicationProjectIn
 		internalActionInstrumenter = new InternalActionInstrumenter();
 		loopActionInstrumenter = new LoopActionInstrumenter();
 		branchActionInstrumenter = new BranchActionInstrumenter();
+		externalCallInstrumenter = new ExternalCallInstrumenter();
 	}
 
 	@Override
@@ -67,6 +70,22 @@ public class ApplicationProjectInstrumenterImpl implements IApplicationProjectIn
 		correspondence.getInternalActionCorrespondences().forEach(corr -> instrumentInternalAction(pap, corr));
 		correspondence.getBranchCorrespondences().forEach(corr -> instrumentBranchAction(pap, corr));
 		correspondence.getLoopCorrespondences().forEach(corr -> instrumentLoopAction(pap, corr));
+		correspondence.getExternalCallCorrespondences().forEach(corr -> instrumentExternalCall(pap, corr));
+	}
+
+	private void instrumentExternalCall(ParsedApplicationProject pap, Pair<String, String> corr) {
+		Statement callStatement = resolvedStatements.get(corr.getLeft());
+		if (callStatement == null) {
+			log.warning("External call statement could not be resolved.");
+			return;
+		}
+
+		// instrument it
+		externalCallInstrumenter.instrument(callStatement, corr.getRight());
+
+		// prepare parent
+		MethodDeclaration methodParent = getMethodParent(callStatement);
+		prepareMethod(methodParent);
 	}
 
 	private void instrumentLoopAction(ParsedApplicationProject pap, Pair<String, String> corr) {
@@ -138,6 +157,9 @@ public class ApplicationProjectInstrumenterImpl implements IApplicationProjectIn
 		correspondence.getInternalActionCorrespondences().forEach(i -> {
 			resolvedStatements.put(i.getKey().getLeft(), tuidResolver.resolveStatement(pap, i.getKey().getLeft()));
 			resolvedStatements.put(i.getKey().getRight(), tuidResolver.resolveStatement(pap, i.getKey().getRight()));
+		});
+		correspondence.getExternalCallCorrespondences().forEach(e -> {
+			resolvedStatements.put(e.getKey(), tuidResolver.resolveStatement(pap, e.getKey()));
 		});
 	}
 

@@ -27,17 +27,22 @@ import lombok.extern.java.Log;
 @Service
 public class InstrumentationModelTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
+	public InstrumentationModelTransformation() {
+		super(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL, null);
+	}
+
 	@Autowired
 	private List<ValidationPredicate> validationPredicates;
 
 	@InputPorts({ @InputPort(PortIDs.T_VAL_IMM) })
 	public void adjustInstrumentationModel(ValidationData validation) {
 		if (validation.isEmpty()) {
-			getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
+			super.trackStart();
+			super.trackEnd();
 			return;
 		}
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
+		super.trackStart();
 
 		Set<String> deInstrumentServices = Sets.newHashSet();
 		Set<String> instrumentServices = Sets.newHashSet();
@@ -74,7 +79,7 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 			changeInstrumentationModel(instr, true);
 		});
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL);
+		super.trackEnd();
 	}
 
 	private void changeInstrumentationModel(String deInstr, boolean b) {

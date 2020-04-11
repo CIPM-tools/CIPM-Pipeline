@@ -22,7 +22,6 @@ import com.beust.jcommander.internal.Lists;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
 import dmodel.pipeline.core.state.EPipelineTransformation;
-import dmodel.pipeline.core.state.ETransformationState;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
@@ -56,6 +55,8 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	private Map<Pair<String, String>, AssemblyContext> creationCache;
 
 	public RuntimeSystemDerivation() {
+		super(ExecutionMeasuringPoint.T_SYSTEM, EPipelineTransformation.T_SYSTEM);
+
 		this.runtimeSystemBuilder = new RuntimeSystemBuilder(new SimpleDeprecationProcessor(2));
 		this.creationCache = new HashMap<>();
 	}
@@ -63,8 +64,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_SYSTEM), @InputPort(PortIDs.T_RESENV_PCM_SYSTEM) })
 	@OutputPorts({ @OutputPort(async = false, id = PortIDs.T_SYSTEM_ROUTER, to = AccuracySwitch.class) })
 	public void deriveSystemData(List<Tree<ServiceCallRecord>> entryCalls) {
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.RUNNING);
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SYSTEM);
+		super.trackStart();
 
 		log.info("Deriving system refinements at runtime.");
 		creationCache.clear();
@@ -76,8 +76,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		runtimeSystemBuilder.mergeSystem(getBlackboard().getPcmQuery(), assemblyTrees);
 
 		// finish
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SYSTEM);
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_SYSTEM, ETransformationState.FINISHED);
+		super.trackEnd();
 	}
 
 	private List<Tree<Pair<AssemblyContext, ResourceDemandingSEFF>>> transformCallGraphs(
@@ -139,7 +138,7 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 		}
 
 		if (belongingContainer != null && belComponent != null) {
-			return resolveAssemblyOnContainer(belComponent, belongingContainer);
+			return getBlackboard().getPcmQuery().getAllocation().getDeployedAssembly(belComponent, belongingContainer);
 		} else {
 			log.warning("Failed to resolve corresponding assembly for service ID '" + data.getSeff().getId()
 					+ "' and host name '" + data.getHost().getEntityName() + "'.");
@@ -153,33 +152,6 @@ public class RuntimeSystemDerivation extends AbstractIterativePipelinePart<Runti
 			return ac.getEncapsulatedComponent__AssemblyContext().getId().equals(belComponent.getId())
 					&& !getBlackboard().getPcmQuery().getAllocation().isDeployed(ac);
 		}).findFirst().orElse(null);
-	}
-
-	// TODO THAT SHOULD BE A MORE GENERAL METHOD
-	private AssemblyContext resolveAssemblyOnContainer(BasicComponent belComponent,
-			ResourceContainer belongingContainer) {
-		// here we use the assumption that only one assembly of one component can be
-		// deployed on the same container
-		List<AssemblyContext> matches = getBlackboard().getPcmQuery().getAllocation().getDeployedAssembly(belComponent,
-				belongingContainer);
-
-		if (matches.size() == 0) {
-			AssemblyContext freeAlternative = resolveFreeAssembly(belComponent);
-			if (freeAlternative != null) {
-				getBlackboard().getPcmQuery().getAllocation().deployAssembly(freeAlternative, belongingContainer);
-				return freeAlternative;
-			}
-
-			return null;
-		} else if (matches.size() == 1) {
-			return matches.get(0);
-		} else {
-			log.warning(belComponent.getEntityName() + " on container '" + belongingContainer.getEntityName()
-					+ "' is not unique!");
-			log.warning(
-					"The assumption that only one assembly context per type can be deployed on a container does not seem to be valid.");
-			return null;
-		}
 	}
 
 	private List<ServiceCallGraph> buildGraphsFromMonitoringData(List<Tree<ServiceCallRecord>> entryCalls) {

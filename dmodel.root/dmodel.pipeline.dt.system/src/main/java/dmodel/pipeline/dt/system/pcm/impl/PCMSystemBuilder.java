@@ -12,7 +12,6 @@ import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
-import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.system.SystemFactory;
@@ -21,6 +20,10 @@ import org.springframework.stereotype.Component;
 
 import com.beust.jcommander.internal.Lists;
 
+import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.health.AbstractHealthStateComponent;
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.pcm.IAssemblySelectionListener;
 import dmodel.pipeline.dt.system.pcm.IConnectionConflictListener;
@@ -30,7 +33,6 @@ import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
 import dmodel.pipeline.dt.system.pcm.impl.util.ConflictBuilder;
 import dmodel.pipeline.dt.system.pcm.impl.util.ServiceCallGraphProcessor;
 import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
-import dmodel.pipeline.shared.pcm.util.repository.PCMRepositoryUtil;
 import dmodel.pipeline.shared.pcm.util.system.PCMSystemUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,7 +50,7 @@ import lombok.extern.java.Log;
  * @author David Monschein
  *
  */
-public class PCMSystemBuilder {
+public class PCMSystemBuilder extends AbstractHealthStateComponent {
 	/**
 	 * Listeners for events of the system building procedure.
 	 */
@@ -86,7 +88,9 @@ public class PCMSystemBuilder {
 	 */
 	@Getter
 	private System currentSystem;
-	private Repository baseRepository;
+
+	@Autowired
+	private IRepositoryQueryFacade baseRepository;
 
 	/**
 	 * Used to iterate over the interfaces that should be provided by the resulting
@@ -98,8 +102,14 @@ public class PCMSystemBuilder {
 	 * Creates a new instance and initializes empty listener lists.
 	 */
 	public PCMSystemBuilder() {
+		super(HealthStateObservedComponent.DT_SYSTEM_BUILDER, HealthStateObservedComponent.MODEL_MANAGER);
 		this.assemblySelectionListener = new ArrayList<>();
 		this.connectionConflictListener = new ArrayList<>();
+	}
+
+	@Override
+	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
+		// nothing to do here
 	}
 
 	/**
@@ -113,9 +123,12 @@ public class PCMSystemBuilder {
 	 *         that needs to be resolved
 	 */
 	public boolean startBuildingSystem(ServiceCallGraph serviceCallGraph, List<OperationInterface> systemInterfaces) {
+		if (!checkPreconditions()) {
+			return false;
+		}
+
 		// 0. create output system
 		currentSystem = SystemFactory.eINSTANCE.createSystem();
-		baseRepository = serviceCallGraph.getRepository();
 
 		// 1.1. find entry points to the call graph
 		entryPoints = systemInterfaces.iterator();
@@ -461,9 +474,8 @@ public class PCMSystemBuilder {
 	 */
 	private RepositoryComponent supplyComponent(Xor<AssemblyRequiredRole, SystemProvidedRole> target,
 			OperationInterface iface, RepositoryComponent from) {
-		List<RepositoryComponent> possibleComponents = PCMRepositoryUtil.getComponentsProvidingInterface(baseRepository,
-				iface);
-		List<RepositoryComponent> filteredComponents = scgProcessor.filterComponents(possibleComponents, from, iface);
+		List<RepositoryComponent> possibleComponents = baseRepository.getComponentsProvidingInterface(iface);
+		List<RepositoryComponent> filteredComponents = scgProcessor.filterComponents(possibleComponents, from, target);
 
 		if (filteredComponents.size() > 1) {
 			// => conflict

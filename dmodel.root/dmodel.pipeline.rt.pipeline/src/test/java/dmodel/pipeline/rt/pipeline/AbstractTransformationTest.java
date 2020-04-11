@@ -24,9 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.structure.Tree;
@@ -57,7 +57,7 @@ public abstract class AbstractTransformationTest {
 		try {
 			blackboard.setConfiguration(new ObjectMapper(new YAMLFactory()).readValue(
 					AbstractTransformationTest.class.getResourceAsStream("/defaultConfig.yml"),
-					DModelConfigurationContainer.class));
+					ConfigurationContainer.class));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

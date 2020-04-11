@@ -57,6 +57,7 @@ public class ThreadMonitoringController {
 	private final IDFactory idFactory;
 	private final IScaleController scaleController;
 
+	private ThreadLocal<String> currentExternalCallId;
 	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
 	private ThreadLocal<InternalOptional<String>> remoteStack;
 	private ThreadLocal<Map<Pair<String, String>, Long>> startingTimesMap;
@@ -94,6 +95,12 @@ public class ThreadMonitoringController {
 			@Override
 			public Map<Pair<String, String>, Long> get() {
 				return new HashMap<Pair<String, String>, Long>();
+			}
+		});
+		this.currentExternalCallId = ThreadLocal.withInitial(new Supplier<String>() {
+			@Override
+			public String get() {
+				return ServiceCallRecord.EXTERNAL_CALL_ID;
 			}
 		});
 		this.cpuSamplerActive = false;
@@ -183,6 +190,10 @@ public class ThreadMonitoringController {
 		this.remoteStack.get().clear();
 	}
 
+	public void setExternalCallId(String callId) {
+		this.currentExternalCallId.set(callId);
+	}
+
 	/**
 	 * Calls this method after entering the service.
 	 * {@link ThreadMonitoringController#exitService()} must be called before
@@ -212,18 +223,21 @@ public class ThreadMonitoringController {
 			// value of threadlocal always exists
 			Stack<ServiceCallTrack> trace = serviceCallStack.get();
 
+			// get external call id
+			String externalCallId = currentExternalCallId.get();
+
 			ServiceCallTrack nTrack;
 			if (trace.empty()) {
 				if (remoteStack.get().isPresent()) {
 					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
-							String.valueOf(System.identityHashCode(exId)), remoteStack.get().value);
+							String.valueOf(System.identityHashCode(exId)), remoteStack.get().value, externalCallId);
 				} else {
 					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
-							String.valueOf(System.identityHashCode(exId)), null);
+							String.valueOf(System.identityHashCode(exId)), null, externalCallId);
 				}
 			} else {
 				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
-						String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId);
+						String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId, externalCallId);
 			}
 
 			// push it
@@ -253,13 +267,16 @@ public class ThreadMonitoringController {
 			ServiceCallTrack track = trace.pop();
 			MONITORING_CONTROLLER.newMonitoringRecord(new ServiceCallRecord(track.sessionId, track.serviceExecutionId,
 					HostNameFactory.generateHostId(), HostNameFactory.generateHostName(), track.serviceId,
-					track.serviceParameters.toString(), track.callerServiceExecutionId, track.executionContext,
-					track.serviceStartTime, end - track.cumulatedMonitoringOverhead));
+					track.serviceParameters.toString(), track.callerServiceExecutionId, track.externalCallId,
+					track.executionContext, track.serviceStartTime, end - track.cumulatedMonitoringOverhead));
 
 			if (!trace.isEmpty()) {
 				ServiceCallTrack parent = trace.peek();
 				parent.cumulatedMonitoringOverhead += track.cumulatedMonitoringOverhead;
 			}
+
+			// clear current external call
+			currentExternalCallId.set(ServiceCallRecord.EXTERNAL_CALL_ID);
 
 			analysis.exitServiceCallOverhead(serviceId, start);
 		}
@@ -415,16 +432,18 @@ public class ThreadMonitoringController {
 		private String sessionId;
 		private String callerServiceExecutionId;
 		private String executionContext;
+		private String externalCallId;
 
 		private long cumulatedMonitoringOverhead;
 
 		public ServiceCallTrack(String serviceId, String sessionId, ServiceParameters serviceParameters,
-				String executionContext, String parentId) {
+				String executionContext, String parentId, String externalCallId) {
 			this.serviceId = serviceId;
 			this.sessionId = sessionId;
 			this.serviceParameters = serviceParameters;
 			this.serviceStartTime = TIME_SOURCE.getTime();
 			this.callerServiceExecutionId = parentId;
+			this.externalCallId = externalCallId;
 			this.executionContext = executionContext;
 			this.serviceExecutionId = ThreadMonitoringController.this.idFactory.createId();
 			this.cumulatedMonitoringOverhead = 0;

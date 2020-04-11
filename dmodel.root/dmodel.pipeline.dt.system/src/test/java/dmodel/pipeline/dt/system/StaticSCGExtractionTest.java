@@ -1,5 +1,7 @@
 package dmodel.pipeline.dt.system;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 
 import org.junit.Before;
@@ -56,7 +58,8 @@ public class StaticSCGExtractionTest extends AbstractCoreTest {
 				cpm);
 
 		// assertions
-		// TODO
+		assertEquals(3, scg.getNodes().size());
+		assertEquals(2, scg.getEdges().size());
 	}
 
 }

@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.rest.dt.async.InstrumentationProcess;
 import dmodel.pipeline.rt.rest.dt.data.InstrumentationStatus;
 import dmodel.pipeline.shared.JsonUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
 @RestController
 public class DesignTimeRestController {
@@ -23,7 +23,7 @@ public class DesignTimeRestController {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	@Autowired
 	private IApplicationInstrumenter transformer;

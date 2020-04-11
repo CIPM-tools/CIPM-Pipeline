@@ -5,15 +5,19 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.stereotype.Component;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
+import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.resolution.SymbolResolver;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
@@ -54,8 +58,10 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 				log.warning("Failed to resolve JAR '" + jarFile.getAbsolutePath() + "'.");
 			}
 		}
+		JavaSymbolSolver symbolSolver = new JavaSymbolSolver(typeSolver);
 
-		AnalyzerData analyzerData = new AnalyzerData(parsedApplication, typeSolver, output, repository, correspondence);
+		AnalyzerData analyzerData = new AnalyzerData(parsedApplication, typeSolver, symbolSolver, output, repository,
+				correspondence);
 
 		correspondence.getSeffCorrespondences().forEach(seffCorrespondence -> {
 			MethodDeclaration method = tuidResolver.resolveMethod(parsedApplication, seffCorrespondence.getLeft());
@@ -81,10 +87,29 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 			MethodDeclaration correspondingMethod = this.tuidResolver.resolveMethod(data.pap,
 					seffCorrespondence.getLeft());
 			if (methodConformsTo(data, correspondingMethod, methodCall)) {
+				String externalCallId = getExternalCallId(data, methodCall);
+				ExternalCallAction externalCallAction = data.repository.getElementById(externalCallId,
+						ExternalCallAction.class);
+
 				ResourceDemandingSEFF target = data.repository.getServiceById(seffCorrespondence.getRight());
-				data.graph.incrementEdge(source, target, null, null);
+				data.graph.incrementEdge(source, target, null, null, externalCallAction);
 			}
 		}
+	}
+
+	private String getExternalCallId(AnalyzerData data, Node node) {
+		String foundId = null;
+		while (node.getParentNode().isPresent()) {
+			node = node.getParentNode().get();
+			if (node instanceof Statement) {
+				foundId = data.cpm.getCorrespondingExternalCallId(this.tuidResolver.generateId((Statement) node));
+				if (foundId != null) {
+					return foundId;
+				}
+			}
+		}
+
+		return foundId;
 	}
 
 	private boolean methodConformsTo(AnalyzerData data, MethodDeclaration correspondingMethod,
@@ -93,37 +118,30 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 			if (correspondingMethod.getNameAsString().equals(methodCall.getNameAsString())) {
 				Expression scope = methodCall.getScope().get();
 
-				System.out.println(getType(methodCall, data));
+				ResolvedType scopeType = JavaParserFacade.get(data.solver).getType(scope);
+				SymbolReference<ResolvedMethodDeclaration> methodDefReference = JavaParserFacade.get(data.solver)
+						.solve(methodCall);
 
-				// switch on scope
-				if (scope instanceof NameExpr) {
-					getType((NameExpr) scope, data);
-				} else if (scope instanceof MethodCallExpr) {
-					getType((MethodCallExpr) scope, data);
-				} else {
-					log.warning(
-							"Currently the type deduction for '" + scope.getClass().getName() + "' is not supported.");
-				}
+				ResolvedType declarationType = JavaParserFacade.get(data.solver).getTypeOfThisIn(correspondingMethod);
 
-				System.out.println(JavaParserFacade.get(data.solver).getType(methodCall.getScope().get()));
+				boolean subType = isSubtypeOf(declarationType, scopeType);
+				boolean methodsEqual = methodSignatureEqual(
+						data.symbolSolver.resolveDeclaration(correspondingMethod, ResolvedMethodDeclaration.class),
+						methodDefReference.getCorrespondingDeclaration());
+
+				return subType && methodsEqual;
 			}
 		}
 
 		return false;
 	}
 
-	private ResolvedType getType(MethodCallExpr scope, AnalyzerData data) {
-		// TODO
-		System.out.println(JavaParserFacade.get(data.solver).solve(scope));
-
-		return null;
+	private boolean methodSignatureEqual(ResolvedMethodDeclaration meth1, ResolvedMethodDeclaration meth2) {
+		return meth1.getQualifiedSignature().equals(meth1.getQualifiedSignature());
 	}
 
-	private ResolvedType getType(NameExpr expr, AnalyzerData data) {
-		SymbolReference<? extends ResolvedDeclaration> reference = JavaParserFacade.get(data.solver).solve(expr);
-		System.out.println(reference.getCorrespondingDeclaration().getClass().getName());
-
-		return null;
+	private boolean isSubtypeOf(ResolvedType target, ResolvedType parent) {
+		return parent.isAssignableBy(target);
 	}
 
 	@Data
@@ -131,6 +149,7 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 	private class AnalyzerData {
 		ParsedApplicationProject pap;
 		TypeSolver solver;
+		SymbolResolver symbolSolver;
 		ServiceCallGraph graph;
 		IRepositoryQueryFacade repository;
 		IJavaPCMCorrespondenceModel cpm;

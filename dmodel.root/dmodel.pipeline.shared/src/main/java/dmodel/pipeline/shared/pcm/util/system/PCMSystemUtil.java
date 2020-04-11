@@ -1,5 +1,7 @@
 package dmodel.pipeline.shared.pcm.util.system;
 
+import java.util.Optional;
+
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.ComposedStructure;
@@ -9,8 +11,11 @@ import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
+import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryFactory;
+import org.palladiosimulator.pcm.repository.RequiredRole;
+import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.system.System;
 
 public class PCMSystemUtil {
@@ -29,6 +34,28 @@ public class PCMSystemUtil {
 		currentOuterStructure.getConnectors__ComposedStructure().add(nConnector);
 
 		return nConnector;
+	}
+
+	public static Optional<RequiredRole> getRequiredRoleBySignature(RepositoryComponent comp, Signature toSig) {
+		return comp.getRequiredRoles_InterfaceRequiringEntity().stream().filter(r -> {
+			if (r instanceof OperationRequiredRole) {
+				return ((OperationRequiredRole) r).getRequiredInterface__OperationRequiredRole()
+						.getSignatures__OperationInterface().parallelStream()
+						.anyMatch(sig -> sig.getId().equals(toSig.getId()));
+			}
+			return false;
+		}).findFirst();
+	}
+
+	public static Optional<ProvidedRole> getProvidedRoleBySignature(RepositoryComponent comp, Signature toSig) {
+		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> {
+			if (r instanceof OperationProvidedRole) {
+				return ((OperationProvidedRole) r).getProvidedInterface__OperationProvidedRole()
+						.getSignatures__OperationInterface().parallelStream()
+						.anyMatch(sig -> sig.getId().equals(toSig.getId()));
+			}
+			return false;
+		}).findFirst();
 	}
 
 	public static ProvidedDelegationConnector createProvidedDelegation(System system,

@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.config.MonitoringDataEntryConfiguration;
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipelineListener;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
-import dmodel.pipeline.shared.config.MonitoringDataEntryConfiguration;
 import kieker.common.record.IMonitoringRecord;
 import lombok.extern.java.Log;
 
@@ -33,7 +33,7 @@ public class SlidingWindowMonitoringDataCollector
 	private MonitoringDataEntryConfiguration config;
 
 	@Autowired
-	private DModelConfigurationContainer parentConfig;
+	private ConfigurationContainer parentConfig;
 
 	@Autowired
 	private IterativeRuntimePipeline pipeline;

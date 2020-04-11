@@ -20,26 +20,29 @@
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addNode/host"/>
       </genOperations>
       <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge"
-          body="// nodes&#xA;ServiceCallGraphNode fromNode = hasNode(from, fromContainer);&#xA;if (fromNode == null) {&#xA;&#x9;fromNode = this.addNode(from, fromContainer);&#xA;}&#xA;ServiceCallGraphNode toNode = hasNode(to, toContainer);&#xA;if (toNode == null) {&#xA;&#x9;toNode = this.addNode(to, toContainer);&#xA;}&#xA;// edge&#xA;ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;edge.setFrom(fromNode);&#xA;edge.setTo(toNode);&#xA;edge.setValue(value);&#xA;&#xA;if (!getOutgoingEdges().containsKey(fromNode)) {&#xA;&#x9;getOutgoingEdges().put(fromNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getOutgoingEdges().get(fromNode).add(edge);&#xA;&#xA;if (!getIncomingEdges().containsKey(toNode)) {&#xA;&#x9;getIncomingEdges().put(toNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getIncomingEdges().get(toNode).add(edge);&#xA;&#xA;// add globally&#xA;getEdges().add(edge);">
+          body="// nodes&#xA;ServiceCallGraphNode fromNode = hasNode(from, fromContainer);&#xA;if (fromNode == null) {&#xA;&#x9;fromNode = this.addNode(from, fromContainer);&#xA;}&#xA;ServiceCallGraphNode toNode = hasNode(to, toContainer);&#xA;if (toNode == null) {&#xA;&#x9;toNode = this.addNode(to, toContainer);&#xA;}&#xA;// edge&#xA;ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;edge.setFrom(fromNode);&#xA;edge.setTo(toNode);&#xA;edge.setValue(value);&#xA;edge.setExternalCall(externalCall);&#xA;&#xA;if (!getOutgoingEdges().containsKey(fromNode)) {&#xA;&#x9;getOutgoingEdges().put(fromNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getOutgoingEdges().get(fromNode).add(edge);&#xA;&#xA;if (!getIncomingEdges().containsKey(toNode)) {&#xA;&#x9;getIncomingEdges().put(toNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getIncomingEdges().get(toNode).add(edge);&#xA;&#xA;// add globally&#xA;getEdges().add(edge);">
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/from"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/to"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/fromContainer"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/toContainer"/>
+        <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/externalCall"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/addEdge/value"/>
       </genOperations>
       <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge"
-          body="ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer);&#xA;if (edge != null) {&#xA;&#x9;edge.setValue(edge.getValue() + 1);&#xA;} else {&#xA;&#x9;this.addEdge(from, to, fromContainer, toContainer, 1);&#xA;}">
+          body="ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer, externalCall);&#xA;if (edge != null) {&#xA;&#x9;edge.setValue(edge.getValue() + 1);&#xA;} else {&#xA;&#x9;this.addEdge(from, to, fromContainer, toContainer, externalCall, 1);&#xA;}">
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge/from"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge/to"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge/fromContainer"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge/toContainer"/>
+        <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/incrementEdge/externalCall"/>
       </genOperations>
       <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge"
-          body="return getEdges().stream().filter(edge -> {&#xA;&#x9;return (nodeEqual(from, fromContainer, edge.getFrom().getSeff(), edge.getFrom().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()));&#xA;}).findFirst().orElse(null);">
+          body="return getEdges().stream().filter(edge -> {&#xA;&#x9;return (nodeEqual(from, fromContainer, edge.getFrom().getSeff(), edge.getFrom().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; edge.getExternalCall().equals(externalCall);&#xA;}).findFirst().orElse(null);">
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge/from"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge/to"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge/fromContainer"/>
         <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge/toContainer"/>
+        <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/hasEdge/externalCall"/>
       </genOperations>
       <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/hasNode"
           body="return getNodes().stream()&#xA;&#x9;&#x9;.filter(n -> nodeEqual(node, host, n.getSeff(), n.getHost()))&#xA;&#x9;&#x9;.findFirst().orElse(null);">
@@ -64,6 +67,7 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference ServiceCallGraph.ecore#//ServiceCallGraphEdge/from"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference ServiceCallGraph.ecore#//ServiceCallGraphEdge/to"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ServiceCallGraph.ecore#//ServiceCallGraphEdge/value"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference ServiceCallGraph.ecore#//ServiceCallGraphEdge/externalCall"/>
     </genClasses>
     <genClasses ecoreClass="ServiceCallGraph.ecore#//EdgeList">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ServiceCallGraph.ecore#//EdgeList/key"/>

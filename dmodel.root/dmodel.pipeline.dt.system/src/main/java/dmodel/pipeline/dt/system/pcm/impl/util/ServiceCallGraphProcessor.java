@@ -2,7 +2,6 @@ package dmodel.pipeline.dt.system.pcm.impl.util;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,10 +10,11 @@ import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphNode;
+import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
+import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
 import lombok.Getter;
 
 public class ServiceCallGraphProcessor {
@@ -23,31 +23,32 @@ public class ServiceCallGraphProcessor {
 	@Getter
 	private List<ServiceCallGraphNode> entryNodes;
 
-	private Map<String, ServiceCallGraphNode> serviceNodeMapping;
-
 	public ServiceCallGraphProcessor(ServiceCallGraph serviceCallGraph) {
 		this.scg = serviceCallGraph;
-		this.serviceNodeMapping = Maps.newHashMap();
 
 		searchEntryNodes();
 	}
 
 	// TODO refactor
 	public List<RepositoryComponent> filterComponents(List<RepositoryComponent> init, RepositoryComponent from,
-			OperationInterface iface) {
-		if (scg == null) {
+			Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
+		if (scg == null || !target.anyPresent()) {
 			return init;
 		}
 
+		OperationInterface iface = target.leftPresent()
+				? target.getLeft().getRole().getRequiredInterface__OperationRequiredRole()
+				: target.getRight().getRole().getProvidedInterface__OperationProvidedRole();
+
 		Set<RepositoryComponent> outLinks = new HashSet<>();
-		if (from == null) {
+		if (target.rightPresent()) {
 			entryNodes.forEach(n -> {
 				OperationSignature sig = (OperationSignature) n.getSeff().getDescribedService__SEFF();
 				if (sig.getInterface__OperationSignature().getId().equals(iface.getId())) {
 					outLinks.add(n.getSeff().getBasicComponent_ServiceEffectSpecification());
 				}
 			});
-		} else {
+		} else if (target.leftPresent()) {
 			List<ServiceCallGraphNode> compNodes = scg.getNodes().stream().filter(
 					n -> n.getSeff().getBasicComponent_ServiceEffectSpecification().getId().equals(from.getId()))
 					.collect(Collectors.toList());
@@ -58,7 +59,8 @@ public class ServiceCallGraphProcessor {
 						scg.getOutgoingEdges().get(n).forEach(out -> {
 							OperationSignature opSig = (OperationSignature) out.getTo().getSeff()
 									.getDescribedService__SEFF();
-							if (opSig.getId().equals(iface.getId())) {
+							if (opSig.getId().equals(iface.getId()) && out.getExternalCall().getRole_ExternalService()
+									.getId().equals(target.getLeft().getRole().getId())) {
 								outLinks.add(out.getTo().getSeff().getBasicComponent_ServiceEffectSpecification());
 							}
 						});

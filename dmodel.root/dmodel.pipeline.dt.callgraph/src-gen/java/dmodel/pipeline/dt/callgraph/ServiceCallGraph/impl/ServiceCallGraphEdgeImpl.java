@@ -9,10 +9,13 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage;
 import org.eclipse.emf.common.notify.Notification;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 
 /**
  * <!-- begin-user-doc -->
@@ -25,6 +28,7 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl#getFrom <em>From</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl#getTo <em>To</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl#getValue <em>Value</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl#getExternalCall <em>External Call</em>}</li>
  * </ul>
  *
  * @generated
@@ -69,6 +73,16 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @ordered
 	 */
 	protected int value = VALUE_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getExternalCall() <em>External Call</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getExternalCall()
+	 * @generated
+	 * @ordered
+	 */
+	protected ExternalCallAction externalCall;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -198,6 +212,46 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 	 * @generated
 	 */
 	@Override
+	public ExternalCallAction getExternalCall() {
+		if (externalCall != null && ((EObject)externalCall).eIsProxy()) {
+			InternalEObject oldExternalCall = (InternalEObject)externalCall;
+			externalCall = (ExternalCallAction)eResolveProxy(oldExternalCall);
+			if (externalCall != oldExternalCall) {
+				if (eNotificationRequired())
+					eNotify(new ENotificationImpl(this, Notification.RESOLVE, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL, oldExternalCall, externalCall));
+			}
+		}
+		return externalCall;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public ExternalCallAction basicGetExternalCall() {
+		return externalCall;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setExternalCall(ExternalCallAction newExternalCall) {
+		ExternalCallAction oldExternalCall = externalCall;
+		externalCall = newExternalCall;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL, oldExternalCall, externalCall));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__FROM:
@@ -208,6 +262,9 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 				return basicGetTo();
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				return getValue();
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL:
+				if (resolve) return getExternalCall();
+				return basicGetExternalCall();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -228,6 +285,9 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 				return;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				setValue((Integer)newValue);
+				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL:
+				setExternalCall((ExternalCallAction)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -250,6 +310,9 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				setValue(VALUE_EDEFAULT);
 				return;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL:
+				setExternalCall((ExternalCallAction)null);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -268,6 +331,8 @@ public class ServiceCallGraphEdgeImpl extends MinimalEObjectImpl.Container imple
 				return to != null;
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__VALUE:
 				return value != VALUE_EDEFAULT;
+			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL:
+				return externalCall != null;
 		}
 		return super.eIsSet(featureID);
 	}

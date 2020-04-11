@@ -7,16 +7,18 @@ import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.config.ModelConfiguration;
+import dmodel.pipeline.core.health.AbstractHealthStateComponent;
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeEnvironmentModel;
 import dmodel.pipeline.shared.FileBackedModelUtil;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.config.ModelConfiguration;
-import dmodel.pipeline.shared.health.AbstractHealthStateComponent;
-import dmodel.pipeline.shared.health.HealthStateObservedComponents;
-import dmodel.pipeline.shared.health.HealthStateProblemSeverity;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.LocalFilesystemPCM;
 import tools.vitruv.framework.correspondence.CorrespondenceFactory;
@@ -25,6 +27,9 @@ import tools.vitruv.framework.correspondence.Correspondences;
 @Component
 public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		implements IPcmModelProvider, ISpecificModelProvider {
+	@Autowired
+	private ConfigurationContainer configuration;
+
 	private InMemoryPCM architectureModel;
 	private LocalFilesystemPCM filesystemPCM;
 
@@ -37,17 +42,16 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 	private File correspondenceModelFile;
 
 	public CentralModelAdminstrator() {
-		super(HealthStateObservedComponents.CONFIGURATION);
+		super(HealthStateObservedComponent.MODEL_MANAGER, HealthStateObservedComponent.CONFIGURATION);
 	}
 
 	public void loadArchitectureModel(ModelConfiguration config) {
-		buildFileSystemPCM(config);
-		buildRemainingModels(config);
-
-		if (!configurationValid()) {
-			reportConfigurationIncomplete();
+		if (!checkPreconditions()) {
 			return;
 		}
+
+		buildFileSystemPCM(config);
+		buildRemainingModels(config);
 
 		// clear the old listeners (memory leak)
 		clearSynchronization();
@@ -66,6 +70,13 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		FileBackedModelUtil.synchronize(correspondenceModel, correspondenceModelFile, Correspondences.class);
 	}
 
+	@Override
+	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
+		if (source == HealthStateObservedComponent.CONFIGURATION && state == HealthState.WORKING) {
+			loadArchitectureModel(configuration.getModels());
+		}
+	}
+
 	private void clearSynchronization() {
 		if (architectureModel != null) {
 			architectureModel.clearListeners();
@@ -73,11 +84,6 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		FileBackedModelUtil.clear(correspondenceModel);
 		FileBackedModelUtil.clear(instrumentationModel);
 		FileBackedModelUtil.clear(runtimeEnvironmentModel);
-	}
-
-	private boolean configurationValid() {
-		// correspondences may not exist
-		return filesystemPCM.isValid() && instrumentationModel != null && runtimeEnvironmentModel != null;
 	}
 
 	private void syncRemainingModels() {
@@ -115,13 +121,7 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 
 	private void reportConfigurationWorking() {
 		super.removeAllProblems();
-	}
-
-	private void reportConfigurationIncomplete() {
-		super.reportProblem(
-				super.buildHealthStateProblem().description("Model configuration is invalid or not complete.")
-						.severity(HealthStateProblemSeverity.ERROR).build());
-		super.updateState();
+		super.sendStateMessage(HealthStateObservedComponent.VSUM_MANAGER);
 	}
 
 	@Override

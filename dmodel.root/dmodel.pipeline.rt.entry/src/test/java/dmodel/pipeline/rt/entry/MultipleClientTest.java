@@ -67,7 +67,8 @@ public class MultipleClientTest {
 		@Override
 		public void run() {
 			for (int i = 0; i < 100; i++) {
-				ServiceCallRecord rec = new ServiceCallRecord(null, null, null, null, null, null, null, null, 0, 0);
+				ServiceCallRecord rec = new ServiceCallRecord(null, null, null, null, null, null, null, null, null, 0,
+						0);
 				controller.newMonitoringRecord(rec);
 				try {
 					Thread.sleep(100);

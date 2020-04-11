@@ -64,7 +64,7 @@ public class CommandLineSCGBuilder {
 			ResourceDemandingSEFF from = selectSEFF(inputReader, comps);
 			ResourceDemandingSEFF to = selectSEFF(inputReader, comps);
 
-			output.addEdge(from, to, null, null, 1);
+			output.addEdge(from, to, null, null, null, 1);
 		} else if (sel == 1) {
 			List<ServiceCallGraphEdge> edges = output.getEdges();
 			System.out.println("Select an edge:");

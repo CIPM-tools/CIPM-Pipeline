@@ -1,6 +1,8 @@
 package dmodel.pipeline.rt.pipeline;
 
-public interface IPipelineClassProvider<B> {
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+
+public interface IPipelineClassProvider<B extends RuntimePipelineBlackboard> {
 
 	public boolean contains(Class<? extends AbstractIterativePipelinePart<B>> transformationClass);
 

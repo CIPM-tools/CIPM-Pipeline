@@ -20,6 +20,7 @@ public class PrimeManagerImpl implements IPrimeManager {
 	@Override
 	@ManualMapping("_2RDcwKMhEemdKJpkeqfUZw")
 	public List<Integer> generatePrimes(int amount) {
+		// @CALL EXTERNAL_CALL{_TvvgkB3-EeqqfJt2XRLLdA}
 		return generator.generatePrimes(amount);
 	}
 

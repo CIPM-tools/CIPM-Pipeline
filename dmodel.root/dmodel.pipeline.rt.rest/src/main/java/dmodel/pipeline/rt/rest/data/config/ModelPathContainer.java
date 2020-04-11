@@ -1,6 +1,6 @@
 package dmodel.pipeline.rt.rest.data.config;
 
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
+import dmodel.pipeline.core.config.ConfigurationContainer;
 
 public class ModelPathContainer {
 	private String repo;
@@ -49,7 +49,7 @@ public class ModelPathContainer {
 		this.usage = usage;
 	}
 
-	public static ModelPathContainer from(DModelConfigurationContainer config) {
+	public static ModelPathContainer from(ConfigurationContainer config) {
 		ModelPathContainer req = new ModelPathContainer();
 		req.alloc = config.getModels().getAllocationPath();
 		req.repo = config.getModels().getRepositoryPath();

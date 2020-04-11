@@ -8,8 +8,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
 @RunWith(SpringRunner.class)
 public class BaseSpringTestConfiguration {
@@ -22,8 +22,8 @@ public class BaseSpringTestConfiguration {
 		}
 
 		@Bean
-		public DModelConfigurationContainer configuration() {
-			return new DModelConfigurationContainer();
+		public ConfigurationContainer configuration() {
+			return new ConfigurationContainer();
 		}
 	}
 

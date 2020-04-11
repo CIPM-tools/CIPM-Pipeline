@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.rt.rest.data.config.JsonProjectConfiguration;
 import dmodel.pipeline.rt.rest.data.config.ProjectSourceFolderResponse;
 import dmodel.pipeline.rt.rest.data.config.ProjectType;
 import dmodel.pipeline.rt.rest.data.config.ProjectValidationResponse;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
 @RestController
 public class ConfigProjectRestController {
@@ -26,7 +26,7 @@ public class ConfigProjectRestController {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	@GetMapping("/config/project/get")
 	public String getProjectConfig() {

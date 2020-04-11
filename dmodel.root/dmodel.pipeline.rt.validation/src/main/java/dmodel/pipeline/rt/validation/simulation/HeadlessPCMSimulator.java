@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import lombok.extern.java.Log;
 
@@ -23,7 +23,7 @@ public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
 	private static final long TIMEOUT_VFL = 5000;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	private PCMHeadlessClient client;
 

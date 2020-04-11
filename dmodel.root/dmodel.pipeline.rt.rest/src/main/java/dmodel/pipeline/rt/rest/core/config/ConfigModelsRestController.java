@@ -17,13 +17,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.core.CentralModelAdminstrator;
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.config.ModelConfiguration;
 import dmodel.pipeline.dt.inmodel.InstrumentationModelUtil;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.rest.data.config.ModelPathContainer;
 import dmodel.pipeline.rt.rest.data.config.ModelPathResponse;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
-import dmodel.pipeline.shared.config.ModelConfiguration;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
 
 @RestController
@@ -32,7 +32,7 @@ public class ConfigModelsRestController {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	@Autowired
 	private CentralModelAdminstrator modelContainer;

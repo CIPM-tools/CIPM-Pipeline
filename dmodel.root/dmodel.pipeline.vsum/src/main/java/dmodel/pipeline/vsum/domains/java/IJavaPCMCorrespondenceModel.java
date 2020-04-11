@@ -16,6 +16,8 @@ public interface IJavaPCMCorrespondenceModel {
 
 	public void addInternalActionCorrespondence(String startExprId, String endExprId, String actionId);
 
+	public void addExternalCallCorrespondence(String generateId, String externalCallId);
+
 	public List<Pair<String, String>> getSeffCorrespondences();
 
 	public List<Pair<String, String>> getLoopCorrespondences();
@@ -24,6 +26,8 @@ public interface IJavaPCMCorrespondenceModel {
 
 	public List<Pair<Pair<String, String>, String>> getInternalActionCorrespondences();
 
+	public List<Pair<String, String>> getExternalCallCorrespondences();
+
 	public String getCorrespondingSeffId(String javaMethodId);
 
 	public String getCorrespondingLoopId(String javaLoopId);
@@ -31,5 +35,7 @@ public interface IJavaPCMCorrespondenceModel {
 	public String getCorrespondingBranchId(String javaBranchId);
 
 	public String getCorrespondingActionId(String startExprId, String endExprId);
+
+	public String getCorrespondingExternalCallId(String exprId);
 
 }

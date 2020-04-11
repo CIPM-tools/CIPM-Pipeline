@@ -64,7 +64,6 @@ public class DTSystemExtractionCommandLineTool {
 		List<OperationInterface> coreInterfaces = configuration.getSystemProvidedInterfaceIds().stream()
 				.map(str -> PCMUtils.getElementById(repository, OperationInterface.class, str))
 				.collect(Collectors.toList());
-		serviceCallGraph.setRepository(repository);
 
 		boolean finished = systemBuilder.startBuildingSystem(serviceCallGraph, coreInterfaces);
 		while (!finished) {

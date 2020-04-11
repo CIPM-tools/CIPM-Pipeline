@@ -26,8 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.core.CentralModelAdminstrator;
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.models.mapping.MappingPackage;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
@@ -45,7 +45,7 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 	private CentralModelAdminstrator modelContainer;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -80,7 +80,7 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 	}
 
 	@Bean
-	public DModelConfigurationContainer loadConfiguration() {
+	public ConfigurationContainer loadConfiguration() {
 		File configFile = new File(configPath);
 		if (!configFile.exists()) {
 			return null;
@@ -91,7 +91,7 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 		mapper.findAndRegisterModules();
 
 		try {
-			DModelConfigurationContainer output = mapper.readValue(configFile, DModelConfigurationContainer.class);
+			ConfigurationContainer output = mapper.readValue(configFile, ConfigurationContainer.class);
 			output.setFileBackedPath(configFile); // => to save it properly
 			return output;
 		} catch (IOException e) {

@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.rest.dt.async;
 
+import dmodel.pipeline.core.config.ProjectConfiguration;
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
 import dmodel.pipeline.models.mapping.RepositoryMapping;
@@ -9,7 +10,6 @@ import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
 import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.config.ProjectConfiguration;
 import dmodel.pipeline.shared.util.AbstractObservable;
 import lombok.AllArgsConstructor;
 import spoon.Launcher;

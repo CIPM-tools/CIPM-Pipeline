@@ -14,8 +14,11 @@ import org.springframework.stereotype.Component;
 import com.google.common.io.Files;
 
 import dmodel.pipeline.core.CentralModelAdminstrator;
-import dmodel.pipeline.shared.health.AbstractHealthStateComponent;
-import dmodel.pipeline.shared.health.HealthStateObservedComponents;
+import dmodel.pipeline.core.health.AbstractHealthStateComponent;
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
+import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
+import dmodel.pipeline.vsum.domains.java.JavaCorrespondenceModelImpl;
 import dmodel.pipeline.vsum.mapping.VsumMappingPersistence;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -55,11 +58,14 @@ public class VsumManager extends AbstractHealthStateComponent {
 	@Getter
 	private TypeInferringAtomicEChangeFactory atomicFactory;
 
+	@Getter
+	private IJavaPCMCorrespondenceModel javaCorrespondences;
+
 	// pure internal
 	private List<File> usedFiles;
 
 	public VsumManager() {
-		super(HealthStateObservedComponents.VSUM_MANAGER, HealthStateObservedComponents.CONFIGURATION);
+		super(HealthStateObservedComponent.VSUM_MANAGER, HealthStateObservedComponent.MODEL_MANAGER);
 		this.usedFiles = new ArrayList<>();
 	}
 
@@ -75,6 +81,13 @@ public class VsumManager extends AbstractHealthStateComponent {
 			return vsum.getCorrespondenceModel();
 		}
 		return null;
+	}
+
+	@Override
+	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
+		if (source == HealthStateObservedComponent.MODEL_MANAGER && state == HealthState.WORKING) {
+			this.buildVSUM();
+		}
 	}
 
 	@PostConstruct
@@ -169,6 +182,9 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 		ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
 				modelContainer.getResourceEnvironment(), modelContainer.getRuntimeEnvironment(), null);
+
+		// init java correspondence
+		javaCorrespondences = new JavaCorrespondenceModelImpl();
 
 		// TODO reload the mapping from files
 		// TODO outsource

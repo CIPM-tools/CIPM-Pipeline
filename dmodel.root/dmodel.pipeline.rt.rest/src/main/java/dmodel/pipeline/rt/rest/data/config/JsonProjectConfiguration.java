@@ -2,8 +2,8 @@ package dmodel.pipeline.rt.rest.data.config;
 
 import java.util.List;
 
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
-import dmodel.pipeline.shared.config.ProjectConfiguration;
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.config.ProjectConfiguration;
 
 public class JsonProjectConfiguration {
 
@@ -12,7 +12,7 @@ public class JsonProjectConfiguration {
 	private String instrumentedPath;
 	private String correspondencePath;
 
-	public static JsonProjectConfiguration from(DModelConfigurationContainer conf) {
+	public static JsonProjectConfiguration from(ConfigurationContainer conf) {
 		ProjectConfiguration pconf = conf.getProject();
 
 		JsonProjectConfiguration out = new JsonProjectConfiguration();
@@ -23,7 +23,7 @@ public class JsonProjectConfiguration {
 		return out;
 	}
 
-	public void flush(DModelConfigurationContainer conf) {
+	public void flush(ConfigurationContainer conf) {
 		conf.getProject().setInstrumentedPath(instrumentedPath);
 		conf.getProject().setRootPath(projectPath);
 		conf.getProject().setSourceFolders(sourceFolders);

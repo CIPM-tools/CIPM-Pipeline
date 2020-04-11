@@ -6,16 +6,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.start.spring.config.ITemplateMapping;
 import dmodel.pipeline.rt.start.spring.util.TemplateHelper;
 import dmodel.pipeline.rt.validation.simulation.HeadlessPCMSimulator;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 
 @Controller
 public class TemplateController {
 	@Autowired
-	private DModelConfigurationContainer configuration;
+	private ConfigurationContainer configuration;
 
 	@Autowired
 	private RuntimePipelineBlackboard blackboard;

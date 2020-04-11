@@ -12,6 +12,7 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 	private Map<String, String> seffMapping;
 	private Map<String, String> loopMapping;
 	private Map<String, String> branchMapping;
+	private Map<String, String> externalCallMapping;
 	private Map<Pair<String, String>, String> actionMapping;
 
 	public JavaCorrespondenceModelImpl() {
@@ -19,6 +20,7 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 		loopMapping = Maps.newHashMap();
 		branchMapping = Maps.newHashMap();
 		actionMapping = Maps.newHashMap();
+		externalCallMapping = Maps.newHashMap();
 	}
 
 	@Override
@@ -42,8 +44,19 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 	}
 
 	@Override
+	public void addExternalCallCorrespondence(String generateId, String externalCallId) {
+		externalCallMapping.put(generateId, externalCallId);
+	}
+
+	@Override
 	public List<Pair<String, String>> getSeffCorrespondences() {
 		return seffMapping.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Pair<String, String>> getExternalCallCorrespondences() {
+		return externalCallMapping.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue()))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -61,6 +74,11 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 	public List<Pair<Pair<String, String>, String>> getInternalActionCorrespondences() {
 		return actionMapping.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue()))
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public String getCorrespondingExternalCallId(String exprId) {
+		return externalCallMapping.get(exprId);
 	}
 
 	@Override
@@ -89,6 +107,7 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 		loopMapping.clear();
 		branchMapping.clear();
 		actionMapping.clear();
+		externalCallMapping.clear();
 	}
 
 }

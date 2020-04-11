@@ -22,6 +22,7 @@ import com.beust.jcommander.internal.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
 import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallKSTestMetric;
@@ -29,7 +30,6 @@ import dmodel.pipeline.rt.validation.eval.MonitoringDataEnrichment;
 import dmodel.pipeline.rt.validation.eval.ValidationDataExtractor;
 import dmodel.pipeline.rt.validation.simulation.HeadlessPCMSimulator;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 @RunWith(SpringRunner.class)
@@ -69,11 +69,11 @@ public class ValidationProcessorTest {
 		}
 
 		@Bean
-		public DModelConfigurationContainer configuration() {
+		public ConfigurationContainer configuration() {
 			try {
 				return new ObjectMapper(new YAMLFactory()).readValue(
 						ValidationProcessorTest.class.getResourceAsStream("/defaultConfig.yml"),
-						DModelConfigurationContainer.class);
+						ConfigurationContainer.class);
 			} catch (IOException e) {
 				return null;
 			}

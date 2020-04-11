@@ -24,4 +24,6 @@ public interface ApplicationProjectInstrumenterNamespace {
 	String METHOD_ATOMIC_INTEGER_INCREMENT = "getAndIncrement";
 	String METHOD_ATOMIC_INTEGER_GET = "get";
 
+	String METHOD_BEFORE_EXTERNAL_CALL = "setExternalCallId";
+
 }

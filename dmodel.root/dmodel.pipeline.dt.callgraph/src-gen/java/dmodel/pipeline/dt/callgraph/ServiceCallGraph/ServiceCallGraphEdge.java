@@ -4,6 +4,8 @@ package dmodel.pipeline.dt.callgraph.ServiceCallGraph;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
+
 /**
  * <!-- begin-user-doc -->
  * A representation of the model object '<em><b>Edge</b></em>'.
@@ -16,6 +18,7 @@ import org.eclipse.emf.ecore.EObject;
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getFrom <em>From</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getTo <em>To</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getValue <em>Value</em>}</li>
+ *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getExternalCall <em>External Call</em>}</li>
  * </ul>
  *
  * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraphEdge()
@@ -88,5 +91,27 @@ public interface ServiceCallGraphEdge extends EObject {
 	 * @generated
 	 */
 	void setValue(int value);
+
+	/**
+	 * Returns the value of the '<em><b>External Call</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>External Call</em>' reference.
+	 * @see #setExternalCall(ExternalCallAction)
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage#getServiceCallGraphEdge_ExternalCall()
+	 * @model
+	 * @generated
+	 */
+	ExternalCallAction getExternalCall();
+
+	/**
+	 * Sets the value of the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getExternalCall <em>External Call</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>External Call</em>' reference.
+	 * @see #getExternalCall()
+	 * @generated
+	 */
+	void setExternalCall(ExternalCallAction value);
 
 } // ServiceCallGraphEdge

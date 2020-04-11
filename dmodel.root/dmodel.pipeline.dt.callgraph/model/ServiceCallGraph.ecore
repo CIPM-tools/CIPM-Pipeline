@@ -19,31 +19,34 @@
     </eOperations>
     <eOperations name="addEdge">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="// nodes&#xA;ServiceCallGraphNode fromNode = hasNode(from, fromContainer);&#xA;if (fromNode == null) {&#xA;&#x9;fromNode = this.addNode(from, fromContainer);&#xA;}&#xA;ServiceCallGraphNode toNode = hasNode(to, toContainer);&#xA;if (toNode == null) {&#xA;&#x9;toNode = this.addNode(to, toContainer);&#xA;}&#xA;// edge&#xA;ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;edge.setFrom(fromNode);&#xA;edge.setTo(toNode);&#xA;edge.setValue(value);&#xA;&#xA;if (!getOutgoingEdges().containsKey(fromNode)) {&#xA;&#x9;getOutgoingEdges().put(fromNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getOutgoingEdges().get(fromNode).add(edge);&#xA;&#xA;if (!getIncomingEdges().containsKey(toNode)) {&#xA;&#x9;getIncomingEdges().put(toNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getIncomingEdges().get(toNode).add(edge);&#xA;&#xA;// add globally&#xA;getEdges().add(edge);"/>
+        <details key="body" value="// nodes&#xA;ServiceCallGraphNode fromNode = hasNode(from, fromContainer);&#xA;if (fromNode == null) {&#xA;&#x9;fromNode = this.addNode(from, fromContainer);&#xA;}&#xA;ServiceCallGraphNode toNode = hasNode(to, toContainer);&#xA;if (toNode == null) {&#xA;&#x9;toNode = this.addNode(to, toContainer);&#xA;}&#xA;// edge&#xA;ServiceCallGraphEdge edge = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphEdge();&#xA;edge.setFrom(fromNode);&#xA;edge.setTo(toNode);&#xA;edge.setValue(value);&#xA;edge.setExternalCall(externalCall);&#xA;&#xA;if (!getOutgoingEdges().containsKey(fromNode)) {&#xA;&#x9;getOutgoingEdges().put(fromNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getOutgoingEdges().get(fromNode).add(edge);&#xA;&#xA;if (!getIncomingEdges().containsKey(toNode)) {&#xA;&#x9;getIncomingEdges().put(toNode, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;getIncomingEdges().get(toNode).add(edge);&#xA;&#xA;// add globally&#xA;getEdges().add(edge);"/>
       </eAnnotations>
       <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="fromContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
       <eParameters name="toContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
+      <eParameters name="externalCall" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ExternalCallAction"/>
       <eParameters name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     </eOperations>
     <eOperations name="incrementEdge">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer);&#xA;if (edge != null) {&#xA;&#x9;edge.setValue(edge.getValue() + 1);&#xA;} else {&#xA;&#x9;this.addEdge(from, to, fromContainer, toContainer, 1);&#xA;}"/>
+        <details key="body" value="ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer, externalCall);&#xA;if (edge != null) {&#xA;&#x9;edge.setValue(edge.getValue() + 1);&#xA;} else {&#xA;&#x9;this.addEdge(from, to, fromContainer, toContainer, externalCall, 1);&#xA;}"/>
       </eAnnotations>
       <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="fromContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
       <eParameters name="toContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
+      <eParameters name="externalCall" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ExternalCallAction"/>
     </eOperations>
     <eOperations name="hasEdge" eType="#//ServiceCallGraphEdge">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="return getEdges().stream().filter(edge -> {&#xA;&#x9;return (nodeEqual(from, fromContainer, edge.getFrom().getSeff(), edge.getFrom().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()));&#xA;}).findFirst().orElse(null);"/>
+        <details key="body" value="return getEdges().stream().filter(edge -> {&#xA;&#x9;return (nodeEqual(from, fromContainer, edge.getFrom().getSeff(), edge.getFrom().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()))&#xA;&#x9;&#x9;&#x9;&amp;&amp; edge.getExternalCall().equals(externalCall);&#xA;}).findFirst().orElse(null);"/>
       </eAnnotations>
       <eParameters name="from" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="to" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="fromContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
       <eParameters name="toContainer" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
+      <eParameters name="externalCall" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ExternalCallAction"/>
     </eOperations>
     <eOperations name="hasNode" eType="#//ServiceCallGraphNode">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
@@ -80,12 +83,12 @@
         eType="#//EdgeList" transient="true" containment="true" resolveProxies="false"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="incomingEdges" upperBound="-1"
         eType="#//EdgeList" transient="true" containment="true" resolveProxies="false"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="repository" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//repository/Repository"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ServiceCallGraphEdge">
     <eStructuralFeatures xsi:type="ecore:EReference" name="from" eType="#//ServiceCallGraphNode"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="to" eType="#//ServiceCallGraphNode"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="externalCall" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ExternalCallAction"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="EdgeList" instanceClassName="java.util.Map$Entry">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>

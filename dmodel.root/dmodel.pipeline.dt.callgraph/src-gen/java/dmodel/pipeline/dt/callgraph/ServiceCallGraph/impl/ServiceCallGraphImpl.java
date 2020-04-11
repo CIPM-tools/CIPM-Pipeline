@@ -4,22 +4,19 @@ package dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl;
 
 import java.util.Collection;
 
-import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
-import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
-import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
@@ -39,7 +36,6 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphPackage;
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getEdges <em>Edges</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getOutgoingEdges <em>Outgoing Edges</em>}</li>
  *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getIncomingEdges <em>Incoming Edges</em>}</li>
- *   <li>{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphImpl#getRepository <em>Repository</em>}</li>
  * </ul>
  *
  * @generated
@@ -80,16 +76,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 * @ordered
 	 */
 	protected EMap<Object, EList<ServiceCallGraphEdge>> incomingEdges;
-
-	/**
-	 * The cached value of the '{@link #getRepository() <em>Repository</em>}' reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @see #getRepository()
-	 * @generated
-	 * @ordered
-	 */
-	protected Repository repository;
 
 	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
@@ -157,46 +143,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	}
 
 	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public Repository getRepository() {
-		if (repository != null && ((EObject)repository).eIsProxy()) {
-			InternalEObject oldRepository = (InternalEObject)repository;
-			repository = (Repository)eResolveProxy(oldRepository);
-			if (repository != oldRepository) {
-				if (eNotificationRequired())
-					eNotify(new ENotificationImpl(this, Notification.RESOLVE, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY, oldRepository, repository));
-			}
-		}
-		return repository;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public Repository basicGetRepository() {
-		return repository;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public void setRepository(Repository newRepository) {
-		Repository oldRepository = repository;
-		repository = newRepository;
-		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY, oldRepository, repository));
-	}
-
-	/**
 	 * <!-- begin-user-doc --> <!-- end-user-doc -->
 	 * @generated
 	 */
@@ -215,7 +161,8 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 */
 	@Override
 	public void addEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to,
-			final ResourceContainer fromContainer, final ResourceContainer toContainer, final int value) {
+			final ResourceContainer fromContainer, final ResourceContainer toContainer,
+			final ExternalCallAction externalCall, final int value) {
 		// nodes
 		ServiceCallGraphNode fromNode = hasNode(from, fromContainer);
 		if (fromNode == null) {
@@ -230,6 +177,7 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		edge.setFrom(fromNode);
 		edge.setTo(toNode);
 		edge.setValue(value);
+		edge.setExternalCall(externalCall);
 		
 		if (!getOutgoingEdges().containsKey(fromNode)) {
 			getOutgoingEdges().put(fromNode, new BasicEList<ServiceCallGraphEdge>());
@@ -251,12 +199,13 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 */
 	@Override
 	public void incrementEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to,
-			final ResourceContainer fromContainer, final ResourceContainer toContainer) {
-		ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer);
+			final ResourceContainer fromContainer, final ResourceContainer toContainer,
+			final ExternalCallAction externalCall) {
+		ServiceCallGraphEdge edge = this.hasEdge(from, to, fromContainer, toContainer, externalCall);
 		if (edge != null) {
 			edge.setValue(edge.getValue() + 1);
 		} else {
-			this.addEdge(from, to, fromContainer, toContainer, 1);
+			this.addEdge(from, to, fromContainer, toContainer, externalCall, 1);
 		}
 	}
 
@@ -266,10 +215,12 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 */
 	@Override
 	public ServiceCallGraphEdge hasEdge(final ResourceDemandingSEFF from, final ResourceDemandingSEFF to,
-			final ResourceContainer fromContainer, final ResourceContainer toContainer) {
+			final ResourceContainer fromContainer, final ResourceContainer toContainer,
+			final ExternalCallAction externalCall) {
 		return getEdges().stream().filter(edge -> {
 			return (nodeEqual(from, fromContainer, edge.getFrom().getSeff(), edge.getFrom().getHost()))
-					&& (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()));
+					&& (nodeEqual(to, toContainer, edge.getTo().getSeff(), edge.getTo().getHost()))
+					&& edge.getExternalCall().equals(externalCall);
 		}).findFirst().orElse(null);
 	}
 
@@ -383,9 +334,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
 				if (coreType) return getIncomingEdges();
 				else return getIncomingEdges().map();
-			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
-				if (resolve) return getRepository();
-				return basicGetRepository();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -412,9 +360,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
 				((EStructuralFeature.Setting)getIncomingEdges()).set(newValue);
 				return;
-			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
-				setRepository((Repository)newValue);
-				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -438,9 +383,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
 				getIncomingEdges().clear();
 				return;
-			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
-				setRepository((Repository)null);
-				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -460,8 +402,6 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 				return outgoingEdges != null && !outgoingEdges.isEmpty();
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__INCOMING_EDGES:
 				return incomingEdges != null && !incomingEdges.isEmpty();
-			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__REPOSITORY:
-				return repository != null;
 		}
 		return super.eIsSet(featureID);
 	}

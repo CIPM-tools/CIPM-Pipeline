@@ -6,10 +6,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
-import dmodel.pipeline.shared.config.ProjectConfiguration;
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.config.ProjectConfiguration;
+import dmodel.pipeline.core.health.HealthStateManager;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
-import dmodel.pipeline.shared.health.HealthStateManager;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.vsum.domains.ExtendedPcmDomainProvider;
 import dmodel.pipeline.vsum.domains.InstrumentationModelDomainProvider;
@@ -37,8 +37,8 @@ public class VsumManagerTestBase {
 		}
 
 		@Bean
-		public DModelConfigurationContainer configuration() {
-			DModelConfigurationContainer container = new DModelConfigurationContainer();
+		public ConfigurationContainer configuration() {
+			ConfigurationContainer container = new ConfigurationContainer();
 			container.setProject(new ProjectConfiguration());
 
 			return container;

@@ -25,9 +25,10 @@ import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.PipelineEntryPoint;
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 
 // TODO refactor
-public abstract class AbstractIterativePipeline<S, B> {
+public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlackboard> {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractIterativePipelinePart.class);
 
 	private List<NodeInformation> entryPoints;

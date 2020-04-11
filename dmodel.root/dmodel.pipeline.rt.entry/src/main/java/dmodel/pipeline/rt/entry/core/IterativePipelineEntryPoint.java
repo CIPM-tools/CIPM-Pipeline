@@ -22,6 +22,10 @@ import lombok.extern.java.Log;
 @Log
 public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
+	public IterativePipelineEntryPoint() {
+		super(ExecutionMeasuringPoint.T_PRE_FILTER, null);
+	}
+
 	@EntryInputPort
 	@OutputPorts({ @OutputPort(id = PortIDs.T_VAL_PRE, to = PrePipelineValidationTask.class, async = false),
 			@OutputPort(id = PortIDs.T_RAW_ROUTER, to = AccuracySwitch.class, async = false) })
@@ -33,13 +37,13 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 		getBlackboard().getQuery().trackStartPipelineExecution();
 		getBlackboard().getQuery().trackRecordCount(records.size());
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_PRE_FILTER);
+		super.trackStart();
 		// original logic
 		log.info("Reached entry (size = " + records.size() + ").");
 		List<PCMContextRecord> result = records.stream().filter(r -> r instanceof PCMContextRecord)
 				.map(PCMContextRecord.class::cast).collect(Collectors.toList());
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_PRE_FILTER);
+		super.trackEnd();
 
 		return new PartitionedMonitoringData<PCMContextRecord>(result, monitoringData.getValidationSplit());
 	}

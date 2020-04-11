@@ -1,5 +1,6 @@
 package dmodel.pipeline.core;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.palladiosimulator.pcm.allocation.Allocation;
@@ -19,6 +20,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.core.facade.pcm.impl.RepositoryQueryFacadeImpl;
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateManager;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
@@ -39,6 +43,11 @@ public class AbstractCoreTest {
 			return new RepositoryQueryFacadeImpl();
 		}
 
+		@Bean
+		public HealthStateManager healthStateManager() {
+			return new HealthStateManager();
+		}
+
 	}
 
 	@BeforeClass
@@ -49,6 +58,16 @@ public class AbstractCoreTest {
 
 	@Autowired
 	private StaticModelProviderImpl modelProvider;
+
+	@Autowired
+	private HealthStateManager healthStateManager;
+
+	@Before
+	public void reportAllWorking() {
+		for (HealthStateObservedComponent comp : HealthStateObservedComponent.values()) {
+			healthStateManager.update(comp, HealthState.WORKING);
+		}
+	}
 
 	protected void setPcm(Repository repository, System system, ResourceEnvironment env, Allocation alloc,
 			UsageModel usage) {

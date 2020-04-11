@@ -102,22 +102,13 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH__INCOMING_EDGES = 3;
 
 	/**
-	 * The feature id for the '<em><b>Repository</b></em>' reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SERVICE_CALL_GRAPH__REPOSITORY = 4;
-
-	/**
 	 * The number of structural features of the '<em>Service Call Graph</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SERVICE_CALL_GRAPH_FEATURE_COUNT = 5;
+	int SERVICE_CALL_GRAPH_FEATURE_COUNT = 4;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
@@ -157,13 +148,22 @@ public interface ServiceCallGraphPackage extends EPackage {
 	int SERVICE_CALL_GRAPH_EDGE__VALUE = 2;
 
 	/**
+	 * The feature id for the '<em><b>External Call</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL = 3;
+
+	/**
 	 * The number of structural features of the '<em>Edge</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SERVICE_CALL_GRAPH_EDGE_FEATURE_COUNT = 3;
+	int SERVICE_CALL_GRAPH_EDGE_FEATURE_COUNT = 4;
 
 	/**
 	 * The meta object id for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.EdgeListImpl <em>Edge List</em>}' class.
@@ -295,17 +295,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 	EReference getServiceCallGraph_IncomingEdges();
 
 	/**
-	 * Returns the meta object for the reference '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository <em>Repository</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference '<em>Repository</em>'.
-	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph#getRepository()
-	 * @see #getServiceCallGraph()
-	 * @generated
-	 */
-	EReference getServiceCallGraph_Repository();
-
-	/**
 	 * Returns the meta object for class '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge <em>Edge</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -347,6 +336,17 @@ public interface ServiceCallGraphPackage extends EPackage {
 	 * @generated
 	 */
 	EAttribute getServiceCallGraphEdge_Value();
+
+	/**
+	 * Returns the meta object for the reference '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getExternalCall <em>External Call</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>External Call</em>'.
+	 * @see dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraphEdge#getExternalCall()
+	 * @see #getServiceCallGraphEdge()
+	 * @generated
+	 */
+	EReference getServiceCallGraphEdge_ExternalCall();
 
 	/**
 	 * Returns the meta object for class '{@link java.util.Map.Entry <em>Edge List</em>}'.
@@ -479,14 +479,6 @@ public interface ServiceCallGraphPackage extends EPackage {
 		EReference SERVICE_CALL_GRAPH__INCOMING_EDGES = eINSTANCE.getServiceCallGraph_IncomingEdges();
 
 		/**
-		 * The meta object literal for the '<em><b>Repository</b></em>' reference feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EReference SERVICE_CALL_GRAPH__REPOSITORY = eINSTANCE.getServiceCallGraph_Repository();
-
-		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.ServiceCallGraphEdgeImpl <em>Edge</em>}' class.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -519,6 +511,14 @@ public interface ServiceCallGraphPackage extends EPackage {
 		 * @generated
 		 */
 		EAttribute SERVICE_CALL_GRAPH_EDGE__VALUE = eINSTANCE.getServiceCallGraphEdge_Value();
+
+		/**
+		 * The meta object literal for the '<em><b>External Call</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference SERVICE_CALL_GRAPH_EDGE__EXTERNAL_CALL = eINSTANCE.getServiceCallGraphEdge_ExternalCall();
 
 		/**
 		 * The meta object literal for the '{@link dmodel.pipeline.dt.callgraph.ServiceCallGraph.impl.EdgeListImpl <em>Edge List</em>}' class.

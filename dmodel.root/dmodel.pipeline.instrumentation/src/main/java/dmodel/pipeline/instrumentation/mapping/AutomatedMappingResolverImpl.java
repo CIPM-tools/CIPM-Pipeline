@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
+import org.springframework.stereotype.Service;
 
 import com.github.javaparser.Range;
 import com.github.javaparser.ast.CompilationUnit;
@@ -22,12 +23,14 @@ import com.github.javaparser.ast.stmt.Statement;
 import com.google.common.collect.Maps;
 
 import dmodel.pipeline.instrumentation.mapping.comment.AbstractMappingComment;
+import dmodel.pipeline.instrumentation.mapping.comment.ExternalCallMappingComment;
 import dmodel.pipeline.instrumentation.mapping.comment.InternalActionMappingComment;
 import dmodel.pipeline.instrumentation.project.ParsedApplicationProject;
 import dmodel.pipeline.instrumentation.tuid.JavaTuidGeneratorAndResolver;
 import dmodel.pipeline.monitoring.util.ManualMapping;
 import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 
+@Service
 public class AutomatedMappingResolverImpl implements IAutomatedMappingResolver {
 	private JavaTuidGeneratorAndResolver tuidGenerator = new JavaTuidGeneratorAndResolver();
 	private MappingCommentParser commentParser = new MappingCommentParser();
@@ -116,6 +119,18 @@ public class AutomatedMappingResolverImpl implements IAutomatedMappingResolver {
 				String generatedLoopId = tuidGenerator.generateId((Statement) comment.getCommentedNode().get());
 				cpm.addLoopCorrespondence(generatedLoopId, parsedComment.asLoopMappingComment().getLoopId());
 			}
+		} else if (parsedComment.isExternalCallMapping()) {
+			processExternalCallComment(parsedComment.asExternalCallMappingComment(), comment, cpm);
+		}
+	}
+
+	private void processExternalCallComment(ExternalCallMappingComment parsedComment, Comment comment,
+			IJavaPCMCorrespondenceModel cpm) {
+		Statement externalMethodCall = getSubsequentStatement(comment);
+		// TODO check if it is a method call necessary?
+		if (externalMethodCall != null) {
+			cpm.addExternalCallCorrespondence(tuidGenerator.generateId(externalMethodCall),
+					parsedComment.getExternalCallId());
 		}
 	}
 

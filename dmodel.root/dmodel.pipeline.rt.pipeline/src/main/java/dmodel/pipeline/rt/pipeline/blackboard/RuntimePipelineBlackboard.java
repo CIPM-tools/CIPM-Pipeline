@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.facade.ICoreBlackboardQueryFacade;
 import dmodel.pipeline.core.facade.IInstrumentationModelQueryFacade;
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
@@ -13,7 +14,6 @@ import dmodel.pipeline.core.facade.IResettableQueryFacade;
 import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationResultsQuery;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +27,7 @@ public class RuntimePipelineBlackboard {
 
 	@Autowired
 	@Setter
-	private DModelConfigurationContainer configuration;
+	private ConfigurationContainer configuration;
 
 	@Autowired
 	private IValidationQueryFacade validationQuery;

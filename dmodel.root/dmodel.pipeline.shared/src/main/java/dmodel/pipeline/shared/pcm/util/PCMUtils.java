@@ -22,8 +22,6 @@ import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
-import org.palladiosimulator.pcm.repository.RequiredRole;
-import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.ResourcetypePackage;
 
@@ -52,30 +50,6 @@ public class PCMUtils {
 		Resource resource = resourceSet.getResource(filePathUri, true);
 
 		return (ResourceRepository) resource.getContents().get(0);
-	}
-
-	// TODO move to PCMSystemUtils
-	public static Optional<RequiredRole> getRequiredRoleBySignature(RepositoryComponent comp, Signature toSig) {
-		return comp.getRequiredRoles_InterfaceRequiringEntity().stream().filter(r -> {
-			if (r instanceof OperationRequiredRole) {
-				return ((OperationRequiredRole) r).getRequiredInterface__OperationRequiredRole()
-						.getSignatures__OperationInterface().parallelStream()
-						.anyMatch(sig -> sig.getId().equals(toSig.getId()));
-			}
-			return false;
-		}).findFirst();
-	}
-
-	// TODO move to PCMSystemUtils
-	public static Optional<ProvidedRole> getProvidedRoleBySignature(RepositoryComponent comp, Signature toSig) {
-		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> {
-			if (r instanceof OperationProvidedRole) {
-				return ((OperationProvidedRole) r).getProvidedInterface__OperationProvidedRole()
-						.getSignatures__OperationInterface().parallelStream()
-						.anyMatch(sig -> sig.getId().equals(toSig.getId()));
-			}
-			return false;
-		}).findFirst();
 	}
 
 	@SuppressWarnings("unchecked") // it IS a type safe cast

@@ -14,6 +14,10 @@ public abstract class AbstractMappingComment {
 		return false;
 	}
 
+	public boolean isExternalCallMapping() {
+		return false;
+	}
+
 	public InternalActionMappingComment asInternalActionMappingComment() {
 		return null;
 	}
@@ -23,6 +27,10 @@ public abstract class AbstractMappingComment {
 	}
 
 	public BranchMappingComment asBranchMappingComment() {
+		return null;
+	}
+
+	public ExternalCallMappingComment asExternalCallMappingComment() {
 		return null;
 	}
 

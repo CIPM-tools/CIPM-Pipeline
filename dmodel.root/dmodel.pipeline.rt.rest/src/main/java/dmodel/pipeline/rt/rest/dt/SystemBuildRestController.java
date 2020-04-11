@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
@@ -50,7 +51,6 @@ import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingStartMessage;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
 import dmodel.pipeline.shared.JsonUtil;
-import dmodel.pipeline.shared.config.DModelConfigurationContainer;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.util.StackedRunnable;
 
@@ -60,7 +60,7 @@ public class SystemBuildRestController {
 	private StaticCodeReferenceAnalyzer systemAnalyzer;
 
 	@Autowired
-	private DModelConfigurationContainer config;
+	private ConfigurationContainer config;
 
 	@Autowired
 	private PCMSystemBuilder systemBuilder;
