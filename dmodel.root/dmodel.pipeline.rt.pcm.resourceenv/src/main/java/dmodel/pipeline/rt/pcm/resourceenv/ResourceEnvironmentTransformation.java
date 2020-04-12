@@ -17,7 +17,7 @@ import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
 import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
 import dmodel.pipeline.rt.pcm.resourceenv.finalize.IResourceEnvironmentDeduction;
 import dmodel.pipeline.rt.pcm.resourceenv.finalize.ResourceEnvironmentTransformer;
-import dmodel.pipeline.rt.pcm.system.RuntimeSystemDerivation;
+import dmodel.pipeline.rt.pcm.system.RuntimeSystemTransformation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -39,7 +39,7 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 	}
 
 	@InputPorts({ @InputPort(PortIDs.T_SC_PCM_RESENV) })
-	@OutputPorts(@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_RESENV_PCM_SYSTEM))
+	@OutputPorts(@OutputPort(to = RuntimeSystemTransformation.class, async = false, id = PortIDs.T_RESENV_PCM_SYSTEM))
 	public void deriveResourceEnvironment(List<Tree<ServiceCallRecord>> entryCalls) {
 		log.info("Deriving resource environment.");
 

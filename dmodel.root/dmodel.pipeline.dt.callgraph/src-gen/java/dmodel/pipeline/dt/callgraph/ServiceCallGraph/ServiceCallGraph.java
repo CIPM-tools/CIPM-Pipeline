@@ -146,4 +146,12 @@ public interface ServiceCallGraph extends EObject {
 	 */
 	void rebuild();
 
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @model
+	 * @generated
+	 */
+	void removeNode(ServiceCallGraphNode node);
+
 } // ServiceCallGraph

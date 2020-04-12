@@ -75,6 +75,12 @@
         <details key="body" value="getIncomingEdges().clear();&#xA;getOutgoingEdges().clear();&#xA;&#xA;for (ServiceCallGraphEdge edge : getEdges()) {&#xA;&#x9;if (!getOutgoingEdges().containsKey(edge.getFrom())) {&#xA;&#x9;&#x9;getOutgoingEdges().put(edge.getFrom(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;if (!getIncomingEdges().containsKey(edge.getTo())) {&#xA;&#x9;&#x9;getIncomingEdges().put(edge.getTo(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;getOutgoingEdges().get(edge.getFrom()).add(edge);&#xA;&#x9;getIncomingEdges().get(edge.getTo()).add(edge);&#xA;}"/>
       </eAnnotations>
     </eOperations>
+    <eOperations name="removeNode">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="if (getIncomingEdges().get(node).size() == 0 &amp;&amp; getOutgoingEdges().get(node).size() == 0) {&#xA;&#x9;getNodes().remove(node);&#xA;} else {&#xA;&#x9;throw new IllegalStateException(&#xA;&#x9;&#x9;&#x9;&quot;There are existing edges for a node that should be removed. Please remove the edges in advance to be able to remove the node.&quot;);&#xA;}"/>
+      </eAnnotations>
+      <eParameters name="node" eType="#//ServiceCallGraphNode"/>
+    </eOperations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1"
         eType="#//ServiceCallGraphNode" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="edges" upperBound="-1"

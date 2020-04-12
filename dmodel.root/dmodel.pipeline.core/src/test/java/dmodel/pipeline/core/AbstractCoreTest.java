@@ -18,8 +18,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
+import dmodel.pipeline.core.facade.pcm.impl.AllocationQueryFacadeImpl;
 import dmodel.pipeline.core.facade.pcm.impl.RepositoryQueryFacadeImpl;
+import dmodel.pipeline.core.facade.pcm.impl.SystemQueryFacadeImpl;
 import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateManager;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
@@ -41,6 +45,16 @@ public class AbstractCoreTest {
 		@Bean
 		public IRepositoryQueryFacade repoFacade() {
 			return new RepositoryQueryFacadeImpl();
+		}
+
+		@Bean
+		public ISystemQueryFacade systemFacade() {
+			return new SystemQueryFacadeImpl();
+		}
+
+		@Bean
+		public IAllocationQueryFacade allocationFacade() {
+			return new AllocationQueryFacadeImpl();
 		}
 
 		@Bean

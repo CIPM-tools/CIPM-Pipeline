@@ -303,6 +303,20 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 	 * @generated
 	 */
 	@Override
+	public void removeNode(final ServiceCallGraphNode node) {
+		if (getIncomingEdges().get(node).size() == 0 && getOutgoingEdges().get(node).size() == 0) {
+			getNodes().remove(node);
+		} else {
+			throw new IllegalStateException(
+					"There are existing edges for a node that should be removed. Please remove the edges in advance to be able to remove the node.");
+		}
+	}
+
+	/**
+	 * <!-- begin-user-doc --> <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case ServiceCallGraphPackage.SERVICE_CALL_GRAPH__NODES:

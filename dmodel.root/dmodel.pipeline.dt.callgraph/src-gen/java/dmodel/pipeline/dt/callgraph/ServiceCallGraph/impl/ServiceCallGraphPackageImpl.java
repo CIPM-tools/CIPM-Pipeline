@@ -426,6 +426,9 @@ public class ServiceCallGraphPackageImpl extends EPackageImpl implements Service
 
 		addEOperation(serviceCallGraphEClass, null, "rebuild", 0, 1, IS_UNIQUE, IS_ORDERED);
 
+		op = addEOperation(serviceCallGraphEClass, null, "removeNode", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, this.getServiceCallGraphNode(), "node", 0, 1, IS_UNIQUE, IS_ORDERED);
+
 		initEClass(serviceCallGraphEdgeEClass, ServiceCallGraphEdge.class, "ServiceCallGraphEdge", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getServiceCallGraphEdge_From(), this.getServiceCallGraphNode(), null, "from", null, 0, 1, ServiceCallGraphEdge.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getServiceCallGraphEdge_To(), this.getServiceCallGraphNode(), null, "to", null, 0, 1, ServiceCallGraphEdge.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

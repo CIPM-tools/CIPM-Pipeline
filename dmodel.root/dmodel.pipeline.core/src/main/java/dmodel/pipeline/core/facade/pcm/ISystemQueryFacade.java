@@ -4,18 +4,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
 import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
+import org.palladiosimulator.pcm.core.entity.InterfaceProvidingEntity;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
+import org.palladiosimulator.pcm.repository.OperationRequiredRole;
+import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.Signature;
 
 import dmodel.pipeline.core.facade.IResettableQueryFacade;
+import dmodel.pipeline.shared.pcm.util.deprecation.IDeprecationProcessor;
 
 public interface ISystemQueryFacade extends IResettableQueryFacade {
+	String getId();
 
 	Set<String> getAssemblyIds();
 
@@ -27,23 +33,40 @@ public interface ISystemQueryFacade extends IResettableQueryFacade {
 
 	Collection<RequiredDelegationConnector> getRequiredDelegationConnectors();
 
-	String getId();
+	List<OperationInterface> getProvidedInterfaces();
+
+	List<OperationProvidedRole> getProvidedRoles();
+
+	List<OperationProvidedRole> getProvidedRoleBySignature(Signature describedService__SEFF);
+
+	List<OperationProvidedRole> getProvidedRoleBySignature(Signature describedService__SEFF,
+			InterfaceProvidingEntity entity);
+
+	AssemblyContext getAssemblyById(String assembly);
+
+	AssemblyContext createAssemblyContext(RepositoryComponent component);
 
 	void removeConnectors(List<Connector> connectors);
 
-	List<OperationInterface> getProvidedInterfaces();
+	boolean hasConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
+			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole);
 
-	OperationProvidedRole getProvidedRoleBySignature(Signature describedService__SEFF);
+	AssemblyConnector createConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
+			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole);
 
-	/**
-	 * system.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> { if
-	 * (pr instanceof OperationProvidedRole) { return ((OperationProvidedRole)
-	 * pr).getProvidedInterface__OperationProvidedRole()
-	 * .getSignatures__OperationInterface().stream().anyMatch(op -> { return
-	 * op.getId().equals(seff.getDescribedService__SEFF().getId()); }); } return
-	 * false; }).map(pr -> (OperationProvidedRole) pr).findFirst().orElse(null)
-	 */
+	void reconnectOuterProvidedRole(OperationProvidedRole systemProvidedRole, AssemblyContext ctx,
+			OperationProvidedRole role);
 
-	AssemblyContext getAssemblyById(String assembly);
+	void reconnectOuterRequiredRole(OperationRequiredRole selectedOuter, AssemblyContext left,
+			OperationRequiredRole right);
+
+	List<Pair<AssemblyContext, OperationRequiredRole>> getUnsatisfiedInnerRequiredRoles();
+
+	List<OperationRequiredRole> getNonLinkedOuterRequiredRoles();
+
+	// more logic
+	void removeInconsistentConnectors(AssemblyConnector connector);
+
+	void processUnreachableAssemblys(IDeprecationProcessor deprecationProcessor);
 
 }

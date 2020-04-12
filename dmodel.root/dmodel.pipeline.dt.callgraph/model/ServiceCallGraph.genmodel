@@ -62,6 +62,10 @@
       </genOperations>
       <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/rebuild"
           body="getIncomingEdges().clear();&#xA;getOutgoingEdges().clear();&#xA;&#xA;for (ServiceCallGraphEdge edge : getEdges()) {&#xA;&#x9;if (!getOutgoingEdges().containsKey(edge.getFrom())) {&#xA;&#x9;&#x9;getOutgoingEdges().put(edge.getFrom(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;if (!getIncomingEdges().containsKey(edge.getTo())) {&#xA;&#x9;&#x9;getIncomingEdges().put(edge.getTo(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;getOutgoingEdges().get(edge.getFrom()).add(edge);&#xA;&#x9;getIncomingEdges().get(edge.getTo()).add(edge);&#xA;}"/>
+      <genOperations ecoreOperation="ServiceCallGraph.ecore#//ServiceCallGraph/removeNode"
+          body="if (getIncomingEdges().get(node).size() == 0 &amp;&amp; getOutgoingEdges().get(node).size() == 0) {&#xA;&#x9;getNodes().remove(node);&#xA;} else {&#xA;&#x9;throw new IllegalStateException(&#xA;&#x9;&#x9;&#x9;&quot;There are existing edges for a node that should be removed. Please remove the edges in advance to be able to remove the node.&quot;);&#xA;}">
+        <genParameters ecoreParameter="ServiceCallGraph.ecore#//ServiceCallGraph/removeNode/node"/>
+      </genOperations>
     </genClasses>
     <genClasses ecoreClass="ServiceCallGraph.ecore#//ServiceCallGraphEdge">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference ServiceCallGraph.ecore#//ServiceCallGraphEdge/from"/>

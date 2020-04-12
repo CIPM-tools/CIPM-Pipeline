@@ -17,16 +17,6 @@ public interface IAllocationQueryFacade extends IResettableQueryFacade {
 	ResourceContainer getContainerByAssembly(AssemblyContext asCtx);
 
 	List<AssemblyContext> getDeployedAssembly(BasicComponent componentType, ResourceContainer container);
-	/*
-	 * PCMUtils .getElementsByType(getBlackboard().getQuery().getAllocation(),
-	 * AllocationContext.class).stream() .filter(a -> { return belongingContainer !=
-	 * null &&
-	 * a.getResourceContainer_AllocationContext().getId().equals(belongingContainer.
-	 * getId()) && a.getAssemblyContext_AllocationContext().
-	 * getEncapsulatedComponent__AssemblyContext()
-	 * .getId().equals(belComponent.getId()); }).map(a ->
-	 * a.getAssemblyContext_AllocationContext()).collect(Collectors.toList());
-	 */
 
 	void deleteAllocation(AssemblyContext da);
 

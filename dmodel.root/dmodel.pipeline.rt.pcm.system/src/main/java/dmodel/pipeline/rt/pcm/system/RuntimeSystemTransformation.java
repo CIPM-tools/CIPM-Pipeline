@@ -1,14 +1,22 @@
-package dmodel.pipeline.rt.pcm.system.v2;
+package dmodel.pipeline.rt.pcm.system;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.BasicComponent;
+import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
 import dmodel.pipeline.core.state.EPipelineTransformation;
@@ -28,10 +36,14 @@ import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.shared.pipeline.PortIDs;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.java.Log;
 
 @Log
 public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
+	@Autowired
+	private RuntimeSystemUpdater systemUpdater;
 
 	public RuntimeSystemTransformation() {
 		super(ExecutionMeasuringPoint.T_SYSTEM, EPipelineTransformation.T_SYSTEM);
@@ -44,16 +56,16 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 
 		log.info("Deriving system refinements at runtime.");
 		List<ServiceCallGraph> runtimeGraphs = buildGraphsFromMonitoringData(entryCalls);
-		ServiceCallGraph actualGraph = mergeCallGraphs(runtimeGraphs);
-		if (actualGraph != null) {
-			// TODO apply the current graph
+		Pair<ServiceCallGraph, CallGraphMergeMetadata> mergeResult = mergeCallGraphs(runtimeGraphs);
+		if (mergeResult != null && mergeResult.getLeft() != null) {
+			systemUpdater.applyCallGraph(mergeResult);
 		}
 
 		// finish
 		super.trackEnd();
 	}
 
-	private ServiceCallGraph mergeCallGraphs(List<ServiceCallGraph> callGraphs) {
+	private Pair<ServiceCallGraph, CallGraphMergeMetadata> mergeCallGraphs(List<ServiceCallGraph> callGraphs) {
 		// the later the scg in the list, the newer it is
 		// therefore we prefer information that is present towards the end of the list
 		// (in case of conflicts)
@@ -61,25 +73,43 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 			return null;
 		}
 
+		// priority list
+		CallGraphMergeMetadata metadata = new CallGraphMergeMetadata();
+
 		// merge graphs
 		ServiceCallGraph currentCallGraph = null;
 		for (ServiceCallGraph scg : callGraphs) {
+			updateEntryCallPriorities(scg, metadata);
 			if (currentCallGraph == null) {
 				currentCallGraph = scg;
 			} else {
-				mergeCallGraphs(currentCallGraph, scg);
+				mergeCallGraphs(currentCallGraph, scg, metadata);
 			}
 		}
+		currentCallGraph.rebuild();
 
 		// clean unreachable nodes
-		// TODO
+		final ServiceCallGraph finalCallGraph = currentCallGraph;
+		List<ServiceCallGraphNode> unreachableNodes = currentCallGraph.getNodes().stream()
+				.filter(n -> finalCallGraph.getOutgoingEdges().get(n).size() == 0
+						&& finalCallGraph.getIncomingEdges().get(n).size() == 0)
+				.collect(Collectors.toList());
+		unreachableNodes.forEach(un -> finalCallGraph.removeNode(un));
 
-		return currentCallGraph;
+		return Pair.of(finalCallGraph, metadata);
 	}
 
-	private void mergeCallGraphs(ServiceCallGraph parent, ServiceCallGraph inherit) {
-		// TODO multiple provided role ranking
+	private void updateEntryCallPriorities(ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
+		for (ServiceCallGraphNode node : scg.getNodes()) {
+			if (scg.getIncomingEdges().get(scg).size() == 0) {
+				// => entry point
+				metadata.entryNodePriorities.remove(node);
+				metadata.entryNodePriorities.addFirst(node);
+			}
+		}
+	}
 
+	private void mergeCallGraphs(ServiceCallGraph parent, ServiceCallGraph inherit, CallGraphMergeMetadata metadata) {
 		for (ServiceCallGraphEdge inheritEdge : inherit.getEdges()) {
 			ServiceCallGraphNode existingNodeFrom = parent.hasNode(inheritEdge.getFrom().getSeff(),
 					inheritEdge.getFrom().getHost());
@@ -89,21 +119,28 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 			BasicComponent componentTo = inheritEdge.getTo().getSeff().getBasicComponent_ServiceEffectSpecification();
 
 			if (existingNodeFrom != null) {
-				// this edges are inconsistent with the new one
-				List<ServiceCallGraphEdge> oldEdges = parent.getOutgoingEdges().get(existingNodeFrom).stream()
-						.filter(e -> {
-							return e.getExternalCall().getRole_ExternalService().equals(correspondingReqRole)
-									&& !e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification()
-											.equals(componentTo);
-						}).collect(Collectors.toList());
-				oldEdges.forEach(oe -> parent.removeEdge(oe));
+				removeInconsistentEdges(parent, correspondingReqRole, componentTo, existingNodeFrom);
 			}
 
 			// add new edge
 			parent.incrementEdge(inheritEdge.getFrom().getSeff(), inheritEdge.getTo().getSeff(),
 					inheritEdge.getFrom().getHost(), inheritEdge.getTo().getHost(), inheritEdge.getExternalCall());
 
+			// add priority
+			ComponentInterfaceBinding binding = new ComponentInterfaceBinding(componentTo,
+					inheritEdge.getTo().getHost(), correspondingReqRole.getRequiredInterface__OperationRequiredRole());
+			metadata.insertPriority(binding, correspondingReqRole);
 		}
+	}
+
+	private void removeInconsistentEdges(ServiceCallGraph parent, OperationRequiredRole correspondingReqRole,
+			BasicComponent componentTo, ServiceCallGraphNode existingNodeFrom) {
+		// this edges are inconsistent with the new one
+		List<ServiceCallGraphEdge> oldEdges = parent.getOutgoingEdges().get(existingNodeFrom).stream().filter(e -> {
+			return e.getExternalCall().getRole_ExternalService().equals(correspondingReqRole)
+					&& !e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification().equals(componentTo);
+		}).collect(Collectors.toList());
+		oldEdges.forEach(oe -> parent.removeEdge(oe));
 	}
 
 	private List<ServiceCallGraph> buildGraphsFromMonitoringData(List<Tree<ServiceCallRecord>> entryCalls) {
@@ -153,6 +190,36 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 			return getBlackboard().getVsumQuery().getCorrespondingResourceContainer(remContainer).orElse(null);
 		}
 		return null;
+	}
+
+	@Data
+	@AllArgsConstructor
+	protected static class ComponentInterfaceBinding {
+		private BasicComponent component;
+		private ResourceContainer host;
+		private OperationInterface iface;
+	}
+
+	@Data
+	@AllArgsConstructor
+	protected static class CallGraphMergeMetadata {
+		private Map<ComponentInterfaceBinding, LinkedList<OperationRequiredRole>> bindingPriorityMap;
+		private LinkedList<ServiceCallGraphNode> entryNodePriorities;
+
+		protected CallGraphMergeMetadata() {
+			this.bindingPriorityMap = Maps.newHashMap();
+			this.entryNodePriorities = Lists.newLinkedList();
+		}
+
+		protected void insertPriority(ComponentInterfaceBinding binding, OperationRequiredRole role) {
+			if (bindingPriorityMap.containsKey(binding)) {
+				bindingPriorityMap.get(binding).addFirst(role);
+			} else {
+				LinkedList<OperationRequiredRole> nList = Lists.newLinkedList();
+				nList.add(role);
+				bindingPriorityMap.put(binding, nList);
+			}
+		}
 	}
 
 }
