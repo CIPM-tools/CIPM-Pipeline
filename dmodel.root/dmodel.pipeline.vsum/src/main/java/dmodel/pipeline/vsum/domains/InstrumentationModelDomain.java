@@ -12,7 +12,7 @@ public class InstrumentationModelDomain extends AbstractTuidAwareVitruvDomain {
 		super("IMM", InstrumentationModelPackage.eINSTANCE,
 				new AttributeTuidCalculatorAndResolver(InstrumentationModelPackage.eINSTANCE.getNsURI(), "id",
 						"entityName"),
-				VsumConstants.INSTRUMENTATION_SUFFIX);
+				VsumConstants.INSTRUMENTATION_SUFFIX.substring(1));
 	}
 
 	@Override

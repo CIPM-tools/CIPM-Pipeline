@@ -57,6 +57,7 @@ public class ConfigProjectRestController {
 	}
 
 	@PostMapping("/config/project/validate-path")
+	// TODO own class / method
 	public String validatePaths(@RequestParam String path) {
 		ProjectValidationResponse resp = new ProjectValidationResponse();
 

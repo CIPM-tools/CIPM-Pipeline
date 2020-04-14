@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
@@ -14,6 +13,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.extern.java.Log;
 
 @Log
+@Service
 public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 	@Autowired
 	private RuntimeSystemUpdater systemUpdater;
@@ -79,6 +80,8 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 		// merge graphs
 		ServiceCallGraph currentCallGraph = null;
 		for (ServiceCallGraph scg : callGraphs) {
+			scg.rebuild();
+
 			updateEntryCallPriorities(scg, metadata);
 			if (currentCallGraph == null) {
 				currentCallGraph = scg;
@@ -101,7 +104,7 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 
 	private void updateEntryCallPriorities(ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
 		for (ServiceCallGraphNode node : scg.getNodes()) {
-			if (scg.getIncomingEdges().get(scg).size() == 0) {
+			if (scg.getIncomingEdges().get(node).size() == 0) {
 				// => entry point
 				metadata.entryNodePriorities.remove(node);
 				metadata.entryNodePriorities.addFirst(node);
@@ -162,16 +165,12 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 			ResourceDemandingSEFF toSeff = getBlackboard().getPcmQuery().getRepository()
 					.getServiceById(node.getData().getServiceId());
 
-			List<AssemblyContext> fromAssembly = getBlackboard().getPcmQuery().getAllocation()
-					.getDeployedAssembly(fromSeff.getBasicComponent_ServiceEffectSpecification(), fromContainer);
-			List<AssemblyContext> toAssembly = getBlackboard().getPcmQuery().getAllocation()
-					.getDeployedAssembly(toSeff.getBasicComponent_ServiceEffectSpecification(), toContainer);
-
 			String externalCallId = node.getData().getExternalCallId();
 			ExternalCallAction externalCallAction = getBlackboard().getPcmQuery().getRepository()
 					.getElementById(externalCallId, ExternalCallAction.class);
 
-			if (fromAssembly != null && toAssembly != null && externalCallAction != null) {
+			if (fromSeff != null && toSeff != null && fromContainer != null && toContainer != null
+					&& externalCallAction != null) {
 				// connect in scg
 				ret.incrementEdge(fromSeff, toSeff, fromContainer, toContainer, externalCallAction);
 

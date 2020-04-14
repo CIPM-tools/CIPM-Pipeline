@@ -60,6 +60,7 @@ public class VsumReactionsTests extends VsumManagerTestBase {
 		VirtualModelConfiguration vsumConfig = new VirtualModelConfiguration();
 
 		for (VitruvDomainProvider<? extends VitruvDomain> provider : domainProviders) {
+			System.out.println(provider.getDomain().getFileExtensions());
 			vsumConfig.addMetamodel(provider.getDomain());
 		}
 

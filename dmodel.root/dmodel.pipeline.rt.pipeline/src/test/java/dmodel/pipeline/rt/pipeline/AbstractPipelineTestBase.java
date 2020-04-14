@@ -1,7 +1,5 @@
 package dmodel.pipeline.rt.pipeline;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,69 +10,47 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.emf.ecore.EObject;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.beust.jcommander.internal.Lists;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Sets;
 
-import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
-import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.structure.Tree;
 import dmodel.pipeline.shared.structure.Tree.TreeNode;
 import dmodel.pipeline.shared.util.ExtendedEqualityHelper;
+import dmodel.pipeline.vsum.VsumManagerTestBase;
 
 @RunWith(SpringRunner.class)
-@Import(BaseSpringTestConfiguration.class)
-public abstract class AbstractTransformationTest {
-
+@Import(BasePipelineTestConfiguration.TestContextConfiguration.class)
+public abstract class AbstractPipelineTestBase extends VsumManagerTestBase {
 	private static final Pattern BRACKET_PATTERN = Pattern.compile("\\[(.*)\\]");
 	private static final Pattern PARAMETER_PATTERN = Pattern.compile("(\\{.*\\})");
 	private final static Pattern LTRIM = Pattern.compile("^\\s+");
 
-	protected RuntimePipelineBlackboard blackboard;
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
 
-	@BeforeClass
-	public static void loadPCMResources() {
-		// load models
-		PCMUtils.loadPCMModels();
-	}
+	@Autowired
+	private PerformanceEvaluation performanceEval;
 
 	@Before
-	public void createBlackboard() {
-		blackboard = new RuntimePipelineBlackboard();
-
-		// configuration
-		try {
-			blackboard.setConfiguration(new ObjectMapper(new YAMLFactory()).readValue(
-					AbstractTransformationTest.class.getResourceAsStream("/defaultConfig.yml"),
-					ConfigurationContainer.class));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// pcm
-		blackboard.setArchitectureModel(new InMemoryPCM());
-
-		// delegate to load
-		this.loadPCMModels();
+	public void prepareTest() {
+		performanceEval.enterPipelineExecution();
+		blackboard.reset(true);
 	}
 
-	@Test
-	public void initialTest() {
-		assertNotNull(blackboard.getConfiguration());
+	@After
+	public void endMeasuring() {
+		performanceEval.exitPipelineExecution();
 	}
-
-	protected abstract void loadPCMModels();
 
 	protected boolean modelsEqual(EObject o1, EObject o2) {
 		return new ExtendedEqualityHelper().equals(o1, o2, Sets.newHashSet());
@@ -82,7 +58,7 @@ public abstract class AbstractTransformationTest {
 
 	protected List<Tree<ServiceCallRecord>> parseMonitoringResource(String resourceName) {
 		return monitoringDataFromStrings(
-				readInputStreamToArray(AbstractTransformationTest.class.getResourceAsStream(resourceName)));
+				readInputStreamToArray(AbstractPipelineTestBase.class.getResourceAsStream(resourceName)));
 	}
 
 	protected String[] readInputStreamToArray(InputStream is) {
@@ -144,26 +120,28 @@ public abstract class AbstractTransformationTest {
 		Matcher hostIdMatcher = BRACKET_PATTERN.matcher(dataSplit[1]);
 
 		if (hostIdMatcher.find()) {
-			if (dataSplit.length == 2) {
-				ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", dataSplit[0], "", "",
-						"", System.currentTimeMillis(), System.currentTimeMillis());
+			String[] externalCallSplit = dataSplit[0].split(";");
+			if (externalCallSplit.length == 2 && dataSplit.length == 2) {
+				ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", externalCallSplit[1],
+						"", "", externalCallSplit[0], "", System.currentTimeMillis(), System.currentTimeMillis());
 				return rec;
-			} else if (dataSplit.length == 3) {
+			} else if (externalCallSplit.length == 2 && dataSplit.length == 3) {
 				// check for parameters
 				Matcher parameterMatcher = PARAMETER_PATTERN.matcher(dataSplit[2]);
 				if (parameterMatcher.find()) {
-					ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "", dataSplit[0],
-							parameterMatcher.group(1), "", "", System.currentTimeMillis(), System.currentTimeMillis());
+					ServiceCallRecord rec = new ServiceCallRecord("", "", hostIdMatcher.group(1), "",
+							externalCallSplit[1], parameterMatcher.group(1), "", externalCallSplit[0], "",
+							System.currentTimeMillis(), System.currentTimeMillis());
 					return rec;
 				}
 				return null;
-			} else if (dataSplit.length == 4) {
+			} else if (externalCallSplit.length == 2 && dataSplit.length == 4) {
 				// check for parameters
 				Matcher parameterMatcher = PARAMETER_PATTERN.matcher(dataSplit[2]);
 				if (parameterMatcher.find()) {
 					ServiceCallRecord rec = new ServiceCallRecord(dataSplit[3], "", hostIdMatcher.group(1), "",
-							dataSplit[0], parameterMatcher.group(1), "", "", System.currentTimeMillis(),
-							System.currentTimeMillis());
+							externalCallSplit[1], parameterMatcher.group(1), "", externalCallSplit[0], "",
+							System.currentTimeMillis(), System.currentTimeMillis());
 					return rec;
 				}
 			}

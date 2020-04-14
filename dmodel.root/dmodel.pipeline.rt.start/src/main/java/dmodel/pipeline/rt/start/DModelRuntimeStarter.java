@@ -27,7 +27,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.core.config.ConfigurationContainer;
-import dmodel.pipeline.models.mapping.MappingPackage;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
@@ -52,7 +51,6 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 		// load our emf models
 		PCMUtils.loadPCMModels();
 		CorrespondenceUtil.initVitruv();
-		MappingPackage.eINSTANCE.eClass();
 
 		// load models into blackboard
 		modelContainer.loadArchitectureModel(config.getModels());

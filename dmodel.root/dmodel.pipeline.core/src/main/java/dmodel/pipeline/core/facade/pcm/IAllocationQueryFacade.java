@@ -12,6 +12,8 @@ public interface IAllocationQueryFacade extends IResettableQueryFacade {
 
 	void deployAssembly(AssemblyContext ret, ResourceContainer host);
 
+	void undeployAssembly(AssemblyContext ctx);
+
 	boolean isDeployed(AssemblyContext ac);
 
 	ResourceContainer getContainerByAssembly(AssemblyContext asCtx);

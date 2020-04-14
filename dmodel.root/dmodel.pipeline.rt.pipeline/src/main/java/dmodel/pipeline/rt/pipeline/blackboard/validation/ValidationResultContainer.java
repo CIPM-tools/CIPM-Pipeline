@@ -7,12 +7,18 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Maps;
+
 import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 
 @Service
 public class ValidationResultContainer {
 	private Map<ValidationSchedulePoint, ValidationData> dataContainer;
+
+	public ValidationResultContainer() {
+		dataContainer = Maps.newHashMap();
+	}
 
 	public ValidationData getData(ValidationSchedulePoint point) {
 		return dataContainer.get(point);

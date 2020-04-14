@@ -58,7 +58,7 @@ public class UsageServiceUtil {
 		UsageServiceCallDescriptor ret = new UsageServiceCallDescriptor();
 		ResourceDemandingSEFF seff = repository.getServiceById(rec.getServiceId());
 		ret.setSignature((OperationSignature) seff.getDescribedService__SEFF());
-		ret.setProvidedRole(system.getProvidedRoleBySignature(seff.getDescribedService__SEFF()));
+		ret.setProvidedRole(system.getProvidedRoleBySignature(seff.getDescribedService__SEFF()).get(0));
 
 		ret.setServiceId(rec.getServiceId());
 		for (Entry<String, Object> entry : ServiceParametersWrapper.buildFromJson(rec.getParameters()).getParameters()

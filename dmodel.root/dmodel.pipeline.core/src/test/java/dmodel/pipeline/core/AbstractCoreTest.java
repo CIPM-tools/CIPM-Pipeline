@@ -1,5 +1,7 @@
 package dmodel.pipeline.core;
 
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -18,18 +20,32 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
+import dmodel.pipeline.core.facade.impl.PcmQueryImpl;
 import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IUsageQueryFacade;
 import dmodel.pipeline.core.facade.pcm.impl.AllocationQueryFacadeImpl;
 import dmodel.pipeline.core.facade.pcm.impl.RepositoryQueryFacadeImpl;
 import dmodel.pipeline.core.facade.pcm.impl.SystemQueryFacadeImpl;
+import dmodel.pipeline.core.facade.pcm.impl.UsageQueryFacadeImpl;
 import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateManager;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
+import dmodel.pipeline.core.mocks.HealthStateMessageSender;
+import dmodel.pipeline.core.mocks.StaticModelProviderImpl;
+import dmodel.pipeline.core.mocks.StaticSpecificModelProviderImpl;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeEnvironmentModel;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
+import tools.vitruv.framework.correspondence.Correspondences;
 
 @RunWith(SpringRunner.class)
 public class AbstractCoreTest {
@@ -38,8 +54,18 @@ public class AbstractCoreTest {
 	public static class CoreContextConfiguration {
 
 		@Bean
+		public IPCMQueryFacade pcmFacade() {
+			return new PcmQueryImpl();
+		}
+
+		@Bean
 		public StaticModelProviderImpl provideModels() {
 			return new StaticModelProviderImpl();
+		}
+
+		@Bean
+		public StaticSpecificModelProviderImpl provideSpecificModels() {
+			return new StaticSpecificModelProviderImpl();
 		}
 
 		@Bean
@@ -58,8 +84,29 @@ public class AbstractCoreTest {
 		}
 
 		@Bean
+		public IUsageQueryFacade queryFacade() {
+			return new UsageQueryFacadeImpl();
+		}
+
+		@Bean
 		public HealthStateManager healthStateManager() {
 			return new HealthStateManager();
+		}
+
+		@Bean
+		public HealthStateMessageSender healthStateMsgSender() {
+			return new HealthStateMessageSender();
+		}
+
+		@Bean
+		public ConfigurationContainer configuration() {
+			try {
+				return new ObjectMapper(new YAMLFactory()).readValue(
+						AbstractCoreTest.class.getResourceAsStream("/defaultConfig.yml"), ConfigurationContainer.class);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 
 	}
@@ -74,6 +121,9 @@ public class AbstractCoreTest {
 	private StaticModelProviderImpl modelProvider;
 
 	@Autowired
+	private StaticSpecificModelProviderImpl specificModelProvider;
+
+	@Autowired
 	private HealthStateManager healthStateManager;
 
 	@Before
@@ -81,6 +131,10 @@ public class AbstractCoreTest {
 		for (HealthStateObservedComponent comp : HealthStateObservedComponent.values()) {
 			healthStateManager.update(comp, HealthState.WORKING);
 		}
+	}
+
+	protected void setSpecific(RuntimeEnvironmentModel rem, InstrumentationModel inm, Correspondences cps) {
+		specificModelProvider.setModels(inm, rem, cps);
 	}
 
 	protected void setPcm(Repository repository, System system, ResourceEnvironment env, Allocation alloc,

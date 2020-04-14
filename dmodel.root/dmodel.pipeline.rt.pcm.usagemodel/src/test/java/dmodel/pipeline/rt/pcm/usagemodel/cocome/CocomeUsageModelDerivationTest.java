@@ -14,12 +14,12 @@ import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pcm.usagemodel.transformation.UsageDataDerivation;
-import dmodel.pipeline.rt.pipeline.AbstractTransformationTest;
+import dmodel.pipeline.rt.pipeline.AbstractPipelineTestBase;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.structure.Tree;
 import kieker.analysis.exception.AnalysisConfigurationException;
 
-public class CocomeUsageModelDerivationTest extends AbstractTransformationTest {
+public class CocomeUsageModelDerivationTest extends AbstractPipelineTestBase {
 	protected UsageDataDerivation derivation;
 
 	@Before

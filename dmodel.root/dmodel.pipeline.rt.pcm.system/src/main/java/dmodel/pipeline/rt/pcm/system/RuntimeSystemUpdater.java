@@ -89,6 +89,7 @@ public class RuntimeSystemUpdater {
 					.findFirst().orElse(null);
 			if (selectedOuter != null) {
 				openOuterRequiredRoles.remove(selectedOuter);
+				// TODO only change if new
 				systemQuery.reconnectOuterRequiredRole(selectedOuter, openInnerRequiredRole.getLeft(),
 						openInnerRequiredRole.getRight());
 			}
@@ -104,6 +105,7 @@ public class RuntimeSystemUpdater {
 				PriorityQueue<AssemblyProvidedRoleBinding> innerQueue = ifacePriorityMapping.get(belIface);
 				if (innerQueue.size() > 0) {
 					AssemblyProvidedRoleBinding selectedRole = ifacePriorityMapping.get(belIface).remove();
+					// TODO only change if new
 					systemQuery.reconnectOuterProvidedRole(systemProvidedRole, selectedRole.ctx, selectedRole.role);
 				} else {
 					log.warning("A provided role of the system can not be satisfied.");

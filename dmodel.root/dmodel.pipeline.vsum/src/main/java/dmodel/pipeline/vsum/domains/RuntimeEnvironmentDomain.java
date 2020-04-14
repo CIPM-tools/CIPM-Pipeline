@@ -12,7 +12,7 @@ public class RuntimeEnvironmentDomain extends AbstractTuidAwareVitruvDomain {
 		super("REM", REModelPackage.eINSTANCE,
 				new AttributeTuidCalculatorAndResolver(REModelPackage.eINSTANCE.getNsURI(), "id", "hostID",
 						"entityName"),
-				VsumConstants.INSTRUMENTATION_SUFFIX);
+				VsumConstants.RUNTIMEENVIRONMENT_SUFFIX.substring(1));
 	}
 
 	@Override

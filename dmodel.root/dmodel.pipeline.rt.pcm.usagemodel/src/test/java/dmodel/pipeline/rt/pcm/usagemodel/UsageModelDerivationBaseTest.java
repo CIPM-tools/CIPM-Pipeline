@@ -19,11 +19,11 @@ import com.beust.jcommander.internal.Lists;
 
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pcm.usagemodel.transformation.UsageDataDerivation;
-import dmodel.pipeline.rt.pipeline.AbstractTransformationTest;
+import dmodel.pipeline.rt.pipeline.AbstractPipelineTestBase;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.structure.Tree;
 
-public class UsageModelDerivationBaseTest extends AbstractTransformationTest {
+public class UsageModelDerivationBaseTest extends AbstractPipelineTestBase {
 	protected static Repository INIT_REPOSITORY;
 	protected static System INIT_SYSTEM;
 	protected static ResourceEnvironment INIT_RESENV;

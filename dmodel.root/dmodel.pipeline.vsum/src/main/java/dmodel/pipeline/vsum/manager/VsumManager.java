@@ -4,19 +4,26 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.io.Files;
 
-import dmodel.pipeline.core.CentralModelAdminstrator;
+import dmodel.pipeline.core.IPcmModelProvider;
+import dmodel.pipeline.core.ISpecificModelProvider;
+import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;
 import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
+import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 import dmodel.pipeline.vsum.domains.java.JavaCorrespondenceModelImpl;
 import dmodel.pipeline.vsum.mapping.VsumMappingPersistence;
@@ -48,7 +55,13 @@ public class VsumManager extends AbstractHealthStateComponent {
 	private List<AbstractReactionsChangePropagationSpecification> reactions;
 
 	@Autowired
-	private CentralModelAdminstrator modelContainer;
+	private IPcmModelProvider pcmModelContainer;
+
+	@Autowired
+	private ConfigurationContainer configurationContainer;
+
+	@Autowired
+	private ISpecificModelProvider specificModelContainer;
 
 	@Autowired
 	private VsumMappingPersistence persistence;
@@ -69,11 +82,16 @@ public class VsumManager extends AbstractHealthStateComponent {
 		this.usedFiles = new ArrayList<>();
 	}
 
+	public void executeTransaction(Callable<Void> cb) {
+		vsum.executeCommand(cb);
+	}
+
 	public void propagateChange(EChange change) {
 		this.vsum.propagateChange(VitruviusChangeFactory.getInstance().createConcreteChange(change));
 
 		// persist the mapping
-		modelContainer.swapCorrespondenceModel(persistence.buildStorableCorrespondeces(getCorrespondenceModel()));
+		specificModelContainer
+				.swapCorrespondenceModel(persistence.buildStorableCorrespondeces(getCorrespondenceModel()));
 	}
 
 	public CorrespondenceModel getCorrespondenceModel() {
@@ -124,6 +142,8 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 	private void finalizeVsum() {
 		atomicFactory = new TypeInferringUnresolvingAtomicEChangeFactory(vsum.getUuidGeneratorAndResolver());
+
+		vsum.save();
 	}
 
 	private void tearDownVSUM() {
@@ -154,34 +174,42 @@ public class VsumManager extends AbstractHealthStateComponent {
 	private void loadModels() {
 		// 1. load repository
 		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideTempFile(VsumConstants.REPOSITORY_SUFFIX))),
-				modelContainer.getRepository());
+				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideFile(
+						configurationContainer.getModels().getRepositoryPath(), pcmModelContainer.getRepository()))),
+				pcmModelContainer.getRepository());
 
 		// 2. load resource environment
 		vsum.persistRootElement(
-				VURI.getInstance(
-						EMFBridge.getEmfFileUriForFile(provideTempFile(VsumConstants.RESOURCEENVIRONMENT_SUFFIX))),
-				modelContainer.getResourceEnvironment());
+				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideFile(
+						configurationContainer.getModels().getEnvPath(), pcmModelContainer.getResourceEnvironment()))),
+				pcmModelContainer.getResourceEnvironment());
 
 		// 3. load runtime environment
 		vsum.persistRootElement(
-				VURI.getInstance(
-						EMFBridge.getEmfFileUriForFile(provideTempFile(VsumConstants.RUNTIMEENVIRONMENT_SUFFIX))),
-				modelContainer.getRuntimeEnvironment());
+				VURI.getInstance(EMFBridge.getEmfFileUriForFile(
+						provideFile(configurationContainer.getModels().getRuntimeEnvironmentPath(),
+								specificModelContainer.getRuntimeEnvironment()))),
+				specificModelContainer.getRuntimeEnvironment());
 
 		// 4. load instrumentation model
 		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideTempFile(VsumConstants.INSTRUMENTATION_SUFFIX))),
-				modelContainer.getInstrumentation());
+				VURI.getInstance(EMFBridge.getEmfFileUriForFile(
+						provideFile(configurationContainer.getModels().getInstrumentationModelPath(),
+								specificModelContainer.getInstrumentation()))),
+				specificModelContainer.getInstrumentation());
 	}
 
 	private void recoverMapping() {
 		// map parents accordingly
-		ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(), modelContainer.getRepository(),
-				modelContainer.getInstrumentation(), null);
+		vsum.executeCommand(() -> {
+			ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
+					pcmModelContainer.getRepository(), specificModelContainer.getInstrumentation(), null);
 
-		ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
-				modelContainer.getResourceEnvironment(), modelContainer.getRuntimeEnvironment(), null);
+			ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
+					pcmModelContainer.getResourceEnvironment(), specificModelContainer.getRuntimeEnvironment(), null);
+
+			return null;
+		});
 
 		// init java correspondence
 		javaCorrespondences = new JavaCorrespondenceModelImpl();
@@ -190,15 +218,42 @@ public class VsumManager extends AbstractHealthStateComponent {
 		// TODO outsource
 	}
 
-	private File provideTempFile(String suffix) {
+	private synchronized void persistVirtual(EObject model, String suffix) {
+		// backup resource
+		Resource backupResource = model.eResource();
+
 		File temp;
 		try {
-			temp = File.createTempFile(VsumConstants.MODEL_FILE_PREFIX, suffix);
+			temp = File.createTempFile("model_vsum", suffix);
 		} catch (IOException e) {
-			return null;
+			log.severe("Failed to create temporary files for the VSUM models.");
+			return;
 		}
-		temp.deleteOnExit();
-		this.usedFiles.add(temp);
+
+		// write the system to the file
+		ModelUtil.saveToFile(model, temp);
+
+		// persist
+		vsum.persistRootElement(VURI.getInstance(EMFBridge.getEmfFileUriForFile(temp)), model);
+
+		// recover resource
+		if (backupResource == null) {
+			EcoreUtil.remove(model);
+		} else {
+			backupResource.getContents().add(model);
+			System.out.println(model.eResource() == backupResource);
+		}
+	}
+
+	private File provideFile(String filePath, EObject model) {
+		File temp = new File(filePath);
+		if (!temp.getParentFile().exists()) {
+			temp.getParentFile().mkdirs();
+		}
+
+		// write new TODO: dangerous?
+		ModelUtil.saveToFile(model, temp);
+
 		return temp;
 	}
 

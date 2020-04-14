@@ -1,4 +1,4 @@
-package dmodel.pipeline.rt.pipeline.blackboard.facade.impl;
+package dmodel.pipeline.rt.validation.facade;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +14,7 @@ import dmodel.pipeline.rt.runtimeenvironment.REModel.REModelFactory;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainerConnection;
 import dmodel.pipeline.vsum.facade.CentralVsumFacade;
+import dmodel.pipeline.vsum.manager.VsumManager;
 
 @Component
 public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFacade {
@@ -22,6 +23,9 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 
 	@Autowired
 	private ISpecificModelProvider remProvider;
+
+	@Autowired
+	private VsumManager vsumManager;
 
 	private Cache<String, RuntimeResourceContainer> containerCache = new Cache2kBuilder<String, RuntimeResourceContainer>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
@@ -49,10 +53,13 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 		RuntimeResourceContainer nContainer = REModelFactory.eINSTANCE.createRuntimeResourceContainer();
 		nContainer.setHostID(hostId);
 		nContainer.setHostname(hostName);
-		remProvider.getRuntimeEnvironment().getContainers().add(nContainer);
 		containerCache.put(hostId, nContainer);
 
-		vsum.createdObject(nContainer);
+		vsumManager.executeTransaction(() -> {
+			remProvider.getRuntimeEnvironment().getContainers().add(nContainer);
+			vsum.createdObject(nContainer);
+			return null;
+		});
 	}
 
 	@Override
@@ -70,12 +77,15 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 
 		nConnection.setContainerFrom(containerFrom);
 		nConnection.setContainerTo(containerTo);
-		remProvider.getRuntimeEnvironment().getConnections().add(nConnection);
 
 		linkCache.put(Pair.of(fromId, toId), nConnection);
 		linkCache.put(Pair.of(toId, fromId), nConnection);
 
-		vsum.createdObject(nConnection);
+		vsumManager.executeTransaction(() -> {
+			remProvider.getRuntimeEnvironment().getConnections().add(nConnection);
+			vsum.createdObject(nConnection);
+			return null;
+		});
 	}
 
 	@Override

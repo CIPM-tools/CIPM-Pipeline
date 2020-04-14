@@ -48,6 +48,13 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	}
 
 	@Override
+	public void undeployAssembly(AssemblyContext ctx) {
+		if (assemblyDeploymentCache.containsKey(ctx)) {
+			this.removeAllocationContext(assemblyDeploymentCache.get(ctx));
+		}
+	}
+
+	@Override
 	public boolean isDeployed(AssemblyContext ac) {
 		return assemblyDeploymentCache.containsKey(ac);
 	}
@@ -62,14 +69,18 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 
 	@Override
 	public List<AssemblyContext> getDeployedAssembly(BasicComponent componentType, ResourceContainer container) {
-		return componentContainerQueryCache.get(Pair.of(componentType.getId(), container.getId()));
+		Pair<String, String> queryPair = Pair.of(componentType.getId(), container.getId());
+		if (componentContainerQueryCache.containsKey(queryPair)) {
+			return componentContainerQueryCache.get(queryPair);
+		} else {
+			return Lists.newArrayList();
+		}
 	}
 
 	@Override
 	public void deleteAllocation(AssemblyContext da) {
 		if (assemblyDeploymentCache.containsKey(da)) {
 			AllocationContext correspondingCtx = assemblyDeploymentCache.get(da);
-			pcmModelProvider.getAllocation().getAllocationContexts_Allocation().remove(correspondingCtx);
 			removeAllocationContext(correspondingCtx);
 		}
 	}
@@ -99,6 +110,8 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	}
 
 	private void removeAllocationContext(AllocationContext ctx) {
+		pcmModelProvider.getAllocation().getAllocationContexts_Allocation().remove(ctx);
+
 		allocationContextIdCache.remove(ctx.getId());
 		assemblyDeploymentCache.remove(ctx.getAssemblyContext_AllocationContext());
 		componentContainerQueryCache.get(generateQueryPair(ctx)).remove(ctx.getAssemblyContext_AllocationContext());

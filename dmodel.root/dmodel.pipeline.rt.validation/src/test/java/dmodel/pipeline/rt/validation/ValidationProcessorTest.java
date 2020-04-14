@@ -3,8 +3,6 @@ package dmodel.pipeline.rt.validation;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,33 +17,51 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.beust.jcommander.internal.Lists;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.IPcmModelProvider;
+import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.metric.IValidationMetric;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallAverageDistanceAbsolute;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallAverageDistanceRelative;
 import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallKSTestMetric;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallMedianDistanceAbsolute;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallQ1DistanceAbsolute;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallQ3DistanceAbsolute;
+import dmodel.pipeline.rt.validation.data.metric.impl.ServiceCallWassersteinDistanceMetric;
 import dmodel.pipeline.rt.validation.eval.MonitoringDataEnrichment;
 import dmodel.pipeline.rt.validation.eval.ValidationDataExtractor;
+import dmodel.pipeline.rt.validation.eval.util.PCMValidationPointMatcher;
+import dmodel.pipeline.rt.validation.facade.RuntimeEnvironmentQueryImpl;
 import dmodel.pipeline.rt.validation.simulation.HeadlessPCMSimulator;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import dmodel.pipeline.vsum.VsumManagerTestBase;
+import dmodel.pipeline.vsum.facade.CentralVsumFacade;
 
 @RunWith(SpringRunner.class)
-public class ValidationProcessorTest {
-
-	@Autowired
-	private ValidationFeedbackComponent feedback;
-
-	private InMemoryPCM pcm;
+public class ValidationProcessorTest extends VsumManagerTestBase {
 
 	@TestConfiguration
-	static class TestContextConfiguration {
+	public static class TestContextConfiguration extends VsumManagerTestBase.VsumManagerTestConfiguration {
 
 		@Bean
 		public ValidationFeedbackComponent vfc() {
 			return new ValidationFeedbackComponent();
+		}
+
+		@Bean
+		public IRuntimeEnvironmentQueryFacade remFacade() {
+			return new RuntimeEnvironmentQueryImpl();
+		}
+
+		@Bean
+		public CentralVsumFacade vsumFacade() {
+			return new CentralVsumFacade();
+		}
+
+		@Bean
+		public PCMValidationPointMatcher valPointMatcher() {
+			return new PCMValidationPointMatcher();
 		}
 
 		@Bean
@@ -64,21 +80,46 @@ public class ValidationProcessorTest {
 		}
 
 		@Bean
-		public IValidationMetric<?> generator() {
+		public IValidationMetric<?> generator1() {
 			return new ServiceCallKSTestMetric();
 		}
 
 		@Bean
-		public ConfigurationContainer configuration() {
-			try {
-				return new ObjectMapper(new YAMLFactory()).readValue(
-						ValidationProcessorTest.class.getResourceAsStream("/defaultConfig.yml"),
-						ConfigurationContainer.class);
-			} catch (IOException e) {
-				return null;
-			}
+		public IValidationMetric<?> generator2() {
+			return new ServiceCallAverageDistanceAbsolute();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator3() {
+			return new ServiceCallAverageDistanceRelative();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator4() {
+			return new ServiceCallMedianDistanceAbsolute();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator5() {
+			return new ServiceCallWassersteinDistanceMetric();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator6() {
+			return new ServiceCallQ1DistanceAbsolute();
+		}
+
+		@Bean
+		public IValidationMetric<?> generator7() {
+			return new ServiceCallQ3DistanceAbsolute();
 		}
 	}
+
+	@Autowired
+	private ValidationFeedbackComponent feedback;
+
+	@Autowired
+	private IPcmModelProvider pcmProvider;
 
 	@Test
 	public void checkNotNull() {
@@ -88,26 +129,28 @@ public class ValidationProcessorTest {
 	@Test
 	public void testSimulation() {
 		for (int i = 0; i < 25; i++) {
-			ValidationData data = feedback.process(pcm, Lists.newArrayList(), "TestAnalysis");
+			ValidationData data = feedback.process(pcmProvider.getRaw(), Lists.newArrayList(), "TestAnalysis");
 			assertNotNull(data);
 			assertTrue(data.getValidationPoints().size() > 2);
 		}
+		feedback.clearSimulationData();
 	}
 
 	@Before
 	public void loadPCMModels() {
-		pcm = new InMemoryPCM();
-		pcm.setRepository(ModelUtil.readFromResource(
-				ValidationProcessorTest.class.getResource("/models/cocome.repository"), Repository.class));
-		pcm.setSystem(ModelUtil.readFromResource(ValidationProcessorTest.class.getResource("/models/cocome.system"),
-				System.class));
-		pcm.setResourceEnvironmentModel(ModelUtil.readFromResource(
-				ValidationProcessorTest.class.getResource("/models/cocome.resourceenvironment"),
-				ResourceEnvironment.class));
-		pcm.setAllocationModel(ModelUtil.readFromResource(
-				ValidationProcessorTest.class.getResource("/models/cocome.allocation"), Allocation.class));
-		pcm.setUsageModel(ModelUtil.readFromResource(
-				ValidationProcessorTest.class.getResource("/models/cocome.usagemodel"), UsageModel.class));
+		super.setSpecific(null, null, null);
+		super.setPcm(
+				ModelUtil.readFromResource(ValidationProcessorTest.class.getResource("/models/cocome.repository"),
+						Repository.class),
+				ModelUtil.readFromResource(ValidationProcessorTest.class.getResource("/models/cocome.system"),
+						System.class),
+				ModelUtil.readFromResource(
+						ValidationProcessorTest.class.getResource("/models/cocome.resourceenvironment"),
+						ResourceEnvironment.class),
+				ModelUtil.readFromResource(ValidationProcessorTest.class.getResource("/models/cocome.allocation"),
+						Allocation.class),
+				ModelUtil.readFromResource(ValidationProcessorTest.class.getResource("/models/cocome.usagemodel"),
+						UsageModel.class));
 	}
 
 }

@@ -1,14 +1,11 @@
 package dmodel.pipeline.rt.pcm.system;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
@@ -17,12 +14,19 @@ import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.system.System;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.junit4.SpringRunner;
 
-import dmodel.pipeline.rt.pipeline.AbstractTransformationTest;
-import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
+import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
+import dmodel.pipeline.rt.pipeline.AbstractPipelineTestBase;
+import dmodel.pipeline.rt.pipeline.BasePipelineTestConfiguration;
+import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.shared.ModelUtil;
 
-public abstract class AbstractBaseSystemTransformationTest extends AbstractTransformationTest {
+@RunWith(SpringRunner.class)
+public abstract class AbstractBaseSystemTransformationTest extends AbstractPipelineTestBase {
 	protected static Repository INIT_REPOSITORY;
 	protected static System INIT_SYSTEM;
 	protected static ResourceEnvironment INIT_RESENV;
@@ -35,6 +39,36 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 	protected static final String HOSTID_CLIENTNEW = "clientnew";
 	protected static final String HOSTID_LOGICNEW = "logicnew";
 	protected static final String HOSTID_DBNEW = "dbnew";
+
+	@TestConfiguration
+	public static class SystemTransformationTestConfiguration
+			extends BasePipelineTestConfiguration.TestContextConfiguration {
+
+		@Bean
+		public RuntimeSystemTransformation transformation() {
+			return new RuntimeSystemTransformation();
+		}
+
+		@Bean
+		public RuntimeSystemUpdater updater() {
+			return new RuntimeSystemUpdater();
+		}
+
+	}
+
+	@Autowired
+	private RuntimeSystemTransformation transformation;
+
+	@Autowired
+	private RuntimePipelineBlackboard blackboard;
+
+	@Autowired
+	private IRuntimeEnvironmentQueryFacade remQuery;
+
+	@Before
+	public void initTransformation() {
+		transformation.setBlackboard(blackboard);
+	}
 
 	@BeforeClass
 	public static void loadInitModels() {
@@ -55,27 +89,20 @@ public abstract class AbstractBaseSystemTransformationTest extends AbstractTrans
 
 	@Before
 	public void initHostMapping() {
-		this.addHostMapping("_l5HWYBHtEeqXP_Rw8ZOxlQ", HOSTID_CLIENT);
-		this.addHostMapping("_nyc2kRHtEeqXP_Rw8ZOxlQ", HOSTID_LOGIC);
-		this.addHostMapping("_pvtNcRHtEeqXP_Rw8ZOxlQ", HOSTID_DB);
-		this.addHostMapping("_DJuGYRXjEeqKY-U3QOe1UQ", HOSTID_DB2);
+		loadModels();
+		super.reloadVsum();
 
-		this.addHostMapping("_ZnZ_gSAXEeqyhbeF8kzVUQ", HOSTID_CLIENTNEW);
-		this.addHostMapping("_bvzPYSAXEeqyhbeF8kzVUQ", HOSTID_LOGICNEW);
-		this.addHostMapping("_dsSxQSAXEeqyhbeF8kzVUQ", HOSTID_DBNEW);
+		remQuery.createResourceContainer(HOSTID_CLIENT, HOSTID_CLIENT);
+		remQuery.createResourceContainer(HOSTID_LOGIC, HOSTID_LOGIC);
+		remQuery.createResourceContainer(HOSTID_DB, HOSTID_DB);
+		remQuery.createResourceContainer(HOSTID_DB2, HOSTID_DB2);
 
-		blackboard.setPipelineState(new PipelineUIState());
+		remQuery.createResourceContainer(HOSTID_CLIENTNEW, HOSTID_CLIENTNEW);
+		remQuery.createResourceContainer(HOSTID_LOGICNEW, HOSTID_LOGICNEW);
+		remQuery.createResourceContainer(HOSTID_DBNEW, HOSTID_DBNEW);
 	}
 
-	@Test
-	public void checkModels() {
-		assertNotNull(blackboard.getArchitectureModel().getRepository());
-		assertNotNull(blackboard.getArchitectureModel().getSystem());
-		assertNotNull(blackboard.getArchitectureModel().getResourceEnvironmentModel());
-		assertNotNull(blackboard.getArchitectureModel().getAllocationModel());
-
-		assertEquals(blackboard.getBorder().getRuntimeMapping().getHostMappings().size(), 7);
-	}
+	protected abstract void loadModels();
 
 	protected long countAssembly(System system, String comp) {
 		return ModelUtil.getObjects(system, AssemblyContext.class).stream()

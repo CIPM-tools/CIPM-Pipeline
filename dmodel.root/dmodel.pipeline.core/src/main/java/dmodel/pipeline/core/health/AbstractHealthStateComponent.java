@@ -12,7 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public abstract class AbstractHealthStateComponent implements InitializingBean {
-	private HealthStateObservedComponent component;
+	protected HealthStateObservedComponent component;
 	private HealthStateObservedComponent[] dependencies;
 
 	private Set<Long> reportedProblems;

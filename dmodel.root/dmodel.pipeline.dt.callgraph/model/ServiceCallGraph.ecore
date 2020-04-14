@@ -12,7 +12,7 @@
   <eClassifiers xsi:type="ecore:EClass" name="ServiceCallGraph">
     <eOperations name="addNode" eType="#//ServiceCallGraphNode">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="ServiceCallGraphNode node = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphNode();&#xA;node.setHost(host);&#xA;node.setSeff(seff);&#xA;getNodes().add(node);&#xA;return node;"/>
+        <details key="body" value="ServiceCallGraphNode node = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraphNode();&#xA;node.setHost(host);&#xA;node.setSeff(seff);&#xA;getNodes().add(node);&#xA;getIncomingEdges().put(node, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;getOutgoingEdges().put(node, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#xA;return node;"/>
       </eAnnotations>
       <eParameters name="seff" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//seff/ResourceDemandingSEFF"/>
       <eParameters name="host" eType="ecore:EClass ../../org.palladiosimulator.pcm/model/pcm.ecore#//resourceenvironment/ResourceContainer"/>
@@ -72,7 +72,7 @@
     </eOperations>
     <eOperations name="rebuild">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="body" value="getIncomingEdges().clear();&#xA;getOutgoingEdges().clear();&#xA;&#xA;for (ServiceCallGraphEdge edge : getEdges()) {&#xA;&#x9;if (!getOutgoingEdges().containsKey(edge.getFrom())) {&#xA;&#x9;&#x9;getOutgoingEdges().put(edge.getFrom(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;if (!getIncomingEdges().containsKey(edge.getTo())) {&#xA;&#x9;&#x9;getIncomingEdges().put(edge.getTo(), new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;}&#xA;&#xA;&#x9;getOutgoingEdges().get(edge.getFrom()).add(edge);&#xA;&#x9;getIncomingEdges().get(edge.getTo()).add(edge);&#xA;}"/>
+        <details key="body" value="getIncomingEdges().clear();&#xA;getOutgoingEdges().clear();&#xA;&#xA;for (ServiceCallGraphNode node : getNodes()) {&#xA;&#x9;getOutgoingEdges().put(node, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;&#x9;getIncomingEdges().put(node, new BasicEList&lt;ServiceCallGraphEdge>());&#xA;}&#xA;&#xA;for (ServiceCallGraphEdge edge : getEdges()) {&#xA;&#x9;getOutgoingEdges().get(edge.getFrom()).add(edge);&#xA;&#x9;getIncomingEdges().get(edge.getTo()).add(edge);&#xA;}"/>
       </eAnnotations>
     </eOperations>
     <eOperations name="removeNode">

@@ -152,6 +152,9 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		node.setHost(host);
 		node.setSeff(seff);
 		getNodes().add(node);
+		getIncomingEdges().put(node, new BasicEList<ServiceCallGraphEdge>());
+		getOutgoingEdges().put(node, new BasicEList<ServiceCallGraphEdge>());
+		
 		return node;
 	}
 
@@ -284,15 +287,12 @@ public class ServiceCallGraphImpl extends MinimalEObjectImpl.Container implement
 		getIncomingEdges().clear();
 		getOutgoingEdges().clear();
 		
+		for (ServiceCallGraphNode node : getNodes()) {
+			getOutgoingEdges().put(node, new BasicEList<ServiceCallGraphEdge>());
+			getIncomingEdges().put(node, new BasicEList<ServiceCallGraphEdge>());
+		}
+		
 		for (ServiceCallGraphEdge edge : getEdges()) {
-			if (!getOutgoingEdges().containsKey(edge.getFrom())) {
-				getOutgoingEdges().put(edge.getFrom(), new BasicEList<ServiceCallGraphEdge>());
-			}
-		
-			if (!getIncomingEdges().containsKey(edge.getTo())) {
-				getIncomingEdges().put(edge.getTo(), new BasicEList<ServiceCallGraphEdge>());
-			}
-		
 			getOutgoingEdges().get(edge.getFrom()).add(edge);
 			getIncomingEdges().get(edge.getTo()).add(edge);
 		}

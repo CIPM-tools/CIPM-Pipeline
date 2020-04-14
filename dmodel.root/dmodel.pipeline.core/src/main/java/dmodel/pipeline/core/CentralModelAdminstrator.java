@@ -64,6 +64,7 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		reportConfigurationWorking();
 	}
 
+	@Override
 	public void swapCorrespondenceModel(Correspondences _new) {
 		FileBackedModelUtil.clear(instrumentationModel);
 		this.correspondenceModel = _new;

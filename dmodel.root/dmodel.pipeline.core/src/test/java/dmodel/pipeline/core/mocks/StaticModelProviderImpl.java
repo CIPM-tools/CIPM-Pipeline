@@ -1,4 +1,4 @@
-package dmodel.pipeline.core;
+package dmodel.pipeline.core.mocks;
 
 import java.util.List;
 
@@ -9,6 +9,7 @@ import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.core.facade.IResettableQueryFacade;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 

@@ -8,7 +8,7 @@ import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pcm.resourceenv.ResourceEnvironmentTransformation;
-import dmodel.pipeline.rt.pcm.system.RuntimeSystemDerivation;
+import dmodel.pipeline.rt.pcm.system.RuntimeSystemTransformation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipelinePart;
 import dmodel.pipeline.rt.pipeline.annotation.InputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
@@ -25,23 +25,27 @@ import lombok.extern.java.Log;
 @Log
 public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 
+	public ServiceCallTreeBuilder() {
+		super(ExecutionMeasuringPoint.T_SERVICE_CALL_TREE, null);
+	}
+
 	/* @formatter:off */
 	@InputPorts(@InputPort(PortIDs.T_BUILD_SERVICECALL_TREE))
 	@OutputPorts({
 		@OutputPort(to = ResourceEnvironmentTransformation.class, async = false, id = PortIDs.T_SC_PCM_RESENV),
-		@OutputPort(to = RuntimeSystemDerivation.class, async = false, id = PortIDs.T_SC_PCM_SYSTEM),
+		@OutputPort(to = RuntimeSystemTransformation.class, async = false, id = PortIDs.T_SC_PCM_SYSTEM),
 		@OutputPort(to = AccuracySwitch.class, async = false, id = PortIDs.T_SC_ROUTER)
 	})
 	/* @formatter:on */
 	public List<Tree<ServiceCallRecord>> buildServiceCallTree(PartitionedMonitoringData<PCMContextRecord> records) {
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SERVICE_CALL_TREE);
+		super.trackStart();
 
 		log.info("Start building of service call trees.");
 		List<Tree<ServiceCallRecord>> result = MonitoringDataUtil
 				.buildServiceCallTree(records.getAllData().stream().filter(f -> f instanceof ServiceCallRecord)
 						.map(ServiceCallRecord.class::cast).collect(Collectors.toList()));
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_SERVICE_CALL_TREE);
+		super.trackEnd();
 
 		return result;
 	}

@@ -142,6 +142,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		getBlackboard().getQuery().trackUsageScenarios(getBlackboard().getPcmQuery().getUsage().getScnearioCount());
 	}
 
+	// TODO clean up
 	private void simulateResultingModels(PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
 		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_2);
 		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION22, ETransformationState.RUNNING);
