@@ -3,6 +3,7 @@ package dmodel.pipeline.rt.pcm.system;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,16 +79,11 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 		CallGraphMergeMetadata metadata = new CallGraphMergeMetadata();
 
 		// merge graphs
-		ServiceCallGraph currentCallGraph = null;
+		ServiceCallGraph currentCallGraph = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
 		for (ServiceCallGraph scg : callGraphs) {
 			scg.rebuild();
-
 			updateEntryCallPriorities(scg, metadata);
-			if (currentCallGraph == null) {
-				currentCallGraph = scg;
-			} else {
-				mergeCallGraphs(currentCallGraph, scg, metadata);
-			}
+			mergeCallGraphs(currentCallGraph, scg, metadata);
 		}
 		currentCallGraph.rebuild();
 
@@ -197,6 +193,21 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 		private BasicComponent component;
 		private ResourceContainer host;
 		private OperationInterface iface;
+
+		@Override
+		public boolean equals(Object other) {
+			if (other instanceof ComponentInterfaceBinding) {
+				ComponentInterfaceBinding _other = (ComponentInterfaceBinding) other;
+				return _other.component.getId().equals(component.getId()) && _other.host.getId().equals(host.getId())
+						&& _other.iface.getId().equals(iface.getId());
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(component.getId(), host.getId(), iface.getId());
+		}
 	}
 
 	@Data

@@ -1,9 +1,12 @@
 package dmodel.pipeline.rt.pcm.system;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.tuple.Pair;
@@ -89,7 +92,6 @@ public class RuntimeSystemUpdater {
 					.findFirst().orElse(null);
 			if (selectedOuter != null) {
 				openOuterRequiredRoles.remove(selectedOuter);
-				// TODO only change if new
 				systemQuery.reconnectOuterRequiredRole(selectedOuter, openInnerRequiredRole.getLeft(),
 						openInnerRequiredRole.getRight());
 			}
@@ -97,28 +99,31 @@ public class RuntimeSystemUpdater {
 	}
 
 	private void updateSystemProvidedRoles(List<ServiceCallGraphNode> entryPoints, CallGraphMergeMetadata metadata) {
-		Map<OperationInterface, PriorityQueue<AssemblyProvidedRoleBinding>> ifacePriorityMapping = extractEntryNodePriorityMapping(
+		Map<String, PriorityQueue<AssemblyProvidedRoleBinding>> ifacePriorityMapping = extractEntryNodePriorityMapping(
 				entryPoints, metadata);
 		for (OperationProvidedRole systemProvidedRole : systemQuery.getProvidedRoles()) {
 			OperationInterface belIface = systemProvidedRole.getProvidedInterface__OperationProvidedRole();
-			if (ifacePriorityMapping.containsKey(belIface)) {
-				PriorityQueue<AssemblyProvidedRoleBinding> innerQueue = ifacePriorityMapping.get(belIface);
+			if (ifacePriorityMapping.containsKey(belIface.getId())) {
+				PriorityQueue<AssemblyProvidedRoleBinding> innerQueue = ifacePriorityMapping.get(belIface.getId());
 				if (innerQueue.size() > 0) {
-					AssemblyProvidedRoleBinding selectedRole = ifacePriorityMapping.get(belIface).remove();
-					// TODO only change if new
-					systemQuery.reconnectOuterProvidedRole(systemProvidedRole, selectedRole.ctx, selectedRole.role);
-				} else {
-					log.warning("A provided role of the system can not be satisfied.");
+					AssemblyProvidedRoleBinding selectedRole = innerQueue.poll();
+					if (selectedRole != null) {
+						systemQuery.reconnectOuterProvidedRole(systemProvidedRole, selectedRole.ctx, selectedRole.role);
+						continue;
+					}
 				}
-			} else {
-				log.warning("A provided role of the system can not be satisfied.");
+			}
+
+			// (maybe!) not satisfied
+			if (systemQuery.getUnsatisfiedOuterProvidedRoles().contains(systemProvidedRole)) {
+				log.warning("A provided role of the system may not be satisfied.");
 			}
 		}
 	}
 
-	private Map<OperationInterface, PriorityQueue<AssemblyProvidedRoleBinding>> extractEntryNodePriorityMapping(
+	private Map<String, PriorityQueue<AssemblyProvidedRoleBinding>> extractEntryNodePriorityMapping(
 			List<ServiceCallGraphNode> entryPoints, CallGraphMergeMetadata metadata) {
-		Map<OperationInterface, PriorityQueue<AssemblyProvidedRoleBinding>> ifacePriorityMapping = Maps.newHashMap();
+		Map<String, PriorityQueue<AssemblyProvidedRoleBinding>> ifacePriorityMapping = Maps.newHashMap();
 		for (ServiceCallGraphNode entryPoint : entryPoints) {
 			AssemblyContext ctx = resolveOrCreateCtx(
 					entryPoint.getSeff().getBasicComponent_ServiceEffectSpecification(), entryPoint.getHost());
@@ -126,18 +131,23 @@ public class RuntimeSystemUpdater {
 					entryPoint.getSeff().getDescribedService__SEFF(), ctx.getEncapsulatedComponent__AssemblyContext());
 			OperationInterface correspondingInterface = ((OperationSignature) entryPoint.getSeff()
 					.getDescribedService__SEFF()).getInterface__OperationSignature();
+
 			if (correspondingProvidedRoles.size() > 0) {
 				// add with regard to the priority
-				int priority = metadata.getEntryNodePriorities().indexOf(entryPoint);
+
+				// index of does not work here because of the equality properties of the pcm
+				// elements
+				int priority = indexOfNode(entryPoint, metadata.getEntryNodePriorities());
+
 				for (OperationProvidedRole correspondingProvidedRole : correspondingProvidedRoles) {
 					AssemblyProvidedRoleBinding innerBinding = new AssemblyProvidedRoleBinding(ctx,
 							correspondingProvidedRole, priority);
-					if (!ifacePriorityMapping.containsKey(correspondingInterface)) {
-						ifacePriorityMapping.put(correspondingInterface, new PriorityQueue<>());
+					if (!ifacePriorityMapping.containsKey(correspondingInterface.getId())) {
+						ifacePriorityMapping.put(correspondingInterface.getId(), new PriorityQueue<>());
 					}
 
 					PriorityQueue<AssemblyProvidedRoleBinding> correspondingPriorityQueue = ifacePriorityMapping
-							.get(correspondingInterface);
+							.get(correspondingInterface.getId());
 					if (!correspondingPriorityQueue.contains(innerBinding)) {
 						correspondingPriorityQueue.add(innerBinding);
 					}
@@ -145,6 +155,17 @@ public class RuntimeSystemUpdater {
 			}
 		}
 		return ifacePriorityMapping;
+	}
+
+	private int indexOfNode(ServiceCallGraphNode entryPoint, LinkedList<ServiceCallGraphNode> entryNodePriorities) {
+		return IntStream.range(0, entryNodePriorities.size()).filter(i -> {
+			ServiceCallGraphNode n = entryNodePriorities.get(i);
+			if (n.getHost().getId().equals(entryPoint.getHost().getId())
+					&& n.getSeff().getId().equals(entryPoint.getSeff().getId())) {
+				return true;
+			}
+			return false;
+		}).findFirst().orElse(-1);
 	}
 
 	private void processNode(ServiceCallGraphNode entryPoint, ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
@@ -237,6 +258,20 @@ public class RuntimeSystemUpdater {
 		@Override
 		public int compareTo(AssemblyProvidedRoleBinding o) {
 			return Integer.valueOf(priority).compareTo(o.priority);
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other instanceof AssemblyProvidedRoleBinding) {
+				AssemblyProvidedRoleBinding _other = (AssemblyProvidedRoleBinding) other;
+				return _other.ctx.getId().equals(ctx.getId()) && _other.role.getId().equals(role.getId());
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(ctx.getId(), role.getId());
 		}
 	}
 

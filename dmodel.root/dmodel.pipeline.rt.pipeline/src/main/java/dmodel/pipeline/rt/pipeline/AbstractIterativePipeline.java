@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
+import dmodel.pipeline.core.health.AbstractHealthStateComponent;
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.rt.pipeline.annotation.EntryInputPort;
 import dmodel.pipeline.rt.pipeline.annotation.InputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
@@ -27,8 +30,8 @@ import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.PipelineEntryPoint;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 
-// TODO refactor
-public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlackboard> {
+public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlackboard>
+		extends AbstractHealthStateComponent {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractIterativePipelinePart.class);
 
 	private List<NodeInformation> entryPoints;
@@ -46,6 +49,9 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 	private Optional<S> currentData;
 
 	public AbstractIterativePipeline() {
+		super(HealthStateObservedComponent.PIPELINE, HealthStateObservedComponent.VSUM_MANAGER,
+				HealthStateObservedComponent.VALIDATION_CONTROLLER);
+
 		this.successorMapping = new HashMap<>();
 		this.instanceMapping = new HashMap<>();
 		this.nodeInformationMapping = new HashMap<>();
@@ -59,7 +65,17 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 	protected abstract void onIterationFinished(S data);
 
+	@Override
+	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
+		// nothing to do here
+	}
+
 	public void triggerPipeline(S data) {
+		if (!checkPreconditions()) {
+			return;
+		}
+		super.updateState();
+
 		if (!running) {
 			// reset pipeline states
 			running = true;

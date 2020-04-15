@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.ServiceInstrumentationPoint;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.vsum.manager.VsumManager;
+import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
 import dmodel.pipeline.vsum.mapping.VsumMappingController;
 import tools.vitruv.framework.change.echange.eobject.CreateEObject;
 import tools.vitruv.framework.change.echange.eobject.DeleteEObject;
@@ -35,17 +36,17 @@ public class CentralVsumFacade implements ISpecificVsumFacade {
 	}
 
 	@Override
-	public <T extends EObject> void createdObject(T obj) {
+	public <T extends EObject> void createdObject(T obj, VsumChangeSource source) {
 		CreateEObject<T> change = manager.getAtomicFactory().createCreateEObjectChange(obj);
 		change.setAffectedEObject(obj);
-		manager.propagateChange(change);
+		manager.propagateChange(change, source);
 	}
 
 	@Override
-	public <T extends EObject> void deletedObject(T obj) {
+	public <T extends EObject> void deletedObject(T obj, VsumChangeSource source) {
 		DeleteEObject<T> change = manager.getAtomicFactory().createDeleteEObjectChange(obj);
 		change.setAffectedEObject(obj);
-		manager.propagateChange(change);
+		manager.propagateChange(change, source);
 	}
 
 	@Override

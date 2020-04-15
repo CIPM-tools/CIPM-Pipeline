@@ -18,6 +18,7 @@ import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.vsum.domains.ExtendedPcmDomainProvider;
 import dmodel.pipeline.vsum.domains.InstrumentationModelDomainProvider;
 import dmodel.pipeline.vsum.domains.RuntimeEnvironmentDomainProvider;
+import dmodel.pipeline.vsum.facade.CentralVsumFacade;
 import dmodel.pipeline.vsum.manager.VsumManager;
 import dmodel.pipeline.vsum.mapping.VsumMappingController;
 import dmodel.pipeline.vsum.mapping.VsumMappingPersistence;
@@ -43,6 +44,11 @@ public abstract class VsumManagerTestBase extends AbstractCoreTest {
 		@Bean
 		public VsumManager vsumManager() {
 			return new VsumManager();
+		}
+
+		@Bean
+		public CentralVsumFacade vsumFacade() {
+			return new CentralVsumFacade();
 		}
 
 		@Bean

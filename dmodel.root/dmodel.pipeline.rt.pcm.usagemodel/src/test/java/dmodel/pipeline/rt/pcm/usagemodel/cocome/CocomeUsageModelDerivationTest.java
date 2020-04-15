@@ -1,45 +1,45 @@
 package dmodel.pipeline.rt.pcm.usagemodel.cocome;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.system.System;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
+import dmodel.pipeline.rt.pcm.usagemodel.AbstractBaseUsageModelDerivationTest;
 import dmodel.pipeline.rt.pcm.usagemodel.transformation.UsageDataDerivation;
-import dmodel.pipeline.rt.pipeline.AbstractPipelineTestBase;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.shared.structure.Tree;
 import kieker.analysis.exception.AnalysisConfigurationException;
 
-public class CocomeUsageModelDerivationTest extends AbstractPipelineTestBase {
+@RunWith(SpringRunner.class)
+@Import(AbstractBaseUsageModelDerivationTest.UsageTransformationTestConfiguration.class)
+public class CocomeUsageModelDerivationTest extends AbstractBaseUsageModelDerivationTest {
 	protected UsageDataDerivation derivation;
 
-	@Before
-	public void initTransformation() {
-		derivation = new UsageDataDerivation();
-	}
-
 	@Override
-	protected void loadPCMModels() {
-		blackboard.getArchitectureModel()
-				.setRepository(ModelUtil.readFromFile("test-data/cocome/models/cocome.repository", Repository.class));
-
-		blackboard.getArchitectureModel()
-				.setSystem(ModelUtil.readFromFile("test-data/cocome/models/cocome.system", System.class));
-
-		blackboard.getArchitectureModel().setResourceEnvironmentModel(ModelUtil
-				.readFromFile("test-data/cocome/models/cocome.resourceenvironment", ResourceEnvironment.class));
-
-		blackboard.getArchitectureModel().setAllocationModel(
-				ModelUtil.readFromFile("test-data/cocome/models/cocome.allocation", Allocation.class));
+	protected void loadModels() {
+		super.setSpecific(null, null, null);
+		super.setPcm(
+				ModelUtil.readFromFile(new File("test-data/cocome/models/cocome.repository").getAbsolutePath(),
+						Repository.class),
+				ModelUtil.readFromFile(new File("test-data/cocome/models/cocome.system").getAbsolutePath(),
+						System.class),
+				ModelUtil.readFromFile(new File("test-data/cocome/models/cocome.resourceenvironment").getAbsolutePath(),
+						ResourceEnvironment.class),
+				ModelUtil.readFromFile(new File("test-data/cocome/models/cocome.allocation").getAbsolutePath(),
+						Allocation.class),
+				null);
 	}
 
 	@Test
@@ -49,9 +49,9 @@ public class CocomeUsageModelDerivationTest extends AbstractPipelineTestBase {
 				.map(ServiceCallRecord.class::cast).collect(Collectors.toList());
 		List<Tree<ServiceCallRecord>> records = MonitoringDataUtil.buildServiceCallTree(srecs);
 
-		derivation.deriveUsageData(records, blackboard.getArchitectureModel(), null);
+		super.deriveUsageData(records);
 
-		ModelUtil.saveToFile(blackboard.getArchitectureModel().getUsageModel(), "output.usagemodel");
+		ModelUtil.saveToFile(pcm.getUsage(), "output.usagemodel");
 	}
 
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.annotation.PostConstruct;
@@ -11,10 +12,10 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 
 import dmodel.pipeline.core.IPcmModelProvider;
@@ -76,18 +77,21 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 	// pure internal
 	private List<File> usedFiles;
+	private Map<VsumChangeSource, VURI> vuriMapping;
 
 	public VsumManager() {
 		super(HealthStateObservedComponent.VSUM_MANAGER, HealthStateObservedComponent.MODEL_MANAGER);
 		this.usedFiles = new ArrayList<>();
+		this.vuriMapping = Maps.newHashMap();
 	}
 
 	public void executeTransaction(Callable<Void> cb) {
 		vsum.executeCommand(cb);
 	}
 
-	public void propagateChange(EChange change) {
-		this.vsum.propagateChange(VitruviusChangeFactory.getInstance().createConcreteChange(change));
+	public void propagateChange(EChange change, VsumChangeSource source) {
+		this.vsum.propagateChange(
+				VitruviusChangeFactory.getInstance().createConcreteChangeWithVuri(change, vuriMapping.get(source)));
 
 		// persist the mapping
 		specificModelContainer
@@ -147,6 +151,7 @@ public class VsumManager extends AbstractHealthStateComponent {
 	}
 
 	private void tearDownVSUM() {
+		vuriMapping.clear();
 		if (vsum != null) {
 			log.info("Tear down current VSUM.");
 			try {
@@ -173,30 +178,19 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 	private void loadModels() {
 		// 1. load repository
-		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideFile(
-						configurationContainer.getModels().getRepositoryPath(), pcmModelContainer.getRepository()))),
-				pcmModelContainer.getRepository());
+		persistVirtual(pcmModelContainer.getRepository(), VsumConstants.REPOSITORY_SUFFIX, VsumChangeSource.REPOSITORY);
 
 		// 2. load resource environment
-		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(provideFile(
-						configurationContainer.getModels().getEnvPath(), pcmModelContainer.getResourceEnvironment()))),
-				pcmModelContainer.getResourceEnvironment());
+		persistVirtual(pcmModelContainer.getResourceEnvironment(), VsumConstants.RESOURCEENVIRONMENT_SUFFIX,
+				VsumChangeSource.RESURCE_ENVIRONMENT);
 
 		// 3. load runtime environment
-		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(
-						provideFile(configurationContainer.getModels().getRuntimeEnvironmentPath(),
-								specificModelContainer.getRuntimeEnvironment()))),
-				specificModelContainer.getRuntimeEnvironment());
+		persistVirtual(specificModelContainer.getRuntimeEnvironment(), VsumConstants.RUNTIMEENVIRONMENT_SUFFIX,
+				VsumChangeSource.RUNTIME_ENVIRONMENT);
 
 		// 4. load instrumentation model
-		vsum.persistRootElement(
-				VURI.getInstance(EMFBridge.getEmfFileUriForFile(
-						provideFile(configurationContainer.getModels().getInstrumentationModelPath(),
-								specificModelContainer.getInstrumentation()))),
-				specificModelContainer.getInstrumentation());
+		persistVirtual(specificModelContainer.getInstrumentation(), VsumConstants.INSTRUMENTATION_SUFFIX,
+				VsumChangeSource.INSTRUMENTATION_MODEL);
 	}
 
 	private void recoverMapping() {
@@ -218,7 +212,7 @@ public class VsumManager extends AbstractHealthStateComponent {
 		// TODO outsource
 	}
 
-	private synchronized void persistVirtual(EObject model, String suffix) {
+	private synchronized void persistVirtual(EObject model, String suffix, VsumChangeSource source) {
 		// backup resource
 		Resource backupResource = model.eResource();
 
@@ -234,27 +228,21 @@ public class VsumManager extends AbstractHealthStateComponent {
 		ModelUtil.saveToFile(model, temp);
 
 		// persist
-		vsum.persistRootElement(VURI.getInstance(EMFBridge.getEmfFileUriForFile(temp)), model);
+		VURI vuri = VURI.getInstance(EMFBridge.getEmfFileUriForFile(temp));
+		vsum.persistRootElement(vuri, model);
+		vuriMapping.put(source, vuri);
 
 		// recover resource
-		if (backupResource == null) {
-			EcoreUtil.remove(model);
-		} else {
-			backupResource.getContents().add(model);
-			System.out.println(model.eResource() == backupResource);
-		}
+		vsum.executeCommand(() -> {
+			if (backupResource != null) {
+				backupResource.getContents().add(model);
+			}
+			return null;
+		});
 	}
 
-	private File provideFile(String filePath, EObject model) {
-		File temp = new File(filePath);
-		if (!temp.getParentFile().exists()) {
-			temp.getParentFile().mkdirs();
-		}
-
-		// write new TODO: dangerous?
-		ModelUtil.saveToFile(model, temp);
-
-		return temp;
+	public enum VsumChangeSource {
+		RUNTIME_ENVIRONMENT, INSTRUMENTATION_MODEL, REPOSITORY, RESURCE_ENVIRONMENT
 	}
 
 }

@@ -15,6 +15,7 @@ import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainerConnection;
 import dmodel.pipeline.vsum.facade.CentralVsumFacade;
 import dmodel.pipeline.vsum.manager.VsumManager;
+import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
 
 @Component
 public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFacade {
@@ -57,7 +58,7 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 
 		vsumManager.executeTransaction(() -> {
 			remProvider.getRuntimeEnvironment().getContainers().add(nContainer);
-			vsum.createdObject(nContainer);
+			vsum.createdObject(nContainer, VsumChangeSource.RUNTIME_ENVIRONMENT);
 			return null;
 		});
 	}
@@ -83,7 +84,7 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 
 		vsumManager.executeTransaction(() -> {
 			remProvider.getRuntimeEnvironment().getConnections().add(nConnection);
-			vsum.createdObject(nConnection);
+			vsum.createdObject(nConnection, VsumChangeSource.RUNTIME_ENVIRONMENT);
 			return null;
 		});
 	}

@@ -13,12 +13,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.core.config.ConfigurationContainer;
-import dmodel.pipeline.models.mapping.RepositoryMapping;
 import dmodel.pipeline.rt.rest.data.config.JsonProjectConfiguration;
 import dmodel.pipeline.rt.rest.data.config.ProjectSourceFolderResponse;
 import dmodel.pipeline.rt.rest.data.config.ProjectType;
 import dmodel.pipeline.rt.rest.data.config.ProjectValidationResponse;
-import dmodel.pipeline.shared.ModelUtil;
 
 @RestController
 public class ConfigProjectRestController {
@@ -48,20 +46,25 @@ public class ConfigProjectRestController {
 		}
 	}
 
-	@PostMapping("/config/project/validate-corr")
-	public String validateCorrespondence(@RequestParam String path) {
-		if (ModelUtil.validateModelPath(path, RepositoryMapping.class)) {
-			return "{\"success\" : true}";
+	@PostMapping("/config/project/validate-path")
+	public String validatePaths(@RequestParam String path) {
+		File fpath = new File(path);
+		ProjectValidationResponse resp = validateProjectPath(fpath);
+
+		if (resp.isValid()) {
+			resp.setPossibleFolders(collectSubFolders(fpath, null));
 		}
-		return "{\"success\" : false}";
+
+		try {
+			return objectMapper.writeValueAsString(resp);
+		} catch (JsonProcessingException e) {
+			return null;
+		}
 	}
 
-	@PostMapping("/config/project/validate-path")
-	// TODO own class / method
-	public String validatePaths(@RequestParam String path) {
+	private ProjectValidationResponse validateProjectPath(File fpath) {
 		ProjectValidationResponse resp = new ProjectValidationResponse();
 
-		File fpath = new File(path);
 		if (fpath.exists() && fpath.isDirectory()) {
 			File buildGradle = new File(fpath, "build.gradle");
 			File settingsGradle = new File(fpath, "settings.gradle");
@@ -89,15 +92,7 @@ public class ConfigProjectRestController {
 		}
 		resp.setTypeAsText(resp.getType().getName());
 
-		if (resp.isValid()) {
-			resp.setPossibleFolders(collectSubFolders(fpath, null));
-		}
-
-		try {
-			return objectMapper.writeValueAsString(resp);
-		} catch (JsonProcessingException e) {
-			return null;
-		}
+		return resp;
 	}
 
 	private ProjectSourceFolderResponse collectSubFolders(File basePath, String name) {

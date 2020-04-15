@@ -160,16 +160,11 @@ public class SimpleSystemTransformationTest extends AbstractBaseSystemTransforma
 		assertEquals(1, countAssembly(pcm.getSystem(), "_aZ5BYBHqEeqXP_Rw8ZOxlQ"));
 		assertEquals(1, countAssembly(pcm.getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ"));
 		assertEquals(1, countAssembly(pcm.getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ"));
-		assertEquals(1, countAssembly(pcm.getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ"));
+		assertEquals(0, countAssembly(pcm.getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ"));
 
 		AssemblyContext aLogic = getAssemblys(pcm.getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ").get(0);
 		AssemblyContext aDB1 = getAssemblys(pcm.getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ").get(0);
-		AssemblyContext aDB2 = getAssemblys(pcm.getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ").get(0);
 
-		assertFalse(isConnected(pcm.getSystem(), aLogic,
-				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
-				aDB2,
-				aDB2.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
 		assertTrue(isConnected(pcm.getSystem(), aLogic,
 				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
 				aDB1,
@@ -192,21 +187,16 @@ public class SimpleSystemTransformationTest extends AbstractBaseSystemTransforma
 
 		assertEquals(1, countAssembly(pcm.getSystem(), "_aZ5BYBHqEeqXP_Rw8ZOxlQ"));
 		assertEquals(1, countAssembly(pcm.getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ"));
-		assertEquals(1, countAssembly(pcm.getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ"));
+		assertEquals(0, countAssembly(pcm.getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ"));
 		assertEquals(1, countAssembly(pcm.getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ"));
 
 		AssemblyContext aLogic = getAssemblys(pcm.getSystem(), "_gcoKcBHrEeqXP_Rw8ZOxlQ").get(0);
-		AssemblyContext aDB1 = getAssemblys(pcm.getSystem(), "_l7CT4BHrEeqXP_Rw8ZOxlQ").get(0);
 		AssemblyContext aDB2 = getAssemblys(pcm.getSystem(), "_q0eIABHrEeqXP_Rw8ZOxlQ").get(0);
 
 		assertTrue(isConnected(pcm.getSystem(), aLogic,
 				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
 				aDB2,
 				aDB2.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
-		assertFalse(isConnected(pcm.getSystem(), aLogic,
-				aLogic.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().get(0),
-				aDB1,
-				aDB1.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().get(0)));
 	}
 
 }

@@ -58,6 +58,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	private List<UsageScenario> extractedUsageScenarios;
 
 	public AccuracySwitch() {
+		super(null, null);
 		executorService = Executors.newFixedThreadPool(2);
 	}
 
@@ -142,25 +143,23 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		getBlackboard().getQuery().trackUsageScenarios(getBlackboard().getPcmQuery().getUsage().getScnearioCount());
 	}
 
-	// TODO clean up
 	private void simulateResultingModels(PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_2);
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION22, ETransformationState.RUNNING);
+		simulateResultingModel(copyForRepository, rawMonitoringData, ValidationSchedulePoint.AFTER_T_REPO,
+				ExecutionMeasuringPoint.T_VALIDATION_2, EPipelineTransformation.T_VALIDATION22);
 
-		getBlackboard().getValidationQuery().process(copyForRepository, rawMonitoringData.getValidationData(),
-				ValidationSchedulePoint.AFTER_T_REPO);
+		simulateResultingModel(copyForUsage, rawMonitoringData, ValidationSchedulePoint.AFTER_T_USAGE,
+				ExecutionMeasuringPoint.T_VALIDATION_3, EPipelineTransformation.T_VALIDATION21);
+	}
 
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION22, ETransformationState.FINISHED);
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_2);
+	private void simulateResultingModel(InMemoryPCM pcm, PartitionedMonitoringData<PCMContextRecord> monitoring,
+			ValidationSchedulePoint valPoint, ExecutionMeasuringPoint execPoint, EPipelineTransformation trans) {
+		getBlackboard().getQuery().track(execPoint);
+		getBlackboard().getQuery().updateState(trans, ETransformationState.RUNNING);
 
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_3);
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION21, ETransformationState.RUNNING);
+		getBlackboard().getValidationQuery().process(copyForRepository, monitoring.getValidationData(), valPoint);
 
-		getBlackboard().getValidationQuery().process(copyForUsage, rawMonitoringData.getValidationData(),
-				ValidationSchedulePoint.AFTER_T_USAGE);
-
-		getBlackboard().getQuery().updateState(EPipelineTransformation.T_VALIDATION21, ETransformationState.FINISHED);
-		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_VALIDATION_3);
+		getBlackboard().getQuery().updateState(trans, ETransformationState.FINISHED);
+		getBlackboard().getQuery().track(execPoint);
 	}
 
 	private void createDeepCopies() {

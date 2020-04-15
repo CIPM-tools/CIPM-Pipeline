@@ -15,6 +15,7 @@ import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.vsum.VsumManagerTestBase;
 import dmodel.pipeline.vsum.facade.IVsumFacade;
 import dmodel.pipeline.vsum.manager.VsumManager;
+import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
 
 @RunWith(SpringRunner.class)
 @Import(VsumManagerTestBase.VsumManagerTestConfiguration.class)
@@ -42,7 +43,7 @@ public class BaseVsumIntegrationTest extends VsumManagerTestBase {
 
 		vsumManager.executeTransaction(() -> {
 			specificModelProvider.getRuntimeEnvironment().getContainers().add(newContainer);
-			vsumFacade.createdObject(newContainer);
+			vsumFacade.createdObject(newContainer, VsumChangeSource.RUNTIME_ENVIRONMENT);
 			return null;
 		});
 

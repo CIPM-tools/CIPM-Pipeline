@@ -23,8 +23,12 @@ import dmodel.pipeline.dt.inmodel.InstrumentationModelUtil;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.rest.data.config.ModelPathContainer;
 import dmodel.pipeline.rt.rest.data.config.ModelPathResponse;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeEnvironmentModel;
+import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.ModelUtil;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
+import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
+import tools.vitruv.framework.correspondence.Correspondences;
 
 @RestController
 public class ConfigModelsRestController {
@@ -71,6 +75,15 @@ public class ConfigModelsRestController {
 			if (val.isUsage()) {
 				into.setUsagePath(req.getUsage());
 			}
+			if (val.isInstrumentation()) {
+				into.setInstrumentationModelPath(req.getInstrumentation());
+			}
+			if (val.isCorrespondences()) {
+				into.setCorrespondencePath(req.getCorrespondences());
+			}
+			if (val.isRuntimeenv()) {
+				into.setRuntimeEnvironmentPath(req.getRuntimeenv());
+			}
 			modelContainer.loadArchitectureModel(into);
 
 			return config.syncWithFilesystem() ? "{\"success\" : true}" : "{\"success\" : false}";
@@ -90,7 +103,12 @@ public class ConfigModelsRestController {
 		}
 	}
 
-	// TODO provide it in the web ui
+	@PostMapping
+	public String initializeInstrumentationModel() {
+		this.enrichInitialInstrumentationModel(modelContainer.getInstrumentation());
+		return JsonUtil.wrapAsObject("success", true, false);
+	}
+
 	private void enrichInitialInstrumentationModel(InstrumentationModel instrumentationModel) {
 		// create an initial instrumentation model
 		if (instrumentationModel.getPoints().size() == 0) {
@@ -102,9 +120,9 @@ public class ConfigModelsRestController {
 
 	private void propagateInitialInstrumentationModelChanges(InstrumentationModel instrumentationModel) {
 		instrumentationModel.getPoints().forEach(sip -> {
-			vsumFacade.createdObject(sip);
+			vsumFacade.createdObject(sip, VsumChangeSource.INSTRUMENTATION_MODEL);
 			sip.getActionInstrumentationPoints().forEach(aip -> {
-				vsumFacade.createdObject(aip);
+				vsumFacade.createdObject(aip, VsumChangeSource.INSTRUMENTATION_MODEL);
 			});
 		});
 	}
@@ -116,6 +134,10 @@ public class ConfigModelsRestController {
 		resp.setRes(ModelUtil.validateModelPath(req.getRes(), ResourceEnvironment.class));
 		resp.setSys(ModelUtil.validateModelPath(req.getSys(), System.class));
 		resp.setUsage(ModelUtil.validateModelPath(req.getUsage(), UsageModel.class));
+		resp.setCorrespondences(ModelUtil.validateModelPath(req.getCorrespondences(), Correspondences.class));
+		resp.setInstrumentation(ModelUtil.validateModelPath(req.getInstrumentation(), InstrumentationModel.class));
+		resp.setRuntimeenv(ModelUtil.validateModelPath(req.getRuntimeenv(), RuntimeEnvironmentModel.class));
+
 		return resp;
 	}
 

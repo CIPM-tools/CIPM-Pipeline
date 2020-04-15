@@ -52,6 +52,7 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	private List<OperationProvidedRole> systemProvidedRoles = Lists.newArrayList();
 
 	private Set<OperationRequiredRole> openOuterRequiredRoles = Sets.newHashSet();
+	private Set<OperationProvidedRole> openOuterProvidedRoles = Sets.newHashSet();
 	private Set<Pair<AssemblyContext, OperationRequiredRole>> openInnerRequiredRoles = Sets.newHashSet();
 
 	@Override
@@ -109,10 +110,10 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	@Override
 	public List<OperationProvidedRole> getProvidedRoleBySignature(Signature describedService__SEFF,
 			InterfaceProvidingEntity entity) {
-		return entity
-				.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> r instanceof OperationProvidedRole)
-				.map(OperationProvidedRole.class::cast).filter(opr -> opr.getProvidedInterface__OperationProvidedRole()
-						.getSignatures__OperationInterface().contains(describedService__SEFF))
+		return entity.getProvidedRoles_InterfaceProvidingEntity().stream()
+				.filter(r -> r instanceof OperationProvidedRole).map(OperationProvidedRole.class::cast)
+				.filter(opr -> opr.getProvidedInterface__OperationProvidedRole().getSignatures__OperationInterface()
+						.stream().anyMatch(sig -> sig.getId().equals(describedService__SEFF.getId())))
 				.collect(Collectors.toList());
 	}
 
@@ -149,6 +150,24 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	}
 
 	@Override
+	public boolean hasConnector(OperationProvidedRole outerProvidedRole, AssemblyContext ctx,
+			OperationProvidedRole innerProvidedRole) {
+		return providedDelegationConnectors.stream().anyMatch(c -> c.getOuterProvidedRole_ProvidedDelegationConnector()
+				.getId().equals(outerProvidedRole.getId())
+				&& c.getAssemblyContext_ProvidedDelegationConnector().getId().equals(ctx.getId())
+				&& c.getInnerProvidedRole_ProvidedDelegationConnector().getId().equals(innerProvidedRole.getId()));
+	}
+
+	@Override
+	public boolean hasConnector(OperationRequiredRole outerRequiredRole, AssemblyContext ctx,
+			OperationRequiredRole innerRequiredRole) {
+		return requiredDelegationConnectors.stream().anyMatch(c -> c.getOuterRequiredRole_RequiredDelegationConnector()
+				.getId().equals(outerRequiredRole.getId())
+				&& c.getAssemblyContext_RequiredDelegationConnector().getId().equals(ctx.getId())
+				&& c.getInnerRequiredRole_RequiredDelegationConnector().getId().equals(innerRequiredRole.getId()));
+	}
+
+	@Override
 	public AssemblyConnector createConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
 			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole) {
 		AssemblyConnector nConnector = PCMSystemUtil.createAssemblyConnector(pcmModelProvider.getSystem(),
@@ -160,33 +179,42 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	@Override
 	public void reconnectOuterProvidedRole(OperationProvidedRole systemProvidedRole, AssemblyContext ctx,
 			OperationProvidedRole role) {
-		// delete old
-		providedDelegationConnectors.stream().filter(conn -> conn.getOuterProvidedRole_ProvidedDelegationConnector()
-				.getId().equals(systemProvidedRole.getId())).findFirst().ifPresent(this::removeConnector);
+		if (!hasConnector(systemProvidedRole, ctx, role)) {
+			// delete old
+			providedDelegationConnectors.stream().filter(conn -> conn.getOuterProvidedRole_ProvidedDelegationConnector()
+					.getId().equals(systemProvidedRole.getId())).findFirst().ifPresent(this::removeConnector);
 
-		// create new & cache
-		ProvidedDelegationConnector nConnector = PCMSystemUtil.createProvidedDelegation(pcmModelProvider.getSystem(),
-				systemProvidedRole, ctx, role);
-		cacheConnector(nConnector);
+			// create new & cache
+			ProvidedDelegationConnector nConnector = PCMSystemUtil
+					.createProvidedDelegation(pcmModelProvider.getSystem(), systemProvidedRole, ctx, role);
+			cacheConnector(nConnector);
+		}
 	}
 
 	@Override
 	public void reconnectOuterRequiredRole(OperationRequiredRole selectedOuter, AssemblyContext left,
 			OperationRequiredRole right) {
-		// delete old
-		requiredDelegationConnectors.stream()
-				.filter(conn -> conn.getOuterRequiredRole_RequiredDelegationConnector().equals(selectedOuter))
-				.findFirst().ifPresent(this::removeConnector);
+		if (!hasConnector(selectedOuter, left, right)) {
+			// delete old
+			requiredDelegationConnectors.stream()
+					.filter(conn -> conn.getOuterRequiredRole_RequiredDelegationConnector().equals(selectedOuter))
+					.findFirst().ifPresent(this::removeConnector);
 
-		// create new & cache
-		RequiredDelegationConnector nConnector = PCMSystemUtil.createRequiredDelegation(left, right,
-				pcmModelProvider.getSystem(), selectedOuter);
-		cacheConnector(nConnector);
+			// create new & cache
+			RequiredDelegationConnector nConnector = PCMSystemUtil.createRequiredDelegation(left, right,
+					pcmModelProvider.getSystem(), selectedOuter);
+			cacheConnector(nConnector);
+		}
 	}
 
 	@Override
 	public List<Pair<AssemblyContext, OperationRequiredRole>> getUnsatisfiedInnerRequiredRoles() {
 		return new ArrayList<>(openInnerRequiredRoles);
+	}
+
+	@Override
+	public List<OperationProvidedRole> getUnsatisfiedOuterProvidedRoles() {
+		return new ArrayList<>(openOuterProvidedRoles);
 	}
 
 	@Override
@@ -325,7 +353,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 
 			assemblyConnectors.add(cConnector);
 		} else if (connector instanceof ProvidedDelegationConnector) {
-			providedDelegationConnectors.add((ProvidedDelegationConnector) connector);
+			ProvidedDelegationConnector cConnector = (ProvidedDelegationConnector) connector;
+			providedDelegationConnectors.add(cConnector);
+			openOuterProvidedRoles.remove(cConnector.getOuterProvidedRole_ProvidedDelegationConnector());
 		} else if (connector instanceof RequiredDelegationConnector) {
 			RequiredDelegationConnector cConnector = (RequiredDelegationConnector) connector;
 			requiredDelegationConnectors.add(cConnector);
@@ -359,6 +389,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 			openOuterRequiredRoles.add(cConnector.getOuterRequiredRole_RequiredDelegationConnector());
 			openInnerRequiredRoles.add(Pair.of(cConnector.getAssemblyContext_RequiredDelegationConnector(),
 					cConnector.getInnerRequiredRole_RequiredDelegationConnector()));
+		} else if (connector instanceof ProvidedDelegationConnector) {
+			ProvidedDelegationConnector cConnector = (ProvidedDelegationConnector) connector;
+			openOuterProvidedRoles.add(cConnector.getOuterProvidedRole_ProvidedDelegationConnector());
 		}
 
 		pcmModelProvider.getSystem().getConnectors__ComposedStructure().remove(connector);
@@ -389,7 +422,7 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 
 		// delete corresponding roles
 		openInnerRequiredRoles.stream().filter(oir -> oir.getLeft().getId().equals(ctx.getId()))
-				.forEach(openInnerRequiredRoles::remove);
+				.collect(Collectors.toList()).forEach(openInnerRequiredRoles::remove);
 
 		// undeploy this one
 		allocationQuery.undeployAssembly(ctx);

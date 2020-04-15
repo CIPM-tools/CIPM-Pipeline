@@ -51,6 +51,12 @@ public interface ISystemQueryFacade extends IResettableQueryFacade {
 	boolean hasConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
 			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole);
 
+	boolean hasConnector(OperationProvidedRole outerProvidedRole, AssemblyContext ctx,
+			OperationProvidedRole innerProvidedRole);
+
+	boolean hasConnector(OperationRequiredRole outerRequiredRole, AssemblyContext ctx,
+			OperationRequiredRole innerRequiredRole);
+
 	AssemblyConnector createConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
 			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole);
 
@@ -61,6 +67,8 @@ public interface ISystemQueryFacade extends IResettableQueryFacade {
 			OperationRequiredRole right);
 
 	List<Pair<AssemblyContext, OperationRequiredRole>> getUnsatisfiedInnerRequiredRoles();
+
+	List<OperationProvidedRole> getUnsatisfiedOuterProvidedRoles();
 
 	List<OperationRequiredRole> getNonLinkedOuterRequiredRoles();
 

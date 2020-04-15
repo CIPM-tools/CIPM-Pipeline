@@ -16,6 +16,7 @@ import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 import dmodel.pipeline.shared.pcm.util.deprecation.SimpleDeprecationProcessor;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
+import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
 import lombok.extern.java.Log;
 
 @Log
@@ -62,7 +63,7 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 		toRemove.forEach(tr -> {
 			if (deprecationProcessor.shouldDelete(tr)) {
 				pcm.getResourceEnvironmentModel().getResourceContainer_ResourceEnvironment().remove(tr);
-				vsumFacade.deletedObject(tr);
+				vsumFacade.deletedObject(tr, VsumChangeSource.RESURCE_ENVIRONMENT);
 
 				List<LinkingResource> toRemoveLinkingResources = Lists.newArrayList();
 				pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().forEach(lr -> {
@@ -76,7 +77,7 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 
 				toRemoveLinkingResources.forEach(tlr -> {
 					pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().remove(tlr);
-					vsumFacade.deletedObject(tlr);
+					vsumFacade.deletedObject(tlr, VsumChangeSource.RESURCE_ENVIRONMENT);
 				});
 			}
 		});
