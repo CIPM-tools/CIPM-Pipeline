@@ -21,7 +21,7 @@ public class UsageBranchTransition implements IPCMAnalogue<BranchTransition> {
 
 	public boolean matches(UsageBranchTransition other) {
 		if (childs.size() == other.childs.size()) {
-			for (var i = 0; i < childs.size(); i++) {
+			for (int i = 0; i < childs.size(); i++) {
 				if (!childs.get(i).matches(other.childs.get(i))) {
 					return false;
 				}

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import dmodel.pipeline.core.ICallGraphProvider;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;
 import dmodel.pipeline.core.health.HealthState;
@@ -14,10 +15,9 @@ import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
 import dmodel.pipeline.instrumentation.manager.ProjectManager;
 import dmodel.pipeline.vsum.manager.VsumManager;
-import lombok.Getter;
 
 @Component
-public class ServiceCallGraphBuilder extends AbstractHealthStateComponent {
+public class ServiceCallGraphBuilder extends AbstractHealthStateComponent implements ICallGraphProvider {
 
 	@Autowired
 	private IRepositoryQueryFacade repository;
@@ -31,7 +31,6 @@ public class ServiceCallGraphBuilder extends AbstractHealthStateComponent {
 	@Autowired
 	private ISystemCompositionAnalyzer compositionAnalyzer;
 
-	@Getter
 	private ServiceCallGraph currentServiceCallGraph;
 
 	protected ServiceCallGraphBuilder() {
@@ -44,6 +43,16 @@ public class ServiceCallGraphBuilder extends AbstractHealthStateComponent {
 				projectManager.getParsedApplicationProject(), jarFiles, repository,
 				vsumManager.getJavaCorrespondences());
 		return this.currentServiceCallGraph;
+	}
+
+	@Override
+	public ServiceCallGraph provideCallGraph() {
+		return this.currentServiceCallGraph;
+	}
+
+	@Override
+	public boolean callGraphPresent() {
+		return this.currentServiceCallGraph != null;
 	}
 
 	@Override

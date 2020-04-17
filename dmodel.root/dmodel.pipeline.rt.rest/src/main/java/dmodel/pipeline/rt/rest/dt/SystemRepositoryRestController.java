@@ -44,7 +44,7 @@ public class SystemRepositoryRestController {
 
 	private JsonRepository convertRepositoryToJson() {
 		JsonRepository output = new JsonRepository();
-		Repository parent = blackboard.getArchitectureModel().getRepository();
+		Repository parent = blackboard.getPcmQuery().getRaw().getRepository();
 
 		List<JsonRepositoryComponent> components = parent.getComponents__Repository().stream()
 				.map(comp -> new JsonRepositoryComponent(comp.getId(), comp.getEntityName(),

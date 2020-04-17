@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.config.ModelConfiguration;
+import dmodel.pipeline.core.impl.CentralModelAdminstrator;
 import dmodel.pipeline.dt.inmodel.InstrumentationModelUtil;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.rest.data.config.ModelPathContainer;

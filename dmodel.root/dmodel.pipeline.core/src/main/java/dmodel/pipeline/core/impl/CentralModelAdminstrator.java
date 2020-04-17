@@ -1,4 +1,4 @@
-package dmodel.pipeline.core;
+package dmodel.pipeline.core.impl;
 
 import java.io.File;
 
@@ -10,6 +10,8 @@ import org.palladiosimulator.pcm.usagemodel.UsageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import dmodel.pipeline.core.IPcmModelProvider;
+import dmodel.pipeline.core.ISpecificModelProvider;
 import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.config.ModelConfiguration;
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;

@@ -55,7 +55,7 @@ public class ApplicationProjectTransformer {
 
 		// c) build monitoring configuration and add it
 		CompilationUnit nConfiguration = new CompilationUnit();
-		nConfiguration.setPackageDeclaration(MonitoringConfiguration.class.getPackageName());
+		nConfiguration.setPackageDeclaration(MonitoringConfiguration.class.getPackage().getName());
 
 		ClassOrInterfaceDeclaration configurationDecl = nConfiguration
 				.addInterface(MonitoringConfiguration.class.getSimpleName());
@@ -71,8 +71,8 @@ public class ApplicationProjectTransformer {
 		configurationDecl.addFieldWithInitializer(long.class, "LOGARITHMIC_SCALING_INTERVAL",
 				new LongLiteralExpr(String.valueOf(metadata.getLogarithmicRecoveryInterval())));
 
-		String configurationOutputPath = MonitoringConfiguration.class.getPackageName().replaceAll("\\.", "/") + "/"
-				+ MonitoringConfiguration.class.getSimpleName() + ".java";
+		String configurationOutputPath = MonitoringConfiguration.class.getPackage().getName().replaceAll("\\.", "/")
+				+ "/" + MonitoringConfiguration.class.getSimpleName() + ".java";
 		FileUtils.write(new File(srcBaseFolder, configurationOutputPath), nConfiguration.toString(), "UTF-8");
 	}
 

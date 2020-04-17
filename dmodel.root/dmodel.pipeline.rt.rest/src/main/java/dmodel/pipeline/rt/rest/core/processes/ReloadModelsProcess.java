@@ -1,7 +1,7 @@
 package dmodel.pipeline.rt.rest.core.processes;
 
-import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.core.config.ModelConfiguration;
+import dmodel.pipeline.core.impl.CentralModelAdminstrator;
 
 public class ReloadModelsProcess implements Runnable {
 

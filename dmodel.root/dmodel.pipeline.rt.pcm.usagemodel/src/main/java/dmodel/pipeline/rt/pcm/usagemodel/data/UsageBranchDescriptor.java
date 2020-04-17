@@ -23,7 +23,7 @@ public class UsageBranchDescriptor implements IAbstractUsageDescriptor {
 		if (other instanceof UsageBranchDescriptor) {
 			UsageBranchDescriptor ubdOther = (UsageBranchDescriptor) other;
 			if (childs.size() == ubdOther.childs.size()) {
-				for (var i = 0; i < childs.size(); i++) {
+				for (int i = 0; i < childs.size(); i++) {
 					if (!childs.get(i).matches(ubdOther.childs.get(i))) {
 						return false;
 					}

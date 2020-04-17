@@ -25,8 +25,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import dmodel.pipeline.core.CentralModelAdminstrator;
 import dmodel.pipeline.core.config.ConfigurationContainer;
+import dmodel.pipeline.core.impl.CentralModelAdminstrator;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 

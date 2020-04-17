@@ -26,11 +26,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.ICallGraphProvider;
 import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
-import dmodel.pipeline.dt.system.impl.StaticCodeReferenceAnalyzer;
 import dmodel.pipeline.dt.system.pcm.data.AbstractConflict;
 import dmodel.pipeline.dt.system.pcm.data.AssemblyConflict;
 import dmodel.pipeline.dt.system.pcm.data.ConnectionConflict;
@@ -38,35 +39,35 @@ import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
 import dmodel.pipeline.dt.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
 import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
-import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
+import dmodel.pipeline.dt.system.scg.ServiceCallGraphBuilder;
 import dmodel.pipeline.rt.rest.dt.async.BuildServiceCallGraphProcess;
 import dmodel.pipeline.rt.rest.dt.async.StartBuildingSystemProcess;
-import dmodel.pipeline.rt.rest.dt.data.JsonPCMSystem;
-import dmodel.pipeline.rt.rest.dt.data.JsonSystemAssembly;
-import dmodel.pipeline.rt.rest.dt.data.JsonSystemComposite;
-import dmodel.pipeline.rt.rest.dt.data.JsonSystemConnector;
-import dmodel.pipeline.rt.rest.dt.data.JsonSystemProvidedRole;
-import dmodel.pipeline.rt.rest.dt.data.JsonSystemRequiredRole;
+import dmodel.pipeline.rt.rest.dt.data.scg.JsonServiceCallGraph;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingStartMessage;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonConflictSolution;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonPCMSystem;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonSystemAssembly;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonSystemComposite;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonSystemConnector;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonSystemProvidedRole;
+import dmodel.pipeline.rt.rest.dt.data.system.JsonSystemRequiredRole;
 import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import dmodel.pipeline.shared.util.StackedRunnable;
+import lombok.extern.java.Log;
 
 @RestController
+@Log
 public class SystemBuildRestController {
-	@Autowired
-	private StaticCodeReferenceAnalyzer systemAnalyzer;
-
-	@Autowired
-	private ConfigurationContainer config;
-
 	@Autowired
 	private PCMSystemBuilder systemBuilder;
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Autowired
+	private ICallGraphProvider callGraphProvider;
 
 	@Autowired
 	private ScheduledExecutorService executorService;
@@ -75,10 +76,46 @@ public class SystemBuildRestController {
 	private IPCMQueryFacade pcmQuery;
 
 	@Autowired
-	private IApplicationInstrumenter transformer;
+	private ServiceCallGraphBuilder scgBuilder;
+
+	@Autowired
+	private ConfigurationContainer configurationContainer;
+
+	@Autowired
+	private DesignTimeRestController designTimeRestController;
 
 	// DATA
 	private boolean finishedBuilding = true;
+
+	@PostMapping("/design/system/scg/build")
+	public String buildSCG(@RequestParam String jarFiles, @RequestParam boolean extractMappingBefore) {
+		try {
+			List<String> jarFileArray = objectMapper.readValue(jarFiles, new TypeReference<List<String>>() {
+			});
+
+			BuildServiceCallGraphProcess process = new BuildServiceCallGraphProcess(scgBuilder, jarFileArray,
+					configurationContainer.getProject().getRootPath());
+
+			if (extractMappingBefore) {
+				designTimeRestController.resolveMappingFromCode();
+			}
+
+			executorService.submit(new StackedRunnable(true, process));
+		} catch (IOException e) {
+			log.warning("Jar files of the project could not be parsed.");
+		}
+
+		return JsonUtil.emptyObject();
+	}
+
+	@GetMapping("/design/system/scg/get")
+	public String getSCG() {
+		try {
+			return objectMapper.writeValueAsString(JsonServiceCallGraph.from(scgBuilder.provideCallGraph()));
+		} catch (JsonProcessingException e) {
+			return JsonUtil.wrapAsObject("success", false, false);
+		}
+	}
 
 	@PostMapping("/design/system/build/start")
 	public String buildSystem(@RequestParam String coreInterfaces) {
@@ -91,9 +128,7 @@ public class SystemBuildRestController {
 			List<OperationInterface> systemInterfaces = parsedMessage.getInterfaceIds().stream()
 					.map(id -> pcmQuery.getRepository().getOperationInterface(id)).collect(Collectors.toList());
 
-			BuildServiceCallGraphProcess process1 = new BuildServiceCallGraphProcess(config.getProject(),
-					systemAnalyzer, border, transformer, blackboard);
-			StartBuildingSystemProcess process2 = new StartBuildingSystemProcess(systemBuilder, border,
+			StartBuildingSystemProcess process2 = new StartBuildingSystemProcess(systemBuilder, callGraphProvider,
 					systemInterfaces);
 			process2.addListener(conf -> {
 				if (conf == null) {
@@ -102,7 +137,7 @@ public class SystemBuildRestController {
 				}
 			});
 
-			executorService.submit(new StackedRunnable(true, process1, process2));
+			executorService.submit(new StackedRunnable(true, process2));
 		} catch (IOException e) {
 			e.printStackTrace();
 			return JsonUtil.emptyObject();
@@ -193,7 +228,7 @@ public class SystemBuildRestController {
 	}
 
 	private void flushResultingSystem(System currentSystem) {
-		blackboard.getArchitectureModel().swapSystem(currentSystem);
+		pcmQuery.getRaw().swapSystem(currentSystem);
 	}
 
 	private void inheritNameMapping(Map<String, String> nameMapping) {

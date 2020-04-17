@@ -10,7 +10,7 @@ import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.core.health.HealthStateProblem;
 import dmodel.pipeline.core.health.HealthStateProblemSeverity;
-import dmodel.pipeline.instrumentation.mapping.AutomatedMappingResolverImpl;
+import dmodel.pipeline.instrumentation.mapping.IAutomatedMappingResolver;
 import dmodel.pipeline.instrumentation.project.app.ApplicationProjectTransformer;
 import dmodel.pipeline.instrumentation.project.app.InstrumentationMetadata;
 import dmodel.pipeline.vsum.manager.VsumManager;
@@ -21,7 +21,7 @@ public class InstrumentationManager extends AbstractHealthStateComponent {
 	private ProjectManager projectManager;
 
 	@Autowired
-	private AutomatedMappingResolverImpl mappingResolver;
+	private IAutomatedMappingResolver mappingResolver;
 
 	@Autowired
 	private VsumManager vsumManager;

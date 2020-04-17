@@ -28,7 +28,7 @@ public class UsageLoopDescriptor implements IAbstractUsageDescriptor {
 		if (other instanceof UsageLoopDescriptor) {
 			UsageLoopDescriptor uldOther = (UsageLoopDescriptor) other;
 			if (uldOther.childs.size() == childs.size()) {
-				for (var i = 0; i < childs.size(); i++) {
+				for (int i = 0; i < childs.size(); i++) {
 					if (!childs.get(i).matches(uldOther.childs.get(i))) {
 						return false;
 					}

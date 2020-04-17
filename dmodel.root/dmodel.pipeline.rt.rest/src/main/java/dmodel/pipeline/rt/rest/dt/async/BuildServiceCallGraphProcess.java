@@ -1,48 +1,28 @@
 package dmodel.pipeline.rt.rest.dt.async;
 
-import dmodel.pipeline.core.config.ProjectConfiguration;
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import dmodel.pipeline.dt.callgraph.ServiceCallGraph.ServiceCallGraph;
-import dmodel.pipeline.dt.system.ISystemCompositionAnalyzer;
-import dmodel.pipeline.models.mapping.RepositoryMapping;
-import dmodel.pipeline.records.instrument.ApplicationProject;
-import dmodel.pipeline.records.instrument.IApplicationInstrumenter;
-import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondence;
-import dmodel.pipeline.records.instrument.spoon.SpoonCorrespondenceUtil;
-import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.shared.ModelUtil;
+import dmodel.pipeline.dt.system.scg.ServiceCallGraphBuilder;
 import dmodel.pipeline.shared.util.AbstractObservable;
 import lombok.AllArgsConstructor;
-import spoon.Launcher;
 
 @AllArgsConstructor
 public class BuildServiceCallGraphProcess extends AbstractObservable<ServiceCallGraph> implements Runnable {
-
-	private ProjectConfiguration config;
-	private ISystemCompositionAnalyzer analyzer;
-	private IApplicationInstrumenter transformer;
-	private RuntimePipelineBlackboard blackboard;
+	private ServiceCallGraphBuilder builder;
+	private List<String> jarFiles;
+	private String basePath;
 
 	@Override
 	public void run() {
-		// load the project
-		ApplicationProject project = new ApplicationProject();
-		project.setRootPath(config.getRootPath());
-		project.setSourceFolders(config.getSourceFolders());
-
-		// create model
-		Launcher model = transformer.createModel(project);
-
-		// load correspondence
-		RepositoryMapping fileBackedMapping = ModelUtil.readFromFile(config.getCorrespondencePath(),
-				RepositoryMapping.class);
-		SpoonCorrespondence spoonMapping = SpoonCorrespondenceUtil.buildFromMapping(fileBackedMapping, model.getModel(),
-				blackboard.getArchitectureModel().getRepository());
-
+		File basePathFile = new File(basePath);
 		// extract
-		ServiceCallGraph callGraph = analyzer.deriveSystemComposition(model, spoonMapping);
-		callGraph.setRepository(blackboard.getArchitectureModel().getRepository());
-		border.setServiceCallGraph(callGraph);
-		this.flood(callGraph);
+		ServiceCallGraph result = builder.buildServiceCallGraph(
+				jarFiles.stream().map(jf -> new File(basePathFile, jf)).collect(Collectors.toList()));
+
+		super.flood(result);
 	}
 
 }
