@@ -124,6 +124,7 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 
 	private void reportConfigurationWorking() {
 		super.removeAllProblems();
+		super.updateState();
 		super.sendStateMessage(HealthStateObservedComponent.VSUM_MANAGER);
 	}
 

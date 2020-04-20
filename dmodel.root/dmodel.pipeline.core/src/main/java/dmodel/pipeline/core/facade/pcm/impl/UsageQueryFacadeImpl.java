@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.palladiosimulator.pcm.usagemodel.UsageScenario;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.core.facade.pcm.IUsageQueryFacade;
 
+@Component
 public class UsageQueryFacadeImpl implements IUsageQueryFacade {
 	@Autowired
 	private IPcmModelProvider pcmModelProvider;

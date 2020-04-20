@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
 
@@ -19,6 +20,7 @@ import dmodel.pipeline.rt.validation.data.ValidationPoint;
 import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
+@Component
 public class ValidationQueryFacadeImpl implements IValidationQueryFacade {
 	@Autowired
 	private IValidationProcessor validationComponent;

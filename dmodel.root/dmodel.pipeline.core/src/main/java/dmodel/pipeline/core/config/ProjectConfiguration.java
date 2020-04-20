@@ -21,9 +21,6 @@ public class ProjectConfiguration {
 	@Setter(AccessLevel.NONE)
 	private List<String> sourceFolders;
 
-	@Setter(AccessLevel.NONE)
-	private String instrumentedPath;
-
 	public ProjectConfiguration() {
 		this.listeners = new ArrayList<>();
 	}
@@ -38,13 +35,9 @@ public class ProjectConfiguration {
 		this.listeners.forEach(l -> l.configurationChanged(this));
 	}
 
-	public void setInstrumentedPath(String instrumentedPath) {
-		this.instrumentedPath = instrumentedPath;
-		this.listeners.forEach(l -> l.configurationChanged(this));
-	}
-
+	@JsonIgnore
 	public boolean isValid() {
-		if (rootPath == null || sourceFolders == null || instrumentedPath == null) {
+		if (rootPath == null || sourceFolders == null) {
 			return false;
 		}
 

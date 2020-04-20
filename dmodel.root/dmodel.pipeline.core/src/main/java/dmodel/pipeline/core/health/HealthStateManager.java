@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -20,6 +21,7 @@ public class HealthStateManager {
 	private List<HealthStateProblem> problems;
 
 	private Map<HealthStateObservedComponent, AbstractHealthStateComponent> registeredComponents;
+	private Map<HealthStateObservedComponent, List<Pair<HealthStateObservedComponent, HealthState>>> queuedMesages;
 
 	private long problemId = 0;
 
@@ -27,8 +29,21 @@ public class HealthStateManager {
 		registeredComponents = Maps.newHashMap();
 		problems = Lists.newArrayList();
 		stateMapping = Maps.newHashMap();
+		queuedMesages = Maps.newHashMap();
 		for (HealthStateObservedComponent observedComponent : HealthStateObservedComponent.values()) {
 			stateMapping.put(observedComponent, HealthState.UNKNOWN);
+		}
+	}
+
+	public void sendMessage(HealthStateObservedComponent from, HealthStateObservedComponent to, HealthState state) {
+		if (registeredComponents.containsKey(to)) {
+			registeredComponents.get(to).onMessage(from, state);
+		} else {
+			if (queuedMesages.containsKey(to)) {
+				queuedMesages.get(to).add(Pair.of(from, state));
+			} else {
+				queuedMesages.put(to, Lists.newArrayList(Pair.of(from, state)));
+			}
 		}
 	}
 
@@ -38,6 +53,11 @@ public class HealthStateManager {
 
 	public void registerComponent(HealthStateObservedComponent comp, AbstractHealthStateComponent value) {
 		registeredComponents.put(comp, value);
+
+		if (queuedMesages.containsKey(comp)) {
+			queuedMesages.get(comp).forEach(msg -> value.onMessage(msg.getLeft(), msg.getRight()));
+			queuedMesages.remove(comp);
+		}
 	}
 
 	public List<HealthStateProblem> getProblems(HealthStateObservedComponent comp) {

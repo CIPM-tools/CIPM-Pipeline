@@ -31,7 +31,14 @@ var rest = {
 		models : {
 			save : "/config/models/save",
 			get : "/config/models/get",
-			validate : "/config/models/validate"
+			validate : "/config/models/validate",
+			initInstrumentation : "/config/models/inm/init"
+		},
+		
+		conceptual : {
+			get : "/config/conceptual/get",
+			validate : "/config/conceptual/validate",
+			save : "/config/conceptual/save"
 		}
 	},
 	
@@ -49,6 +56,16 @@ var rest = {
 			solveConflict : "/design/system/build/conflict/solve",
 			status : "/design/system/build/status",
 			get : "/design/system/build/get"
+		},
+		
+		mapping : {
+			resolve : "/design/mapping/resolve"
+		},
+		
+		scg : {
+			get : "/design/system/scg/get",
+			build : "/design/system/scg/build",
+			jars : "/design/system/scg/jars"
 		}
 	},
 	
@@ -60,6 +77,11 @@ var rest = {
 			points : "/runtime/validation/points",
 			data : "/runtime/validation/data"
 		}
+	},
+	
+	health : {
+		get : "/health/get",
+		problems : "health/problems"
 	}
 		
 };

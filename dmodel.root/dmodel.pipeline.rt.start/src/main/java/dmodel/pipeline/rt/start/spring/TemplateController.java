@@ -30,6 +30,7 @@ public class TemplateController {
 	public String index(Model model) {
 		this.prepareModel(model, "overview");
 		model.addAttribute("fragment", ITemplateMapping.HOME_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.HOME_FRAGMENT_JS);
 
 		return "index";
 	}
@@ -52,13 +53,41 @@ public class TemplateController {
 		return "index";
 	}
 
-	@RequestMapping(value = { "/design/index", "/design/" }, method = RequestMethod.GET)
-	public String designTime(Model model) {
+	@RequestMapping(value = { "/config/conceptual" }, method = RequestMethod.GET)
+	public String configConceptuals(Model model) {
+		this.prepareModel(model, "config");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_CONCEPTUAL_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_CONCEPTUAL_FRAGMENT_JS);
+
+		return "index";
+	}
+
+	@RequestMapping(value = { "/design/system-extraction" }, method = RequestMethod.GET)
+	public String designTimeSystemExtraction(Model model) {
 		this.prepareModel(model, "design");
-		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_FRAGMENT);
-		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_FRAGMENT_JS);
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT_JS);
 
 		model.addAttribute("repo_path", configuration.getModels().getRepositoryPath());
+
+		return "index";
+	}
+
+	@RequestMapping(value = { "/design/scg-extraction" }, method = RequestMethod.GET)
+	public String designTimeSCGExtraction(Model model) {
+		this.prepareModel(model, "design");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_SCG_EXTRACTION_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_SCG_EXTRACTION_FRAGMENT_JS);
+		model.addAttribute("fragment_footer", ITemplateMapping.CONFIG_EMPTY_FOOTER_FRAGMENT);
+
+		return "index";
+	}
+
+	@RequestMapping(value = { "/design/instrumentation" }, method = RequestMethod.GET)
+	public String designTimeInstrumentation(Model model) {
+		this.prepareModel(model, "design");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_INSTRUMENTATION_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_INSTRUMENTATION_FRAGMENT_JS);
 
 		return "index";
 	}
@@ -101,8 +130,8 @@ public class TemplateController {
 	@RequestMapping(value = { "/validation/", "/validation/index" }, method = RequestMethod.GET)
 	public String validationData(Model model) {
 		this.prepareModel(model, "validation");
-		model.addAttribute("fragment", ITemplateMapping.CONFIG_MODELS_VALIDATION_FRAGMENT);
-		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_MODELS_VALIDATION_FRAGMENT_JS);
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_VALIDATION_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_VALIDATION_FRAGMENT_JS);
 
 		return "index";
 	}

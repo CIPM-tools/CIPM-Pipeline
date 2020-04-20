@@ -25,7 +25,7 @@ public class JsonServiceCallGraph {
 
 		scg.getNodes().forEach(n -> {
 			JsonServiceCallGraphNode nNode = new JsonServiceCallGraphNode();
-			nNode.setContainerName(n.getHost().getEntityName());
+			nNode.setContainerName(n.getHost() == null ? "" : n.getHost().getEntityName());
 			nNode.setId(n.getSeff().getId());
 			nNode.setName(n.getSeff().getDescribedService__SEFF().getEntityName());
 			nNode.setParentId(n.getSeff().getBasicComponent_ServiceEffectSpecification().getId());

@@ -1,5 +1,6 @@
 package dmodel.pipeline.rt.rest.dt;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import dmodel.pipeline.dt.system.pcm.impl.util.Xor;
 import dmodel.pipeline.dt.system.scg.ServiceCallGraphBuilder;
 import dmodel.pipeline.rt.rest.dt.async.BuildServiceCallGraphProcess;
 import dmodel.pipeline.rt.rest.dt.async.StartBuildingSystemProcess;
+import dmodel.pipeline.rt.rest.dt.data.scg.JsonProjectFilesResponse;
 import dmodel.pipeline.rt.rest.dt.data.scg.JsonServiceCallGraph;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingConflict;
 import dmodel.pipeline.rt.rest.dt.data.system.JsonBuildingStartMessage;
@@ -87,6 +89,20 @@ public class SystemBuildRestController {
 	// DATA
 	private boolean finishedBuilding = true;
 
+	@GetMapping("/design/system/scg/jars")
+	public String getPossibleJars() {
+		if (!configurationContainer.getProject().isValid()) {
+			return JsonUtil.wrapAsObject("success", false, false);
+		}
+
+		try {
+			return objectMapper.writeValueAsString(JsonProjectFilesResponse.from(
+					new File(configurationContainer.getProject().getRootPath()), f -> f.getName().endsWith(".jar")));
+		} catch (JsonProcessingException e) {
+			return JsonUtil.wrapAsObject("success", false, false);
+		}
+	}
+
 	@PostMapping("/design/system/scg/build")
 	public String buildSCG(@RequestParam String jarFiles, @RequestParam boolean extractMappingBefore) {
 		try {
@@ -101,11 +117,12 @@ public class SystemBuildRestController {
 			}
 
 			executorService.submit(new StackedRunnable(true, process));
+
+			return JsonUtil.wrapAsObject("success", true, false);
 		} catch (IOException e) {
 			log.warning("Jar files of the project could not be parsed.");
+			return JsonUtil.wrapAsObject("success", false, false);
 		}
-
-		return JsonUtil.emptyObject();
 	}
 
 	@GetMapping("/design/system/scg/get")

@@ -37,16 +37,24 @@ public class CentralVsumFacade implements ISpecificVsumFacade {
 
 	@Override
 	public <T extends EObject> void createdObject(T obj, VsumChangeSource source) {
-		CreateEObject<T> change = manager.getAtomicFactory().createCreateEObjectChange(obj);
-		change.setAffectedEObject(obj);
-		manager.propagateChange(change, source);
+		manager.executeTransaction(() -> {
+			CreateEObject<T> change = manager.getAtomicFactory().createCreateEObjectChange(obj);
+			change.setAffectedEObject(obj);
+			manager.propagateChange(change, source);
+
+			return null;
+		});
 	}
 
 	@Override
 	public <T extends EObject> void deletedObject(T obj, VsumChangeSource source) {
-		DeleteEObject<T> change = manager.getAtomicFactory().createDeleteEObjectChange(obj);
-		change.setAffectedEObject(obj);
-		manager.propagateChange(change, source);
+		manager.executeTransaction(() -> {
+			DeleteEObject<T> change = manager.getAtomicFactory().createDeleteEObjectChange(obj);
+			change.setAffectedEObject(obj);
+			manager.propagateChange(change, source);
+
+			return null;
+		});
 	}
 
 	@Override

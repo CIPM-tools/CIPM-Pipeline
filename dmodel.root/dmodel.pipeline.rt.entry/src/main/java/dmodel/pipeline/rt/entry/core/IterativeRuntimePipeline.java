@@ -88,7 +88,7 @@ public class IterativeRuntimePipeline
 		listeners.forEach(list -> list.iterationFinished());
 
 		// EVALUATION STUFF
-		if (EVALUATION) {
+		if (EVALUATION && monitoring != null) {
 			currentIteration++;
 
 			File evaluationBasePath = new File(EVALUATION_BASE_PATH);

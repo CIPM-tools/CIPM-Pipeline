@@ -72,6 +72,7 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 	public void triggerPipeline(S data) {
 		if (!checkPreconditions()) {
+			onIterationFinished(null);
 			return;
 		}
 		super.updateState();
@@ -94,6 +95,8 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 	protected synchronized void triggerEndpoint() {
 		if (reachedEndpoints.incrementAndGet() == this.endPoints.size()) {
+			super.updateState();
+
 			// we finished
 			running = false;
 			onIterationFinished(currentData.get());

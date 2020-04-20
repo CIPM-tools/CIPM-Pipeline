@@ -6,6 +6,8 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcm.usagemodel.UsageModel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeEnvironmentModel;
 import dmodel.pipeline.shared.ModelUtil;
@@ -25,6 +27,7 @@ public class ModelConfiguration {
 	private String correspondencePath = null;
 	private String runtimeEnvironmentPath = null;
 
+	@JsonIgnore
 	public boolean isValid() {
 		boolean repositoryValid = ModelUtil.validateModelPath(repositoryPath, Repository.class);
 		boolean systemValid = ModelUtil.validateModelPath(systemPath, System.class);

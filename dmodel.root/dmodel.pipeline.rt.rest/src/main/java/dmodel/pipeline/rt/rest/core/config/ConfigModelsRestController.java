@@ -103,7 +103,7 @@ public class ConfigModelsRestController {
 		}
 	}
 
-	@PostMapping
+	@PostMapping("/config/models/inm/init")
 	public String initializeInstrumentationModel() {
 		this.enrichInitialInstrumentationModel(modelContainer.getInstrumentation());
 		return JsonUtil.wrapAsObject("success", true, false);
@@ -111,7 +111,7 @@ public class ConfigModelsRestController {
 
 	private void enrichInitialInstrumentationModel(InstrumentationModel instrumentationModel) {
 		// create an initial instrumentation model
-		if (instrumentationModel.getPoints().size() == 0) {
+		if (instrumentationModel != null && instrumentationModel.getPoints().size() == 0) {
 			InstrumentationModelUtil.enrichInitialInstrumentationModel(instrumentationModel,
 					modelContainer.getRepository());
 			propagateInitialInstrumentationModelChanges(instrumentationModel);

@@ -5,8 +5,6 @@ var configuration = {};
 var treeId = "#sourcetree";
 var saveId = "#save";
 var pathId = "#path";
-var instrPathId = "#instr_path";
-var corrPath = "#corr_path";
 
 $(document).ready(function() {
 	configurePathAjax();
@@ -22,9 +20,7 @@ function configureSaveAjax() {
 	$(saveId).click(function() {
 		var nConfig = {
 			"projectPath" : $(pathId).val(),
-			"instrumentedPath" : $(instrPathId).val(),
-			"sourceFolders" : getCurrentSourceFolders(),
-			"correspondencePath" : $(corrPath).val()
+			"sourceFolders" : getCurrentSourceFolders()
 		};
 		$.postJSON(rest.config.project.save, {
 			"config" : JSON.stringify(nConfig)
@@ -62,13 +58,9 @@ function getCurrentConfig() {
 		configuration = data;
 
 		$(pathId).val(data.projectPath == null ? "" : data.projectPath);
-		$(instrPathId).val(
-				data.instrumentedPath == null ? "" : data.instrumentedPath);
-		$(corrPath).val(data.correspondencePath == null ? "" : data.correspondencePath);
 
 		// refresh
 		pathValueChanged();
-		corrPathChanged();
 
 		setTimeout(function() {
 			sourceFoldersChanged("/");
@@ -108,15 +100,6 @@ function markFolder(srcFolderArr) {
 
 function configurePathAjax() {
 	$(pathId).change(pathValueChanged);
-	$(corrPath).change(corrPathChanged);
-}
-
-function corrPathChanged() {
-	$.postJSON(rest.config.project.validateCorr, {
-		"path" : $(corrPath).val()
-	}, function(data) {
-		applyTick("#corr_image", data.success);
-	});
 }
 
 function pathValueChanged() {

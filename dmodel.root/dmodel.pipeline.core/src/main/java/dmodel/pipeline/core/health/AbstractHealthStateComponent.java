@@ -37,19 +37,24 @@ public abstract class AbstractHealthStateComponent implements InitializingBean {
 	protected abstract void onMessage(HealthStateObservedComponent source, HealthState state);
 
 	protected void sendStateMessage(HealthStateObservedComponent to) {
-		healthStateManager.getRegisteredComponent(to).onMessage(component, healthStateManager.getState(component));
+		healthStateManager.sendMessage(component, to, healthStateManager.getState(component));
 	}
 
 	protected boolean checkPreconditions() {
+		List<HealthStateObservedComponent> probs = checkDependencies(dependencies);
+		if (probs.size() > 0) {
+			// we have an old one
+			if (this.dependencyProblem.isPresent()) {
+				return false;
+			}
+
+			this.reportDependencyProblem(probs);
+			return false;
+		}
+
 		// remove old one
 		if (this.dependencyProblem.isPresent()) {
 			this.removeProblem(this.dependencyProblem.get());
-		}
-
-		List<HealthStateObservedComponent> probs = checkDependencies(dependencies);
-		if (probs.size() > 0) {
-			this.reportDependencyProblem(probs);
-			return false;
 		}
 
 		return true;
@@ -74,6 +79,7 @@ public abstract class AbstractHealthStateComponent implements InitializingBean {
 				.severity(HealthStateProblemSeverity.ERROR).build();
 
 		this.dependencyProblem = Optional.of(this.reportProblem(nProblem));
+		this.updateState();
 	}
 
 	protected boolean checkDependenciesSimple(HealthStateObservedComponent... dependencies) {

@@ -30,6 +30,7 @@ public class ValidationFeedbackComponent extends AbstractHealthStateComponent im
 	private List<IValidationMetric<?>> metrics;
 
 	private boolean workingBefore = false;
+	private boolean initial = true;
 
 	public ValidationFeedbackComponent() {
 		super(HealthStateObservedComponent.VALIDATION_CONTROLLER, HealthStateObservedComponent.CONFIGURATION);
@@ -38,14 +39,18 @@ public class ValidationFeedbackComponent extends AbstractHealthStateComponent im
 	@Scheduled(fixedRate = 10000L, initialDelay = 0)
 	public void checkAvailability() {
 		if (checkPreconditions()) {
-			if (simulator.isReachable() && !workingBefore) {
+			boolean reachable = simulator.isReachable();
+			if (reachable && !workingBefore) {
 				super.removeAllProblems();
 				super.updateState();
 				workingBefore = true;
-			} else if (workingBefore) {
-				super.reportError("Headless PCM simulator is not reachable. Please check your configuration.");
+				initial = false;
+			} else if (!reachable && (workingBefore || initial)) {
+				super.reportError(
+						"Headless PCM simulator is not reachable. Please check your configuration and/or the availability of the headless simulator.");
 				super.updateState();
 				workingBefore = false;
+				initial = false;
 			}
 		}
 	}

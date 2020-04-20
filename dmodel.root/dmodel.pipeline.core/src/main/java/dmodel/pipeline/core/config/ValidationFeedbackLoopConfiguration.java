@@ -44,6 +44,7 @@ public class ValidationFeedbackLoopConfiguration {
 		this.changeListener.add(list);
 	}
 
+	@JsonIgnore
 	public boolean isValid() {
 		return url != null && port > 0 && port < 65535 && simulationTime > 0 && validationShare >= 0
 				&& validationShare <= 1;

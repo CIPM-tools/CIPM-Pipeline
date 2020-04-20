@@ -21,6 +21,7 @@ import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,6 +35,7 @@ import dmodel.pipeline.shared.pcm.util.deprecation.IDeprecationProcessor;
 import dmodel.pipeline.shared.pcm.util.system.PCMSystemUtil;
 import dmodel.pipeline.shared.structure.DirectedGraph;
 
+@Component
 public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	@Autowired
 	private IPcmModelProvider pcmModelProvider;

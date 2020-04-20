@@ -20,7 +20,6 @@ import com.google.common.io.Files;
 
 import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.core.ISpecificModelProvider;
-import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;
 import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
@@ -57,9 +56,6 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 	@Autowired
 	private IPcmModelProvider pcmModelContainer;
-
-	@Autowired
-	private ConfigurationContainer configurationContainer;
 
 	@Autowired
 	private ISpecificModelProvider specificModelContainer;

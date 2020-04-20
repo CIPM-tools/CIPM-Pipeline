@@ -91,7 +91,7 @@ public class ModelUtil {
 
 	public static boolean validateModelPath(String path, Class<? extends EObject> type) {
 		if (path == null || path.isEmpty())
-			return true;
+			return false;
 		File file = new File(path);
 		if (file.exists()) {
 			try {

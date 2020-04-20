@@ -43,6 +43,8 @@ public class ProjectManager extends AbstractHealthStateComponent {
 		this.applicationProject.setSourceFolders(configuration.getProject().getSourceFolders());
 
 		this.parsedApplicationProject = new ParsedApplicationProject(applicationProject);
+
+		super.updateState();
 	}
 
 }

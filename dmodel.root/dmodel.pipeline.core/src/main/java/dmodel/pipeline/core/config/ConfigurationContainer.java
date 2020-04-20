@@ -3,6 +3,8 @@ package dmodel.pipeline.core.config;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.PostConstruct;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +44,11 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 		super(HealthStateObservedComponent.CONFIGURATION);
 	}
 
+	@PostConstruct
+	public void initialValidation() {
+		this.validateConfiguration();
+	}
+
 	public void validateConfiguration() {
 		this.removeAllProblems();
 
@@ -63,6 +70,8 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 			super.reportError("The configuration of the validation feedback loop (VFL) is not valid.");
 		}
 
+		super.updateState();
+
 		if (projectValid && modelsValid && entryValid && vflValid) {
 			this.sendStateMessage(HealthStateObservedComponent.MODEL_MANAGER);
 			this.sendStateMessage(HealthStateObservedComponent.PROJECT_MANAGER);
@@ -70,6 +79,8 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 	}
 
 	public boolean syncWithFilesystem() {
+		this.validateConfiguration();
+
 		writer.findAndRegisterModules();
 		try {
 			writer.writeValue(fileBackedPath, this);

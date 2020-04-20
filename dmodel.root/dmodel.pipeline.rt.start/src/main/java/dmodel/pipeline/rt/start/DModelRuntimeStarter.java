@@ -27,11 +27,13 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.core.impl.CentralModelAdminstrator;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModelPackage;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.REModelPackage;
 import dmodel.pipeline.shared.correspondence.CorrespondenceUtil;
 import dmodel.pipeline.shared.pcm.util.PCMUtils;
 
 @SpringBootApplication
-@ComponentScan(basePackages = "dmodel.pipeline")
+@ComponentScan(basePackages = { "dmodel.pipeline", "mir.reactions", "mir.routines" })
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties
@@ -48,10 +50,6 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		// load our emf models
-		PCMUtils.loadPCMModels();
-		CorrespondenceUtil.initVitruv();
-
 		// load models into blackboard
 		modelContainer.loadArchitectureModel(config.getModels());
 	}
@@ -79,6 +77,12 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 
 	@Bean
 	public ConfigurationContainer loadConfiguration() {
+		// load our emf models
+		PCMUtils.loadPCMModels();
+		CorrespondenceUtil.initVitruv();
+		InstrumentationModelPackage.eINSTANCE.eClass();
+		REModelPackage.eINSTANCE.eClass();
+
 		File configFile = new File(configPath);
 		if (!configFile.exists()) {
 			return null;

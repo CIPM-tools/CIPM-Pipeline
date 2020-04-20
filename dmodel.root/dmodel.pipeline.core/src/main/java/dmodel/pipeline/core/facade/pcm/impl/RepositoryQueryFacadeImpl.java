@@ -9,12 +9,14 @@ import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.pcm.headless.api.util.PCMUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import de.uka.ipd.sdq.identifier.Identifier;
 import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.pipeline.shared.pcm.util.repository.PCMRepositoryUtil;
 
+@Component
 public class RepositoryQueryFacadeImpl implements IRepositoryQueryFacade {
 	@Autowired
 	private IPcmModelProvider pcmModelProvider;

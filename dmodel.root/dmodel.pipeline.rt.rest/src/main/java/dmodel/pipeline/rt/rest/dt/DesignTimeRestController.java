@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateManager;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.instrumentation.manager.InstrumentationManager;
 import dmodel.pipeline.instrumentation.manager.ProjectManager;
 import dmodel.pipeline.instrumentation.mapping.IAutomatedMappingResolver;
@@ -43,11 +46,18 @@ public class DesignTimeRestController {
 	@Autowired
 	private VsumManager vsumManager;
 
+	@Autowired
+	private HealthStateManager healthStateManager;
+
 	// current holders
 	private InstrumentationStatus instrumentationStatus = InstrumentationStatus.NOT_AVAILABLE;
 
 	@PostMapping("/design/mapping/resolve")
 	public String resolveMappingFromCode() {
+		if (healthStateManager.getState(HealthStateObservedComponent.CONFIGURATION) != HealthState.WORKING) {
+			return JsonUtil.wrapAsObject("success", false, false);
+		}
+
 		mappingResolver.resolveMappings(projectManager.getParsedApplicationProject(),
 				vsumManager.getJavaCorrespondences());
 
