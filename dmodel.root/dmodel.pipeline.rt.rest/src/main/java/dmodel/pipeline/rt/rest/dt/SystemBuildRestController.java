@@ -116,7 +116,8 @@ public class SystemBuildRestController {
 				designTimeRestController.resolveMappingFromCode();
 			}
 
-			executorService.submit(new StackedRunnable(true, process));
+			// blocking
+			process.run();
 
 			return JsonUtil.wrapAsObject("success", true, false);
 		} catch (IOException e) {

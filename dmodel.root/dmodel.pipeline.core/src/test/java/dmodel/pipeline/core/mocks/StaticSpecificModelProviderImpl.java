@@ -28,11 +28,6 @@ public class StaticSpecificModelProviderImpl implements ISpecificModelProvider {
 		return cps;
 	}
 
-	@Override
-	public void swapCorrespondenceModel(Correspondences buildStorableCorrespondeces) {
-		this.cps = buildStorableCorrespondeces;
-	}
-
 	public void setModels(InstrumentationModel inm, RuntimeEnvironmentModel rem, Correspondences cps) {
 		this.inm = inm == null ? InstrumentationModelFactory.eINSTANCE.createInstrumentationModel() : inm;
 		this.rem = rem == null ? REModelFactory.eINSTANCE.createRuntimeEnvironmentModel() : rem;

@@ -27,9 +27,10 @@ public class PerformanceEvaluation {
 		start = System.nanoTime();
 	}
 
-	public void exitPipelineExecution() {
+	public void exitPipelineExecution(boolean success) {
 		if (currentTrack != null) {
 			currentTrack.setExecutionTimeCumulated(System.nanoTime() - start);
+			currentTrack.setSuccess(success);
 			data.getExecutionData().add(currentTrack);
 			currentTrack = null;
 		}

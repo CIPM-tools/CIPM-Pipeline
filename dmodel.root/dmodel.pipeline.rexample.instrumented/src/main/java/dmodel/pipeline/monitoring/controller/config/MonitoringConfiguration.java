@@ -2,7 +2,7 @@ package dmodel.pipeline.monitoring.controller.config;
 
 public interface MonitoringConfiguration {
 
-    String SERVER_HOSTNAME = "localhost";
+    String SERVER_HOSTNAME = "192.168.178.44";
 
     String SERVER_REST_INM_URL = "/runtime/pipeline/imm";
 

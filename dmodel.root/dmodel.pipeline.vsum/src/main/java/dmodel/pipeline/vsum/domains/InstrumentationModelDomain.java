@@ -24,4 +24,9 @@ public class InstrumentationModelDomain extends AbstractTuidAwareVitruvDomain {
 	public boolean isUserVisible() {
 		return false;
 	}
+
+	@Override
+	public boolean supportsUuids() {
+		return true;
+	}
 }

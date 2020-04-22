@@ -40,4 +40,9 @@ public class ExtendedPcmDomain extends AbstractTuidAwareVitruvDomain {
 		return new VitruviusEmfBuilderApplicator();
 	}
 
+	@Override
+	public boolean supportsUuids() {
+		return true;
+	}
+
 }

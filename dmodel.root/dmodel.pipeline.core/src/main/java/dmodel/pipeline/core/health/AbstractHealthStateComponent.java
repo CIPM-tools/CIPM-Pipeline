@@ -131,9 +131,13 @@ public abstract class AbstractHealthStateComponent implements InitializingBean {
 		return id;
 	}
 
+	protected long reportProblem(String msg, HealthStateProblemSeverity severity) {
+		return this.reportProblem(
+				HealthStateProblem.builder().description(msg).severity(severity).source(component).build());
+	}
+
 	protected long reportError(String text) {
-		return this.reportProblem(HealthStateProblem.builder().description(text)
-				.severity(HealthStateProblemSeverity.ERROR).source(component).build());
+		return this.reportProblem(text, HealthStateProblemSeverity.ERROR);
 	}
 
 	protected HealthStateProblem.HealthStateProblemBuilder buildHealthStateProblem() {

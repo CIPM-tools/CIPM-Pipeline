@@ -85,8 +85,10 @@ public class ServiceCallGraphProcessor {
 	}
 
 	private void searchEntryNodes() {
-		this.entryNodes = scg.getNodes().stream()
-				.filter(n -> !scg.getIncomingEdges().containsKey(n) || scg.getIncomingEdges().get(n).size() == 0)
-				.collect(Collectors.toList());
+		if (scg != null) {
+			this.entryNodes = scg.getNodes().stream()
+					.filter(n -> !scg.getIncomingEdges().containsKey(n) || scg.getIncomingEdges().get(n).size() == 0)
+					.collect(Collectors.toList());
+		}
 	}
 }

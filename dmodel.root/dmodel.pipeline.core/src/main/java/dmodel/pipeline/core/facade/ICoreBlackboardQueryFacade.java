@@ -11,7 +11,7 @@ public interface ICoreBlackboardQueryFacade extends IResettableQueryFacade {
 	// performance tracking events
 	public void trackStartPipelineExecution();
 
-	public void trackEndPipelineExecution();
+	public void trackEndPipelineExecution(boolean success);
 
 	public void track(ExecutionMeasuringPoint point);
 

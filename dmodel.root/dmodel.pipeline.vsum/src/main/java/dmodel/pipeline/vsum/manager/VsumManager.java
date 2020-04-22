@@ -2,20 +2,26 @@ package dmodel.pipeline.vsum.manager;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 import dmodel.pipeline.core.IPcmModelProvider;
@@ -23,8 +29,8 @@ import dmodel.pipeline.core.ISpecificModelProvider;
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;
 import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
+import dmodel.pipeline.core.health.HealthStateProblemSeverity;
 import dmodel.pipeline.shared.ModelUtil;
-import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 import dmodel.pipeline.vsum.domains.java.JavaCorrespondenceModelImpl;
 import dmodel.pipeline.vsum.mapping.VsumMappingPersistence;
 import lombok.Getter;
@@ -35,12 +41,19 @@ import tools.vitruv.framework.change.description.VitruviusChangeFactory;
 import tools.vitruv.framework.change.echange.EChange;
 import tools.vitruv.framework.change.echange.TypeInferringAtomicEChangeFactory;
 import tools.vitruv.framework.change.echange.TypeInferringUnresolvingAtomicEChangeFactory;
+import tools.vitruv.framework.correspondence.Correspondence;
 import tools.vitruv.framework.correspondence.CorrespondenceModel;
+import tools.vitruv.framework.correspondence.Correspondences;
+import tools.vitruv.framework.correspondence.impl.GenericCorrespondenceModelViewImpl;
+import tools.vitruv.framework.correspondence.impl.InternalCorrespondenceModelImpl;
 import tools.vitruv.framework.domains.VitruvDomain;
 import tools.vitruv.framework.domains.VitruvDomainProvider;
+import tools.vitruv.framework.domains.repository.VitruvDomainRepository;
+import tools.vitruv.framework.tuid.TuidResolver;
 import tools.vitruv.framework.userinteraction.UserInteractionFactory;
 import tools.vitruv.framework.util.bridges.EMFBridge;
 import tools.vitruv.framework.util.datatypes.VURI;
+import tools.vitruv.framework.uuid.UuidGeneratorAndResolver;
 import tools.vitruv.framework.vsum.InternalVirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelImpl;
@@ -69,16 +82,31 @@ public class VsumManager extends AbstractHealthStateComponent {
 	private TypeInferringAtomicEChangeFactory atomicFactory;
 
 	@Getter
-	private IJavaPCMCorrespondenceModel javaCorrespondences;
+	private JavaCorrespondenceModelImpl javaCorrespondences;
+
+	@Getter
+	private VitruvDomainRepository domainRepository;
+
+	@Getter
+	private UuidGeneratorAndResolver uuidGeneratorAndResolver;
+
+	@Getter
+	private TuidResolver tuidResolver;
+
+	@Getter
+	private Map<String, List<EObject>> fileExtensionPathMapping;
 
 	// pure internal
 	private List<File> usedFiles;
 	private Map<VsumChangeSource, VURI> vuriMapping;
+	private Set<String> currentCorrespondences;
 
 	public VsumManager() {
 		super(HealthStateObservedComponent.VSUM_MANAGER, HealthStateObservedComponent.MODEL_MANAGER);
 		this.usedFiles = new ArrayList<>();
 		this.vuriMapping = Maps.newHashMap();
+		this.currentCorrespondences = Sets.newHashSet();
+		this.fileExtensionPathMapping = Maps.newHashMap();
 	}
 
 	public void executeTransaction(Callable<Void> cb) {
@@ -88,10 +116,6 @@ public class VsumManager extends AbstractHealthStateComponent {
 	public void propagateChange(EChange change, VsumChangeSource source) {
 		this.vsum.propagateChange(
 				VitruviusChangeFactory.getInstance().createConcreteChangeWithVuri(change, vuriMapping.get(source)));
-
-		// persist the mapping
-		specificModelContainer
-				.swapCorrespondenceModel(persistence.buildStorableCorrespondeces(getCorrespondenceModel()));
 	}
 
 	public CorrespondenceModel getCorrespondenceModel() {
@@ -142,12 +166,36 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 	private void finalizeVsum() {
 		atomicFactory = new TypeInferringUnresolvingAtomicEChangeFactory(vsum.getUuidGeneratorAndResolver());
+		uuidGeneratorAndResolver = vsum.getUuidGeneratorAndResolver();
+		updateCorrespondenceChecksums();
+
+		Field domainRepositoryField = FieldUtils.getField(VirtualModelImpl.class, "metamodelRepository", true);
+		Field tuidResolverField = FieldUtils.getField(InternalCorrespondenceModelImpl.class, "tuidResolver", true);
+		Field cpmDelegate = FieldUtils.getField(GenericCorrespondenceModelViewImpl.class, "correspondenceModelDelegate",
+				true);
+
+		try {
+			Object repository = domainRepositoryField.get(vsum);
+			Object delegate = cpmDelegate.get(vsum.getCorrespondenceModel());
+			Object resolver = tuidResolverField.get(delegate);
+
+			if (repository instanceof VitruvDomainRepository && resolver instanceof TuidResolver) {
+				this.domainRepository = (VitruvDomainRepository) repository;
+				this.tuidResolver = (TuidResolver) resolver;
+				super.removeAllProblems();
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			log.warning("Failed to get fields of the VSUM via reflection.");
+			super.reportProblem("Unable to access the fields of the VSUM.", HealthStateProblemSeverity.WARNING);
+		}
 
 		vsum.save();
 	}
 
 	private void tearDownVSUM() {
 		vuriMapping.clear();
+		fileExtensionPathMapping.clear();
+
 		if (vsum != null) {
 			log.info("Tear down current VSUM.");
 			try {
@@ -204,8 +252,56 @@ public class VsumManager extends AbstractHealthStateComponent {
 		// init java correspondence
 		javaCorrespondences = new JavaCorrespondenceModelImpl();
 
-		// TODO reload the mapping from files
-		// TODO outsource
+		// reload the mapping from files
+		persistence.recoverCorresondences(vsum.getCorrespondenceModel(), specificModelContainer.getCorrespondences(),
+				javaCorrespondences);
+
+		// register events
+		javaCorrespondences.addListener(v -> persistMapping());
+		vsum.addPropagatedChangeListener((a, b, c, d) -> checkCorrespondenceChanges());
+	}
+
+	private void checkCorrespondenceChanges() {
+		if (correspondenceChecksumsChanged()) {
+			persistMapping();
+			updateCorrespondenceChecksums();
+		}
+	}
+
+	private boolean correspondenceChecksumsChanged() {
+		if (this.currentCorrespondences.size() == vsum.getCorrespondenceModel().getAllCorrespondences().size()) {
+			return vsum.getCorrespondenceModel().getAllCorrespondences().stream().map(c -> getCorrespondenceChecksum(c))
+					.anyMatch(checksum -> !currentCorrespondences.contains(checksum));
+		} else {
+			return true;
+		}
+	}
+
+	private void updateCorrespondenceChecksums() {
+		this.currentCorrespondences.clear();
+		vsum.getCorrespondenceModel().getAllCorrespondences().forEach(c -> {
+			this.currentCorrespondences.add(getCorrespondenceChecksum(c));
+		});
+	}
+
+	private String getCorrespondenceChecksum(Correspondence cp) {
+		StringBuilder builder = new StringBuilder();
+		cp.getATuids().forEach(a -> builder.append("#" + a.toString()));
+		cp.getAUuids().forEach(a -> builder.append("#" + a));
+		builder.append("||");
+		cp.getBTuids().forEach(b -> builder.append("#" + b.toString()));
+		cp.getBUuids().forEach(b -> builder.append("#" + b));
+
+		return DigestUtils.sha256Hex(builder.toString());
+	}
+
+	private void persistMapping() {
+		// build persistables
+		Correspondences storable = persistence.buildStorableCorrespondeces(vsum.getCorrespondenceModel(),
+				javaCorrespondences);
+
+		// set the correspondences which leads to a flush to the file
+		persistence.setCorrespondences(specificModelContainer.getCorrespondences(), storable);
 	}
 
 	private synchronized void persistVirtual(EObject model, String suffix, VsumChangeSource source) {
@@ -218,6 +314,14 @@ public class VsumManager extends AbstractHealthStateComponent {
 		} catch (IOException e) {
 			log.severe("Failed to create temporary files for the VSUM models.");
 			return;
+		}
+
+		// map to extension
+		String fileExtension = suffix.substring(1);
+		if (fileExtensionPathMapping.containsKey(fileExtension)) {
+			fileExtensionPathMapping.get(fileExtension).add(model);
+		} else {
+			fileExtensionPathMapping.put(fileExtension, Lists.newArrayList(model));
 		}
 
 		// write the system to the file

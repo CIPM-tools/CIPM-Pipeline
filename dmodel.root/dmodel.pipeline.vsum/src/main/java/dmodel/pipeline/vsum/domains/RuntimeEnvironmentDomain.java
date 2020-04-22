@@ -25,4 +25,9 @@ public class RuntimeEnvironmentDomain extends AbstractTuidAwareVitruvDomain {
 		return false;
 	}
 
+	@Override
+	public boolean supportsUuids() {
+		return true;
+	}
+
 }

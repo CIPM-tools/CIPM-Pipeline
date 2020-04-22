@@ -29,7 +29,7 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	private Cache<String, AllocationContext> allocationContextIdCache = new Cache2kBuilder<String, AllocationContext>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
-	private Cache<AssemblyContext, AllocationContext> assemblyDeploymentCache = new Cache2kBuilder<AssemblyContext, AllocationContext>() {
+	private Cache<String, AllocationContext> assemblyDeploymentCache = new Cache2kBuilder<String, AllocationContext>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
 	// this cache is used very often so it is designed to be high-performance
@@ -49,20 +49,20 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 
 	@Override
 	public void undeployAssembly(AssemblyContext ctx) {
-		if (assemblyDeploymentCache.containsKey(ctx)) {
-			this.removeAllocationContext(assemblyDeploymentCache.get(ctx));
+		if (assemblyDeploymentCache.containsKey(ctx.getId())) {
+			this.removeAllocationContext(assemblyDeploymentCache.get(ctx.getId()));
 		}
 	}
 
 	@Override
 	public boolean isDeployed(AssemblyContext ac) {
-		return assemblyDeploymentCache.containsKey(ac);
+		return assemblyDeploymentCache.containsKey(ac.getId());
 	}
 
 	@Override
 	public ResourceContainer getContainerByAssembly(AssemblyContext asCtx) {
-		if (assemblyDeploymentCache.containsKey(asCtx)) {
-			return assemblyDeploymentCache.get(asCtx).getResourceContainer_AllocationContext();
+		if (assemblyDeploymentCache.containsKey(asCtx.getId())) {
+			return assemblyDeploymentCache.get(asCtx.getId()).getResourceContainer_AllocationContext();
 		}
 		return null;
 	}
@@ -79,8 +79,8 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 
 	@Override
 	public void deleteAllocation(AssemblyContext da) {
-		if (assemblyDeploymentCache.containsKey(da)) {
-			AllocationContext correspondingCtx = assemblyDeploymentCache.get(da);
+		if (assemblyDeploymentCache.containsKey(da.getId())) {
+			AllocationContext correspondingCtx = assemblyDeploymentCache.get(da.getId());
 			removeAllocationContext(correspondingCtx);
 		}
 	}
@@ -99,7 +99,7 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 
 	private void importAllocationContext(AllocationContext ctx) {
 		allocationContextIdCache.put(ctx.getId(), ctx);
-		assemblyDeploymentCache.put(ctx.getAssemblyContext_AllocationContext(), ctx);
+		assemblyDeploymentCache.put(ctx.getAssemblyContext_AllocationContext().getId(), ctx);
 
 		Pair<String, String> queryPair = generateQueryPair(ctx);
 		if (componentContainerQueryCache.containsKey(queryPair)) {
@@ -113,7 +113,7 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		pcmModelProvider.getAllocation().getAllocationContexts_Allocation().remove(ctx);
 
 		allocationContextIdCache.remove(ctx.getId());
-		assemblyDeploymentCache.remove(ctx.getAssemblyContext_AllocationContext());
+		assemblyDeploymentCache.remove(ctx.getAssemblyContext_AllocationContext().getId());
 		componentContainerQueryCache.get(generateQueryPair(ctx)).remove(ctx.getAssemblyContext_AllocationContext());
 	}
 

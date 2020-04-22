@@ -49,7 +49,7 @@ public abstract class AbstractPipelineTestBase extends VsumManagerTestBase {
 
 	@After
 	public void endMeasuring() {
-		performanceEval.exitPipelineExecution();
+		performanceEval.exitPipelineExecution(true);
 	}
 
 	protected boolean modelsEqual(EObject o1, EObject o2) {

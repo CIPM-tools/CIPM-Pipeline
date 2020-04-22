@@ -39,9 +39,17 @@ public class ServiceCallGraphBuilder extends AbstractHealthStateComponent implem
 	}
 
 	public ServiceCallGraph buildServiceCallGraph(List<File> jarFiles) {
-		this.currentServiceCallGraph = compositionAnalyzer.deriveSystemComposition(
-				projectManager.getParsedApplicationProject(), jarFiles, repository,
-				vsumManager.getJavaCorrespondences());
+		try {
+			this.currentServiceCallGraph = compositionAnalyzer.deriveSystemComposition(
+					projectManager.getParsedApplicationProject(), jarFiles, repository,
+					vsumManager.getJavaCorrespondences());
+			super.removeAllProblems();
+		} catch (Exception e) {
+			super.reportError(
+					"Service-Call-Graph extraction failed to due to a faulty configuration of the project or the binary JAR files.");
+		}
+		super.updateState();
+
 		return this.currentServiceCallGraph;
 	}
 

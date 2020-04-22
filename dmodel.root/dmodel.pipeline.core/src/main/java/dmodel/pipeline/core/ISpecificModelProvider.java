@@ -12,6 +12,4 @@ public interface ISpecificModelProvider {
 
 	Correspondences getCorrespondences();
 
-	void swapCorrespondenceModel(Correspondences buildStorableCorrespondeces);
-
 }

@@ -1,11 +1,16 @@
 package dmodel.pipeline.rt.start.spring;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import dmodel.pipeline.core.ICallGraphProvider;
 import dmodel.pipeline.core.config.ConfigurationContainer;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.start.spring.config.ITemplateMapping;
@@ -25,6 +30,12 @@ public class TemplateController {
 
 	@Autowired
 	private TemplateHelper helper;
+
+	@Autowired
+	private ServerProperties serverProperties;
+
+	@Autowired
+	private ICallGraphProvider callGraphProvider;
 
 	@RequestMapping(value = { "/", "/index" }, method = RequestMethod.GET)
 	public String index(Model model) {
@@ -68,7 +79,10 @@ public class TemplateController {
 		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT);
 		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT_JS);
 
-		model.addAttribute("repo_path", configuration.getModels().getRepositoryPath());
+		model.addAttribute("scg_nodes",
+				callGraphProvider.callGraphPresent() ? callGraphProvider.provideCallGraph().getNodes().size() : 0);
+		model.addAttribute("scg_edges",
+				callGraphProvider.callGraphPresent() ? callGraphProvider.provideCallGraph().getEdges().size() : 0);
 
 		return "index";
 	}
@@ -88,6 +102,14 @@ public class TemplateController {
 		this.prepareModel(model, "design");
 		model.addAttribute("fragment", ITemplateMapping.CONFIG_DESIGNTIME_INSTRUMENTATION_FRAGMENT);
 		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_DESIGNTIME_INSTRUMENTATION_FRAGMENT_JS);
+
+		try {
+			InetAddress localAddress = InetAddress.getLocalHost();
+			model.addAttribute("default_inm", "http://" + localAddress.getHostAddress() + ":"
+					+ serverProperties.getPort() + "/runtime/pipeline/imm");
+		} catch (UnknownHostException e) {
+			model.addAttribute("default_inm", "Unknown");
+		}
 
 		return "index";
 	}

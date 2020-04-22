@@ -67,13 +67,6 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 	}
 
 	@Override
-	public void swapCorrespondenceModel(Correspondences _new) {
-		FileBackedModelUtil.clear(instrumentationModel);
-		this.correspondenceModel = _new;
-		FileBackedModelUtil.synchronize(correspondenceModel, correspondenceModelFile, Correspondences.class);
-	}
-
-	@Override
 	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
 		if (source == HealthStateObservedComponent.CONFIGURATION && state == HealthState.WORKING) {
 			loadArchitectureModel(configuration.getModels());

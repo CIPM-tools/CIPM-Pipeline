@@ -43,8 +43,11 @@ var rest = {
 	},
 	
 	design : {
-		instrument : "/design/instrument",
-		instrumentStatus : "/design/instrument/status",
+		instrumentation : {
+			instrument : "/design/instrument",
+			status : "/design/instrument/status",
+			validate : "/design/instrument/validate"
+		},
 		
 		repository : {
 			get : "/design/system/repository/get"

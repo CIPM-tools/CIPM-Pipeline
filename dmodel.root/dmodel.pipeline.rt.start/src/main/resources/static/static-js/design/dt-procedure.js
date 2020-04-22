@@ -92,7 +92,7 @@ function finishBuildingProcedure() {
 
 	// finish
 	setTimeout(function() {
-		window.location.href = "/design/";
+		window.location.href = "/design/system-extraction.html";
 	}, 3000);
 }
 

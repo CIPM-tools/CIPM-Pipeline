@@ -1,6 +1,7 @@
 package dmodel.pipeline.rt.entry.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -8,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
+import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
@@ -32,6 +35,7 @@ public class IterativeRuntimePipeline
 	private static final String EVALUATION_BASE_PATH = "evaluation";
 	private static final String EVALUATION_MODELS_BASE_PATH = "models";
 	private static final String EVALUATION_MONITORING_BASE_PATH = "monitoring";
+	private static final String EVALUATION_PERFORMANCE_PATH = "performance";
 
 	private static final String EVALUATION_PATH_MONITORING_ALL = "all/";
 	private static final String EVALUATION_PATH_MONITORING_TRAINING = "training/";
@@ -45,6 +49,12 @@ public class IterativeRuntimePipeline
 
 	@Autowired
 	private ApplicationContext applicationContext;
+
+	@Autowired
+	private PerformanceEvaluation performanceEvaluation;
+
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	private List<IterativeRuntimePipelineListener> listeners;
 
@@ -80,8 +90,8 @@ public class IterativeRuntimePipeline
 	}
 
 	@Override
-	protected void onIterationFinished(PartitionedMonitoringData<IMonitoringRecord> monitoring) {
-		blackboard.getQuery().trackEndPipelineExecution();
+	protected void onIterationFinished(PartitionedMonitoringData<IMonitoringRecord> monitoring, boolean success) {
+		blackboard.getQuery().trackEndPipelineExecution(success);
 		log.info("Finished execution of the pipeline.");
 
 		// listeners
@@ -94,12 +104,24 @@ public class IterativeRuntimePipeline
 			File evaluationBasePath = new File(EVALUATION_BASE_PATH);
 			File monitoringPath = new File(evaluationBasePath, EVALUATION_MONITORING_BASE_PATH);
 			File modelPath = new File(evaluationBasePath, EVALUATION_MODELS_BASE_PATH);
+			File performancePath = new File(evaluationBasePath, EVALUATION_PERFORMANCE_PATH);
 
 			if (!monitoringPath.exists()) {
 				monitoringPath.mkdirs();
 			}
 			if (!modelPath.exists()) {
 				modelPath.mkdirs();
+			}
+			if (!performancePath.exists()) {
+				performancePath.mkdirs();
+			}
+
+			// save performance details
+			File performanceFile = new File(performancePath, "performance.json");
+			try {
+				objectMapper.writeValue(performanceFile, performanceEvaluation.getData());
+			} catch (IOException e) {
+				log.warning("[EVALUATION] Failed to save performance details of the pipeline.");
 			}
 
 			// save models

@@ -29,6 +29,7 @@ public class ExecutionData {
 	private int usageScenarios;
 
 	private boolean executedPath;
+	private boolean success;
 
 	public void trackPoint(ExecutionMeasuringPoint point) {
 		if (!measuringPoints.containsKey(point)) {

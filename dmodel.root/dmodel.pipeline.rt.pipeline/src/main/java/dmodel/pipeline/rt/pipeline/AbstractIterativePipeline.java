@@ -63,7 +63,7 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 	public abstract void initBlackboard();
 
-	protected abstract void onIterationFinished(S data);
+	protected abstract void onIterationFinished(S data, boolean success);
 
 	@Override
 	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
@@ -72,7 +72,7 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 	public void triggerPipeline(S data) {
 		if (!checkPreconditions()) {
-			onIterationFinished(null);
+			onIterationFinished(null, false);
 			return;
 		}
 		super.updateState();
@@ -99,7 +99,7 @@ public abstract class AbstractIterativePipeline<S, B extends RuntimePipelineBlac
 
 			// we finished
 			running = false;
-			onIterationFinished(currentData.get());
+			onIterationFinished(currentData.get(), true);
 
 			// check queue
 			if (this.queue.size() > 0) {

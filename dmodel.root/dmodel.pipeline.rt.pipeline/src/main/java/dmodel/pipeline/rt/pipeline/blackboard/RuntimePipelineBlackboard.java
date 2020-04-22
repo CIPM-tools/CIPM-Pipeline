@@ -12,6 +12,7 @@ import dmodel.pipeline.core.facade.IInstrumentationModelQueryFacade;
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.core.facade.IResettableQueryFacade;
 import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
+import dmodel.pipeline.rt.pipeline.blackboard.facade.IPipelineHealthQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationResultsQuery;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
@@ -52,6 +53,9 @@ public class RuntimePipelineBlackboard {
 
 	@Autowired
 	private List<IResettableQueryFacade> resettableQueries;
+
+	@Autowired
+	private IPipelineHealthQueryFacade healthQuery;
 
 	// TODO below really here?
 	@Setter

@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +20,7 @@ import dmodel.pipeline.instrumentation.mapping.IAutomatedMappingResolver;
 import dmodel.pipeline.rt.rest.dt.async.InstrumentationProcess;
 import dmodel.pipeline.rt.rest.dt.data.InstrumentationStatus;
 import dmodel.pipeline.rt.rest.dt.data.JsonInstrumentationConfiguration;
+import dmodel.pipeline.rt.rest.dt.data.JsonInstrumentationConfigurationValidation;
 import dmodel.pipeline.shared.JsonUtil;
 import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 import dmodel.pipeline.vsum.manager.VsumManager;
@@ -70,11 +71,11 @@ public class DesignTimeRestController {
 	}
 
 	@PostMapping("/design/instrument")
-	public String instrumentApplication(@RequestBody String configuration) {
+	public String instrumentApplication(@RequestParam String config) {
 		// parse configuration
 		JsonInstrumentationConfiguration parsedConfiguration;
 		try {
-			parsedConfiguration = objectMapper.readValue(configuration, JsonInstrumentationConfiguration.class);
+			parsedConfiguration = objectMapper.readValue(config, JsonInstrumentationConfiguration.class);
 
 			// create processes
 			InstrumentationProcess process = new InstrumentationProcess(transformer, parsedConfiguration);
@@ -92,6 +93,20 @@ public class DesignTimeRestController {
 		} catch (IOException e) {
 			log.warning("Failed to parse instrumentation configuration at endpoint '/design/instrument'.");
 			return JsonUtil.wrapAsObject("success", false, false);
+		}
+	}
+
+	@PostMapping("/design/instrument/validate")
+	public String validateInstrumentationSettings(@RequestParam String config) {
+		// parse configuration
+		JsonInstrumentationConfiguration parsedConfiguration;
+		try {
+			parsedConfiguration = objectMapper.readValue(config, JsonInstrumentationConfiguration.class);
+
+			return objectMapper
+					.writeValueAsString(JsonInstrumentationConfigurationValidation.from(parsedConfiguration));
+		} catch (IOException e) {
+			return JsonUtil.wrapAsObject("valid", false, false);
 		}
 	}
 

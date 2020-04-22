@@ -36,8 +36,8 @@ public class CoreBlackboardQueryFacadeImpl implements ICoreBlackboardQueryFacade
 	}
 
 	@Override
-	public void trackEndPipelineExecution() {
-		performanceEvaluation.exitPipelineExecution();
+	public void trackEndPipelineExecution(boolean success) {
+		performanceEvaluation.exitPipelineExecution(success);
 	}
 
 	@Override

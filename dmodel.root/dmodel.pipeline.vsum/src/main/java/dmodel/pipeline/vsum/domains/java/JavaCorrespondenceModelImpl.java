@@ -8,7 +8,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Maps;
 
-public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel {
+import dmodel.pipeline.shared.util.AbstractObservable;
+
+public class JavaCorrespondenceModelImpl extends AbstractObservable<Void> implements IJavaPCMCorrespondenceModel {
 	private Map<String, String> seffMapping;
 	private Map<String, String> loopMapping;
 	private Map<String, String> branchMapping;
@@ -26,26 +28,31 @@ public class JavaCorrespondenceModelImpl implements IJavaPCMCorrespondenceModel 
 	@Override
 	public void addSeffCorrespondence(String javaMethodId, String seffId) {
 		seffMapping.put(javaMethodId, seffId);
+		super.getListeners().forEach(l -> l.inform(null));
 	}
 
 	@Override
 	public void addLoopCorrespondence(String javaLoopId, String loopId) {
 		loopMapping.put(javaLoopId, loopId);
+		super.getListeners().forEach(l -> l.inform(null));
 	}
 
 	@Override
 	public void addBranchCorrespondence(String javaBranchId, String transitionId) {
 		branchMapping.put(javaBranchId, transitionId);
+		super.getListeners().forEach(l -> l.inform(null));
 	}
 
 	@Override
 	public void addInternalActionCorrespondence(String startExprId, String endExprId, String actionId) {
 		actionMapping.put(Pair.of(startExprId, endExprId), actionId);
+		super.getListeners().forEach(l -> l.inform(null));
 	}
 
 	@Override
 	public void addExternalCallCorrespondence(String generateId, String externalCallId) {
 		externalCallMapping.put(generateId, externalCallId);
+		super.getListeners().forEach(l -> l.inform(null));
 	}
 
 	@Override

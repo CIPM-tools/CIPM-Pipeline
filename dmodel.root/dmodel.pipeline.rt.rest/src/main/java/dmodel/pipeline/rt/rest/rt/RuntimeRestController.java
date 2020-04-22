@@ -49,7 +49,7 @@ public class RuntimeRestController {
 
 	@GetMapping("/runtime/pipeline/performance")
 	public String performanceDetails() {
-		log.fine("Performance details has been polled.");
+		log.fine("Performance details have been polled.");
 		try {
 			return objectMapper.writeValueAsString(performanceEvaluation.getData());
 		} catch (JsonProcessingException e) {
