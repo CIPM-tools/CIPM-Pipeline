@@ -8,9 +8,11 @@ import dmodel.pipeline.core.facade.IInstrumentationModelQueryFacade;
 import dmodel.pipeline.core.facade.impl.InstrumentationModelQueryImpl;
 import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.blackboard.facade.IPipelineHealthQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationQueryFacade;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationResultsQuery;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.impl.CoreBlackboardQueryFacadeImpl;
+import dmodel.pipeline.rt.pipeline.blackboard.facade.impl.PipelineHealthQueryFacadeImpl;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.impl.ValidationQueryFacadeImpl;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.impl.ValidationResultsQueryImpl;
 import dmodel.pipeline.rt.pipeline.blackboard.state.PipelineUIState;
@@ -22,6 +24,11 @@ public class BasePipelineTestConfiguration {
 
 	@TestConfiguration
 	public static class TestContextConfiguration extends ValidationProcessorTest.TestContextConfiguration {
+		@Bean
+		public IPipelineHealthQueryFacade healthQueryFacade() {
+			return new PipelineHealthQueryFacadeImpl();
+		}
+
 		@Bean
 		public RuntimePipelineBlackboard blackboard() {
 			return new RuntimePipelineBlackboard();

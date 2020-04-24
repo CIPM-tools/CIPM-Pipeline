@@ -7,6 +7,7 @@ import dmodel.pipeline.core.IPcmModelProvider;
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IResourceEnvironmentQueryFacade;
 import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IUsageQueryFacade;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
@@ -26,7 +27,15 @@ public class PcmQueryImpl implements IPCMQueryFacade {
 	private IUsageQueryFacade usageQueryFacade;
 
 	@Autowired
+	private IResourceEnvironmentQueryFacade resourceEnvironmentQueryFacade;
+
+	@Autowired
 	private IPcmModelProvider pcmProvider;
+
+	@Override
+	public IResourceEnvironmentQueryFacade getResourceEnvironment() {
+		return resourceEnvironmentQueryFacade;
+	}
 
 	@Override
 	public IRepositoryQueryFacade getRepository() {

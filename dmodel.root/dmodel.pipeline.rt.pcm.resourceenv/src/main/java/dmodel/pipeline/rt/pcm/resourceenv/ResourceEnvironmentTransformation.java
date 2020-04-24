@@ -64,7 +64,8 @@ public class ResourceEnvironmentTransformation extends AbstractIterativePipeline
 		});
 
 		// trigger deduction
-		transformer.processEnvironmentData(getBlackboard().getRemQuery(), getBlackboard().getVsumQuery(), data);
+		transformer.processEnvironmentData(getBlackboard().getPcmQuery(), getBlackboard().getRemQuery(),
+				getBlackboard().getVsumQuery(), data);
 
 		super.trackEnd();
 	}

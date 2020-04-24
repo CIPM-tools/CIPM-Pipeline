@@ -28,6 +28,7 @@ import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.core.facade.impl.PcmQueryImpl;
 import dmodel.pipeline.core.facade.pcm.IAllocationQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IRepositoryQueryFacade;
+import dmodel.pipeline.core.facade.pcm.IResourceEnvironmentQueryFacade;
 import dmodel.pipeline.core.facade.pcm.ISystemQueryFacade;
 import dmodel.pipeline.core.facade.pcm.IUsageQueryFacade;
 import dmodel.pipeline.core.facade.pcm.impl.AllocationQueryFacadeImpl;
@@ -38,6 +39,7 @@ import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.health.HealthStateManager;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import dmodel.pipeline.core.mocks.HealthStateMessageSender;
+import dmodel.pipeline.core.mocks.ResourceEnvironmentFacadeMockImpl;
 import dmodel.pipeline.core.mocks.StaticModelProviderImpl;
 import dmodel.pipeline.core.mocks.StaticSpecificModelProviderImpl;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
@@ -86,6 +88,11 @@ public class AbstractCoreTest {
 		@Bean
 		public IUsageQueryFacade queryFacade() {
 			return new UsageQueryFacadeImpl();
+		}
+
+		@Bean
+		public IResourceEnvironmentQueryFacade envFacade() {
+			return new ResourceEnvironmentFacadeMockImpl();
 		}
 
 		@Bean

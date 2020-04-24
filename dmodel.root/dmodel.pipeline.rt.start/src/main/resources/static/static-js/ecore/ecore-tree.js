@@ -4,6 +4,7 @@ var ecoreTree = {
 	icons : {},
 	base_path : null,
 	ending : null,
+	data : {},
 	
 	registerIconBasePath : function(path, ending) {
 		ecoreTree.base_path = path;
@@ -14,7 +15,7 @@ var ecoreTree = {
 		ecoreTree.icons[type] = icon;
 	},
 		
-	build : function(parent, eobject) {
+	build : function(parent, eobject, attributeContainer, showAttributesCallback) {
 		$(parent).jstree({
 			'core' : {
 				"themes" : {
@@ -25,12 +26,34 @@ var ecoreTree = {
 			'plugins' : ["types", "theme"]
 		});
 		
+		ecoreTree.data[parent] = {};
 		ecoreTree.buildRecursive(parent, eobject, null, {id : 0});
+		
+		$(parent).delegate("a","dblclick", function(e) {
+			var node = $(e.target).closest("li");
+            var id = node[0].id; //id of the selected node
+            
+            if (attributeContainer !== undefined) {
+            	ecoreTree.viewAttributes(ecoreTree.data[parent][id], attributeContainer, showAttributesCallback);
+            }
+		});
+	},
+	
+	viewAttributes : function(data, container, callback) {
+		$(container).empty();
+		for (var key in data.attributes) {
+			var attributeData = '<tr><td>' + key + '</td><td>' + data.attributes[key] + '</td></tr>';
+			$(container).append(attributeData);
+		}
+		
+		callback();
 	},
 	
 	buildRecursive : function(tree, data, parent, id_counter) {
 		var currId = id_counter.id++;
 		var genId = currId.toString(16);
+		
+		ecoreTree.data[tree][genId] = data;
 		
 		$(tree).jstree().create_node(parent, {
 			"id" : genId,

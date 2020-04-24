@@ -22,4 +22,6 @@ public interface IAllocationQueryFacade extends IResettableQueryFacade {
 
 	void deleteAllocation(AssemblyContext da);
 
+	boolean hasDeployments(ResourceContainer presentContainer);
+
 }

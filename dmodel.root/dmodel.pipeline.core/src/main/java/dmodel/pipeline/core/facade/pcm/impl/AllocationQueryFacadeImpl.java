@@ -32,6 +32,8 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	private Cache<String, AllocationContext> assemblyDeploymentCache = new Cache2kBuilder<String, AllocationContext>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
+	private Map<String, Integer> hasDeploymentCache = Maps.newHashMap();
+
 	// this cache is used very often so it is designed to be high-performance
 	Map<Pair<String, String>, List<AssemblyContext>> componentContainerQueryCache = Maps.newHashMap();
 
@@ -86,10 +88,18 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	}
 
 	@Override
+	public boolean hasDeployments(ResourceContainer presentContainer) {
+		return hasDeploymentCache.containsKey(presentContainer.getId())
+				? hasDeploymentCache.get(presentContainer.getId()) > 0
+				: false;
+	}
+
+	@Override
 	public void reset(boolean hard) {
 		assemblyDeploymentCache.clear();
 		allocationContextIdCache.clear();
 		componentContainerQueryCache.clear();
+		hasDeploymentCache.clear();
 
 		// fill cache
 		for (AllocationContext actx : pcmModelProvider.getAllocation().getAllocationContexts_Allocation()) {
@@ -100,6 +110,13 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	private void importAllocationContext(AllocationContext ctx) {
 		allocationContextIdCache.put(ctx.getId(), ctx);
 		assemblyDeploymentCache.put(ctx.getAssemblyContext_AllocationContext().getId(), ctx);
+
+		if (hasDeploymentCache.containsKey(ctx.getResourceContainer_AllocationContext().getId())) {
+			hasDeploymentCache.put(ctx.getResourceContainer_AllocationContext().getId(),
+					hasDeploymentCache.get(ctx.getResourceContainer_AllocationContext().getId()) + 1);
+		} else {
+			hasDeploymentCache.put(ctx.getResourceContainer_AllocationContext().getId(), 1);
+		}
 
 		Pair<String, String> queryPair = generateQueryPair(ctx);
 		if (componentContainerQueryCache.containsKey(queryPair)) {
@@ -115,6 +132,15 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		allocationContextIdCache.remove(ctx.getId());
 		assemblyDeploymentCache.remove(ctx.getAssemblyContext_AllocationContext().getId());
 		componentContainerQueryCache.get(generateQueryPair(ctx)).remove(ctx.getAssemblyContext_AllocationContext());
+
+		if (hasDeploymentCache.containsKey(ctx.getResourceContainer_AllocationContext().getId())) {
+			int oldValue = hasDeploymentCache.get(ctx.getResourceContainer_AllocationContext().getId());
+			if (oldValue - 1 <= 0) {
+				hasDeploymentCache.remove(ctx.getResourceContainer_AllocationContext().getId());
+			} else {
+				hasDeploymentCache.put(ctx.getResourceContainer_AllocationContext().getId(), oldValue - 1);
+			}
+		}
 	}
 
 	private Pair<String, String> generateQueryPair(AllocationContext ctx) {

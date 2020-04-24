@@ -15,11 +15,24 @@ $(document).ready(function() {
 
 function buildIconDatabase() {
 	ecoreTree.registerIconBasePath(basePathIcons, ".gif");
+	
+	// correspondences
+	ecoreTree.registerIcon("Correspondences", "fa fa-long-arrow-alt-right");
+	ecoreTree.registerIcon('ManualCorrespondence', "fa fa-hand-pointer");
+	ecoreTree.registerIcon('ReactionsCorrespondence', "fa fa-vial");
+	
+	// instrumentation model
+	ecoreTree.registerIcon("InstrumentationModel", "fa fa-search");
+	ecoreTree.registerIcon("ServiceInstrumentationPoint", basePathIcons + "ResourceDemandingSEFF.gif");
+	ecoreTree.registerIcon("ActionInstrumentationPoint", basePathIcons + "InternalAction.gif");
 }
 
 function buildTree(eobj, parent, error_msg) {
 	if (eobj != null) {
-		ecoreTree.build(parent, eobj);
+		ecoreTree.build(parent, eobj, "#property-container", function() {
+			// open modal
+			$("#modal-attributes").modal('show');
+		});
 	} else {
 		console.error(error_msg);
 	}

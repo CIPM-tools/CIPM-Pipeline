@@ -1,22 +1,22 @@
 package dmodel.pipeline.rt.pcm.resourceenv.finalize;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.palladiosimulator.pcm.resourceenvironment.LinkingResource;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
+import dmodel.pipeline.core.facade.IPCMQueryFacade;
 import dmodel.pipeline.core.facade.IRuntimeEnvironmentQueryFacade;
 import dmodel.pipeline.rt.pcm.resourceenv.data.EnvironmentData;
 import dmodel.pipeline.rt.pcm.resourceenv.data.Host;
 import dmodel.pipeline.rt.pcm.resourceenv.data.HostLink;
-import dmodel.pipeline.shared.pcm.InMemoryPCM;
+import dmodel.pipeline.rt.runtimeenvironment.REModel.RuntimeResourceContainer;
 import dmodel.pipeline.shared.pcm.util.deprecation.SimpleDeprecationProcessor;
 import dmodel.pipeline.vsum.facade.ISpecificVsumFacade;
-import dmodel.pipeline.vsum.manager.VsumManager.VsumChangeSource;
 import lombok.extern.java.Log;
 
 @Log
@@ -28,15 +28,16 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 	}
 
 	@Override
-	public void processEnvironmentData(IRuntimeEnvironmentQueryFacade rem, ISpecificVsumFacade mapping,
-			EnvironmentData data) {
-		processHosts(rem, mapping, data.getHosts());
-		processLinks(rem, mapping, data.getConnections());
+	public void processEnvironmentData(IPCMQueryFacade pcm, IRuntimeEnvironmentQueryFacade rem,
+			ISpecificVsumFacade mapping, EnvironmentData data) {
+		processHosts(pcm, rem, mapping, data.getHosts());
+		processLinks(pcm, rem, mapping, data.getConnections());
 
 		deprecationProcessor.iterationFinished();
 	}
 
-	private void processLinks(IRuntimeEnvironmentQueryFacade rem, ISpecificVsumFacade mapping, List<HostLink> links) {
+	private void processLinks(IPCMQueryFacade pcm, IRuntimeEnvironmentQueryFacade rem, ISpecificVsumFacade mapping,
+			List<HostLink> links) {
 		for (HostLink link : links) {
 			if (!rem.containsLink(link.getFromId(), link.getToId())) {
 				rem.createResourceContainerLink(link.getFromId(), link.getToId());
@@ -44,7 +45,8 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 		}
 	}
 
-	private void processHosts(IRuntimeEnvironmentQueryFacade rem, ISpecificVsumFacade mapping, List<Host> hosts) {
+	private void processHosts(IPCMQueryFacade pcm, IRuntimeEnvironmentQueryFacade rem, ISpecificVsumFacade mapping,
+			List<Host> hosts) {
 		// create new ones
 		for (Host host : hosts) {
 			if (!rem.containsHostId(host.getId())) {
@@ -53,34 +55,50 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 		}
 
 		// remove all that are unused
-		// TODO review removal -> put it into the reactions?
-		// removeUnusedContainers(pcm, mapping, usedContainerIds);
+		removeUnusedContainers(pcm, rem, mapping, hosts);
 	}
 
-	private void removeUnusedContainers(InMemoryPCM pcm, ISpecificVsumFacade vsumFacade, Set<String> usedContainerIds) {
-		List<ResourceContainer> toRemove = pcm.getResourceEnvironmentModel().getResourceContainer_ResourceEnvironment()
-				.stream().filter(r -> !usedContainerIds.contains(r.getId())).collect(Collectors.toList());
-		toRemove.forEach(tr -> {
-			if (deprecationProcessor.shouldDelete(tr)) {
-				pcm.getResourceEnvironmentModel().getResourceContainer_ResourceEnvironment().remove(tr);
-				vsumFacade.deletedObject(tr, VsumChangeSource.RESURCE_ENVIRONMENT);
-
-				List<LinkingResource> toRemoveLinkingResources = Lists.newArrayList();
-				pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().forEach(lr -> {
-					if (lr.getConnectedResourceContainers_LinkingResource().contains(tr)) {
-						lr.getConnectedResourceContainers_LinkingResource().remove(tr);
-						if (lr.getConnectedResourceContainers_LinkingResource().size() <= 1) {
-							toRemoveLinkingResources.add(lr);
-						}
+	private void removeUnusedContainers(IPCMQueryFacade pcm, IRuntimeEnvironmentQueryFacade env,
+			ISpecificVsumFacade vsumFacade, List<Host> hosts) {
+		// collect used containers
+		Set<String> presentContainerIds = Sets.newHashSet();
+		for (Host host : hosts) {
+			if (env.containsHostId(host.getId())) {
+				RuntimeResourceContainer rec = env.getContainerById(host.getId());
+				if (rec != null) {
+					Optional<ResourceContainer> correspondingResourceContainer = vsumFacade
+							.getCorrespondingResourceContainer(rec);
+					if (correspondingResourceContainer.isPresent()) {
+						presentContainerIds.add(correspondingResourceContainer.get().getId());
 					}
-				});
-
-				toRemoveLinkingResources.forEach(tlr -> {
-					pcm.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().remove(tlr);
-					vsumFacade.deletedObject(tlr, VsumChangeSource.RESURCE_ENVIRONMENT);
-				});
+				}
 			}
-		});
+		}
+
+		// remove unused based on used
+		this.removeUnusedContainers(pcm, vsumFacade, presentContainerIds);
+	}
+
+	private void removeUnusedContainers(IPCMQueryFacade pcm, ISpecificVsumFacade vsumFacade,
+			Set<String> presentContainerIds) {
+		// resolve containers to delete
+		List<ResourceContainer> toRemove = Lists.newArrayList();
+		for (ResourceContainer presentContainer : pcm.getResourceEnvironment().getResourceContainers()) {
+			if (!presentContainerIds.contains(presentContainer.getId())) {
+				// check allocations
+				if (!pcm.getAllocation().hasDeployments(presentContainer)) {
+					toRemove.add(presentContainer);
+				}
+			}
+		}
+
+		// remove containers
+		for (ResourceContainer depContainer : toRemove) {
+			pcm.getResourceEnvironment().removeContainer(depContainer);
+		}
+		if (toRemove.size() > 0) {
+			log.info("Removed " + toRemove.size() + " containers from the resource environment model.");
+		}
 	}
 
 }
