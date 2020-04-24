@@ -332,6 +332,8 @@ public class PCMSystemBuilder extends AbstractHealthStateComponent {
 			}
 		}
 
+		super.removeAllProblems();
+		super.updateState();
 		return true;
 	}
 

@@ -12,7 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
-import dmodel.pipeline.rt.rest.rt.validation.data.PipelineValidationPoint;
+import dmodel.pipeline.rt.rest.rt.validation.data.JsonValidationOverview;
+import dmodel.pipeline.rt.rest.rt.validation.data.JsonValidationPointOverview;
 import dmodel.pipeline.rt.validation.data.ValidationData;
 import dmodel.pipeline.rt.validation.data.ValidationPoint;
 import dmodel.pipeline.shared.JsonUtil;
@@ -27,6 +28,36 @@ public class ValidationRestController {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@GetMapping("/runtime/validation/overview")
+	public String validationOverview() {
+		JsonValidationOverview overviewResult = new JsonValidationOverview();
+
+		for (ValidationSchedulePoint schedulePoint : ValidationSchedulePoint.values()) {
+			ValidationData correspondingData = blackboard.getValidationResultsQuery().get(schedulePoint);
+
+			if (correspondingData != null) {
+				JsonValidationPointOverview point = new JsonValidationPointOverview();
+				point.setEmpty(correspondingData.isEmpty());
+				point.setValidationPointCount(correspondingData.getValidationPoints().size());
+				point.setVisPresent(correspondingData.getValidationImprovementScore().isPresent());
+				point.setValidationDescription(schedulePoint.getName());
+				point.setValidationDescriptionEnum(schedulePoint.toString());
+
+				if (point.isVisPresent()) {
+					point.setValidationImprovementScore(correspondingData.getValidationImprovementScore().get());
+				}
+
+				overviewResult.getPoints().add(point);
+			}
+		}
+
+		try {
+			return objectMapper.writeValueAsString(overviewResult);
+		} catch (JsonProcessingException e) {
+			return JsonUtil.emptyObject();
+		}
+	}
 
 	@GetMapping("/runtime/validation/points")
 	public String validationPoints(@RequestParam(value = "data") String type) {
@@ -71,26 +102,12 @@ public class ValidationRestController {
 	}
 
 	private ValidationData getValidationDataFromPoint(String type) {
-		PipelineValidationPoint point = PipelineValidationPoint.fromString(type);
-
-		ValidationData data;
-		switch (point) {
-		case AFTER_REPO:
-			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_REPO);
-			break;
-		case AFTER_USAGE:
-			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_USAGE);
-			break;
-		case FINAL:
-			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.FINAL);
-			break;
-		case PRE:
-			data = blackboard.getValidationResultsQuery().get(ValidationSchedulePoint.PRE_PIPELINE);
-			break;
-		default:
-			return null;
+		ValidationSchedulePoint point = ValidationSchedulePoint.valueOf(type);
+		if (point != null) {
+			return blackboard.getValidationResultsQuery().get(point);
+		} else {
+			return new ValidationData(); // = empty
 		}
-		return data;
 	}
 
 }

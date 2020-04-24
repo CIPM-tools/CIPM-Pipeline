@@ -127,7 +127,7 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	@Override
 	public AssemblyContext createAssemblyContext(RepositoryComponent component) {
 		long timestamp = System.currentTimeMillis() / 1000;
-		String name = "Assembly[" + component.getEntityName() + "][" + String.valueOf(timestamp) + "]";
+		String name = "Assembly-" + component.getEntityName() + "-" + String.valueOf(timestamp);
 		AssemblyContext nCtx = PCMSystemUtil.createAssemblyContext(pcmModelProvider.getSystem(), component, name);
 		cacheAssembly(nCtx);
 		return nCtx;

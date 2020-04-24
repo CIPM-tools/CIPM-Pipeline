@@ -331,6 +331,7 @@ public class VsumManager extends AbstractHealthStateComponent {
 		VURI vuri = VURI.getInstance(EMFBridge.getEmfFileUriForFile(temp));
 		vsum.persistRootElement(vuri, model);
 		vuriMapping.put(source, vuri);
+		generateUuids(model);
 
 		// recover resource
 		vsum.executeCommand(() -> {
@@ -338,6 +339,16 @@ public class VsumManager extends AbstractHealthStateComponent {
 				backupResource.getContents().add(model);
 			}
 			return null;
+		});
+	}
+
+	private void generateUuids(EObject parent) {
+		ModelUtil.getObjects(parent, EObject.class).stream().forEach(el -> {
+			if (parent != el) {
+				if (!vsum.getUuidGeneratorAndResolver().hasUuid(el)) {
+					vsum.getUuidGeneratorAndResolver().generateUuid(el);
+				}
+			}
 		});
 	}
 

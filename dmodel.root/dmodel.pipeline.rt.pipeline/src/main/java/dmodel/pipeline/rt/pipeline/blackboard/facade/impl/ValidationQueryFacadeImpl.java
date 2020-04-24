@@ -9,6 +9,11 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
 
+import dmodel.pipeline.core.facade.IResettableQueryFacade;
+import dmodel.pipeline.core.health.HealthStateManager;
+import dmodel.pipeline.core.health.HealthStateObservedComponent;
+import dmodel.pipeline.core.health.HealthStateProblem;
+import dmodel.pipeline.core.health.HealthStateProblemSeverity;
 import dmodel.pipeline.core.validation.ValidationSchedulePoint;
 import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.rt.pipeline.blackboard.facade.IValidationQueryFacade;
@@ -21,17 +26,46 @@ import dmodel.pipeline.rt.validation.data.metric.ValidationMetricType;
 import dmodel.pipeline.shared.pcm.InMemoryPCM;
 
 @Component
-public class ValidationQueryFacadeImpl implements IValidationQueryFacade {
+public class ValidationQueryFacadeImpl implements IValidationQueryFacade, IResettableQueryFacade {
 	@Autowired
 	private IValidationProcessor validationComponent;
 
 	@Autowired
 	private ValidationResultContainer resultContainer;
 
+	@Autowired
+	private HealthStateManager healthStateManager;
+
+	private Map<ValidationSchedulePoint, Long> problemMapping;
+
+	public ValidationQueryFacadeImpl() {
+		this.problemMapping = Maps.newHashMap();
+	}
+
 	@Override
 	public void process(InMemoryPCM raw, List<PCMContextRecord> data, ValidationSchedulePoint schedulePoint) {
 		ValidationData result = validationComponent.process(raw, data, schedulePoint.getName());
 		resultContainer.setData(schedulePoint, result);
+
+		if (result.isEmpty()) {
+			if (!problemMapping.containsKey(schedulePoint)) {
+				problemMapping.put(schedulePoint,
+						healthStateManager.addProblem(HealthStateProblem.builder()
+								.description("Failed to simulate the architecture model (at '" + schedulePoint + "').")
+								.severity(HealthStateProblemSeverity.WARNING)
+								.source(HealthStateObservedComponent.PIPELINE).build()));
+			}
+		} else {
+			if (problemMapping.containsKey(schedulePoint)) {
+				healthStateManager.removeProblem(problemMapping.get(schedulePoint));
+				problemMapping.remove(schedulePoint);
+			}
+
+			// vis calculation
+			if (schedulePoint != ValidationSchedulePoint.PRE_PIPELINE) {
+				result.calculateImprovmentScore(resultContainer.getData(ValidationSchedulePoint.PRE_PIPELINE));
+			}
+		}
 	}
 
 	@Override
@@ -67,6 +101,13 @@ public class ValidationQueryFacadeImpl implements IValidationQueryFacade {
 			return 1;
 		} else {
 			return -1;
+		}
+	}
+
+	@Override
+	public void reset(boolean hard) {
+		if (hard) {
+			validationComponent.clearSimulationData();
 		}
 	}
 

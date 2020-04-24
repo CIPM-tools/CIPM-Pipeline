@@ -20,7 +20,7 @@ import lombok.extern.java.Log;
 @Log
 @Component
 public class HeadlessPCMSimulator implements IPCMSimulator, InitializingBean {
-	private static final long TIMEOUT_VFL = 5000;
+	private static final long TIMEOUT_VFL = 120000;
 
 	@Autowired
 	private ConfigurationContainer config;

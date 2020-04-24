@@ -144,4 +144,8 @@ public abstract class AbstractHealthStateComponent implements InitializingBean {
 		return HealthStateProblem.builder().source(component);
 	}
 
+	public HealthState getState() {
+		return healthStateManager.getState(component);
+	}
+
 }

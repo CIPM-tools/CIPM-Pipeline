@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Sets;
 
+import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.monitoring.records.ServiceCallRecord;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
@@ -49,7 +50,7 @@ public abstract class AbstractPipelineTestBase extends VsumManagerTestBase {
 
 	@After
 	public void endMeasuring() {
-		performanceEval.exitPipelineExecution(true);
+		performanceEval.exitPipelineExecution(HealthState.WORKING);
 	}
 
 	protected boolean modelsEqual(EObject o1, EObject o2) {

@@ -35,7 +35,9 @@ public class FileBackedModelUtil {
 		// SAVE IT AT THE BEGINNING
 		// BECAUSE WE DONT KNOW IF IT IS SYNCED
 		if (model != null) {
-			file.getParentFile().mkdirs();
+			if (file.getAbsoluteFile().getParentFile() != null) {
+				file.getAbsoluteFile().getParentFile().mkdirs();
+			}
 			ModelUtil.saveToFile(model, file.getAbsolutePath());
 		}
 

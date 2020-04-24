@@ -10,4 +10,6 @@ public interface IValidationProcessor {
 
 	ValidationData process(InMemoryPCM instance, List<PCMContextRecord> monitoringData, String taskName);
 
+	void clearSimulationData();
+
 }

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 import dmodel.pipeline.core.facade.IPCMQueryFacade;
+import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.evaluation.PerformanceEvaluation;
 import dmodel.pipeline.rt.pipeline.AbstractIterativePipeline;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
@@ -90,7 +91,12 @@ public class IterativeRuntimePipeline
 	}
 
 	@Override
-	protected void onIterationFinished(PartitionedMonitoringData<IMonitoringRecord> monitoring, boolean success) {
+	protected void onIterationFinished(PartitionedMonitoringData<IMonitoringRecord> monitoring, HealthState success) {
+		if (monitoring == null) {
+			// we never started the recording - so do it now
+			blackboard.getQuery().trackStartPipelineExecution();
+		}
+
 		blackboard.getQuery().trackEndPipelineExecution(success);
 		log.info("Finished execution of the pipeline.");
 

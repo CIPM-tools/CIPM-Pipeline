@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.health.HealthState;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class ExecutionData {
 	private int usageScenarios;
 
 	private boolean executedPath;
-	private boolean success;
+	private HealthState success;
 
 	public void trackPoint(ExecutionMeasuringPoint point) {
 		if (!measuringPoints.containsKey(point)) {

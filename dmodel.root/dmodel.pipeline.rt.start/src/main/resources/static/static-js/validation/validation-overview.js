@@ -3,18 +3,7 @@ var currentSel;
 var currentName;
 
 $(document).ready(function() {
-	$("#list-v1-list").click(function() {
-		switchData("pre");
-	});
-	$("#list-v2-list").click(function() {
-		switchData("afterusage");
-	});
-	$("#list-v3-list").click(function() {
-		switchData("afterrepo");
-	});
-	$("#list-v4-list").click(function() {
-		switchData("final");
-	});
+	fetchOverview();
 
 	$("#modal-visualize").click(function() {
 		$('#selectModal').modal('hide');
@@ -22,21 +11,45 @@ $(document).ready(function() {
 	});
 
 	registerCloseEvent();
+});
 
+function fetchOverview() {
+	$.getJSON(rest.runtime.validation.overview, function(overview) {
+		$("#overview-tab").empty();
+		overview.points.forEach(function(point) {
+			var improvementLabel = "";
+			if (point.visPresent) {
+				var improvementClass = point.validationImprovementScore > 0 ? "text-success" : (point.validationImprovementScore < 0 ? "text-danger" : "text-secondary");
+				improvementLabel = '<span class="' + improvementClass + '">' + (point.validationImprovementScore >= 0 ? "+" : "") + parseFloat(point.validationImprovementScore * 100).toFixed(2) + '%</span>';
+			}
+			
+			var listItem = '<a class="list-group-item d-flex justify-content-between align-items-center" id="' + point.validationDescriptionEnum  + '" data-toggle="list" href="#list-v1" role="tab" aria-controls="home">' + point.validationDescription + " " + improvementLabel + '<span class="badge badge-primary badge-pill">' + point.validationPointCount + '</span></a>';
+			$("#overview-tab").append(listItem);
+			
+			$("#" + point.validationDescriptionEnum).click(function() {
+				switchData(point.validationDescriptionEnum);
+			});
+		});
+		
+		checkQueryParameter();
+	});
+}
+
+function checkQueryParameter() {
 	// check for get parameters
 	var predefined = getQueryVariable("data");
 	if (predefined !== null) {
 		if (predefined === "pre") {
-			$("#list-v1-list").click();
+			$("#PRE_PIPELINE").click();
 		} else if (predefined === "afterusage") {
-			$("#list-v2-list").click();
+			$("#AFTER_T_USAGE").click();
 		} else if (predefined === "afterrepo") {
-			$("#list-v3-list").click();
+			$("#AFTER_T_REPO").click();
 		} else if (predefined === "final") {
-			$("#list-v4-list").click();
+			$("#FINAL").click();
 		}
 	}
-});
+}
 
 function switchData(point) {
 	currentSel = point;

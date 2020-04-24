@@ -143,7 +143,6 @@ public class TemplateController {
 		model.addAttribute("fragment", ITemplateMapping.CONFIG_MODELS_OVERVIEW_FRAGMENT);
 		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_MODELS_OVERVIEW_FRAGMENT_JS);
 
-		model.addAttribute("repo_path", configuration.getModels().getRepositoryPath());
 		helper.addModelOverviewInformation(model);
 
 		return "index";

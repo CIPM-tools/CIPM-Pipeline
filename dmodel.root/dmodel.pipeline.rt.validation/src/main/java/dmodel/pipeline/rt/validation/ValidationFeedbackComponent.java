@@ -80,6 +80,7 @@ public class ValidationFeedbackComponent extends AbstractHealthStateComponent im
 		return preparedData;
 	}
 
+	@Override
 	public void clearSimulationData() {
 		simulator.clearAllSimulationData();
 	}

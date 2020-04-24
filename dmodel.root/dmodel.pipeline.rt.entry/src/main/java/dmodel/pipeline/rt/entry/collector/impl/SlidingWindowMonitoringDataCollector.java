@@ -21,7 +21,7 @@ import dmodel.pipeline.core.config.MonitoringDataEntryConfiguration;
 import dmodel.pipeline.rt.entry.collector.IMonitoringDataCollector;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipeline;
 import dmodel.pipeline.rt.entry.core.IterativeRuntimePipelineListener;
-import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
+import dmodel.pipeline.rt.pipeline.data.GenericPartitionedMonitoringData;
 import kieker.common.record.IMonitoringRecord;
 import lombok.extern.java.Log;
 
@@ -95,8 +95,8 @@ public class SlidingWindowMonitoringDataCollector
 			log.info("Triggering the runtime pipeline.");
 
 			// pass it to the processing part
-			pipeline.triggerPipeline(new PartitionedMonitoringData<IMonitoringRecord>(collected,
-					parentConfig.getVfl().getValidationShare()));
+			pipeline.triggerPipeline(
+					new GenericPartitionedMonitoringData(collected, parentConfig.getVfl().getValidationShare()));
 
 			// cut old
 			cutRecordMap(currentTime);

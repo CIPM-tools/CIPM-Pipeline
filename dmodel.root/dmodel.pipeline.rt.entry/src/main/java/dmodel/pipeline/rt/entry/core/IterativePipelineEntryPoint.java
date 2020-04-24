@@ -12,6 +12,7 @@ import dmodel.pipeline.rt.pipeline.annotation.OutputPort;
 import dmodel.pipeline.rt.pipeline.annotation.OutputPorts;
 import dmodel.pipeline.rt.pipeline.annotation.PipelineEntryPoint;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
+import dmodel.pipeline.rt.pipeline.data.PCMPartionedMonitoringData;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
 import dmodel.pipeline.rt.router.AccuracySwitch;
 import dmodel.pipeline.shared.pipeline.PortIDs;
@@ -45,7 +46,7 @@ public class IterativePipelineEntryPoint extends AbstractIterativePipelinePart<R
 
 		super.trackEnd();
 
-		return new PartitionedMonitoringData<PCMContextRecord>(result, monitoringData.getValidationSplit());
+		return new PCMPartionedMonitoringData(result, monitoringData.getValidationSplit());
 	}
 
 }

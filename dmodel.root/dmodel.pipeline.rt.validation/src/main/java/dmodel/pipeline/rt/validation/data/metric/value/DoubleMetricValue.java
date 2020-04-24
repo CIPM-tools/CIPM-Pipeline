@@ -37,4 +37,8 @@ public class DoubleMetricValue extends ValidationMetricValue {
 		return value;
 	}
 
+	public double getDoubleValue() {
+		return value;
+	}
+
 }

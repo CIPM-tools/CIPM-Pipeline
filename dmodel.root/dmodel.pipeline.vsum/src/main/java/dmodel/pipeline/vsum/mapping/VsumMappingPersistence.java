@@ -187,7 +187,7 @@ public class VsumMappingPersistence {
 			}
 		} else if (trimmedAs.size() == 1 && correspondence.getBUuids().size() == 1) {
 			// all other
-			String innerA = correspondence.getAUuids().get(0);
+			String innerA = trimmedAs.get(0);
 			String innerB = correspondence.getBUuids().get(0);
 
 			if (innerA.startsWith(LOOP_PREFIX)) {

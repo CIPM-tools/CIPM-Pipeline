@@ -44,6 +44,8 @@ public class InstrumentationManager extends AbstractHealthStateComponent {
 		try {
 			transformer.performInstrumentation(projectManager.getApplicationProject(), metadata,
 					vsumManager.getJavaCorrespondences());
+			super.removeAllProblems();
+			super.updateState();
 		} catch (IOException e) {
 			super.reportProblem(HealthStateProblem.builder()
 					.description("Could not instrument the project due to an I/O exception ('" + e.getMessage() + "').")

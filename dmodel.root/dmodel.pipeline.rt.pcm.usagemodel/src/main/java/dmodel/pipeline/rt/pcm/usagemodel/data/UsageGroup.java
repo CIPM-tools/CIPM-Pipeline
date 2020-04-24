@@ -14,6 +14,10 @@ import lombok.Data;
 
 @Data
 public class UsageGroup implements IPCMAnalogue<UsageScenario> {
+	// smaller than this crashes the simulator in a lot of cases due to memory
+	// problems
+	private static final double MIN_INTERARRIVAL_TIME = 100;
+
 	private List<IAbstractUsageDescriptor> descriptors;
 	private int id;
 	private double interarrivalTime;
@@ -31,8 +35,8 @@ public class UsageGroup implements IPCMAnalogue<UsageScenario> {
 		ret.setEntityName("Scenario" + id);
 
 		OpenWorkload workload = UsagemodelFactory.eINSTANCE.createOpenWorkload();
-		workload.setInterArrivalTime_OpenWorkload(
-				PCMUtils.createRandomVariableFromString(String.valueOf(interarrivalTime)));
+		workload.setInterArrivalTime_OpenWorkload(PCMUtils
+				.createRandomVariableFromString(String.valueOf(Math.max(interarrivalTime, MIN_INTERARRIVAL_TIME))));
 		ret.setWorkload_UsageScenario(workload);
 
 		return ret;

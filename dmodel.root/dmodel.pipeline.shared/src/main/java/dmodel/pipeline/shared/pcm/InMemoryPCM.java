@@ -180,30 +180,6 @@ public class InMemoryPCM {
 		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
 	}
 
-	public void swapRepository(Repository other) {
-		FileBackedModelUtil.clear(this.repository);
-		if (reflected != null) {
-			this.repository = FileBackedModelUtil.synchronize(other, reflected.getRepositoryFile(), Repository.class,
-					n -> updatedRepository(), null);
-			this.updatedRepository();
-		} else {
-			this.repository = other;
-			this.updatedRepository();
-		}
-	}
-
-	public void swapUsageModel(UsageModel other) {
-		FileBackedModelUtil.clear(this.system);
-		if (reflected != null) {
-			this.usageModel = FileBackedModelUtil.synchronize(other, reflected.getUsageModelFile(), UsageModel.class,
-					n -> updatedUsage(), null);
-			this.updatedSystem();
-		} else {
-			this.usageModel = other;
-			this.updatedSystem();
-		}
-	}
-
 	public void swapSystem(System currentSystem) {
 		FileBackedModelUtil.clear(this.system);
 		if (reflected != null) {

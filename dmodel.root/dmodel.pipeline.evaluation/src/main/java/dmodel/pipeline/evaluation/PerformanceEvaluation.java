@@ -3,6 +3,7 @@ package dmodel.pipeline.evaluation;
 import org.springframework.stereotype.Service;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.evaluation.data.ExecutionData;
 import dmodel.pipeline.evaluation.data.PerformanceData;
 
@@ -27,7 +28,7 @@ public class PerformanceEvaluation {
 		start = System.nanoTime();
 	}
 
-	public void exitPipelineExecution(boolean success) {
+	public void exitPipelineExecution(HealthState success) {
 		if (currentTrack != null) {
 			currentTrack.setExecutionTimeCumulated(System.nanoTime() - start);
 			currentTrack.setSuccess(success);

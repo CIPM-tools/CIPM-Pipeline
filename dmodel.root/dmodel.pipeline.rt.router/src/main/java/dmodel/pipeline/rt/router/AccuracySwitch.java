@@ -65,6 +65,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
+	// TODO split up
 	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls,
 			PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
@@ -163,7 +164,6 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	}
 
 	private void createDeepCopies() {
-		getBlackboard().getPcmQuery().getRaw().clearListeners();
 		copyForUsage = getBlackboard().getPcmQuery().getDeepCopy();
 		copyForRepository = getBlackboard().getPcmQuery().getDeepCopy();
 		copyForUsage.clearListeners();
@@ -204,7 +204,7 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 					getBlackboard().getValidationResultsQuery().get(reference));
 
 			getBlackboard().getQuery().track(measuringPoint);
-			getBlackboard().getQuery().updateState(transformation, ETransformationState.RUNNING);
+			getBlackboard().getQuery().updateState(transformation, ETransformationState.FINISHED);
 
 			waitLatch.countDown();
 		});

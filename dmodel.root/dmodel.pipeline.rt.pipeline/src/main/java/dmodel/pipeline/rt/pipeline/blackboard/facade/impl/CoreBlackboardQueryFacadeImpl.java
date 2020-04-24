@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
 import dmodel.pipeline.core.facade.ICoreBlackboardQueryFacade;
+import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.state.EPipelineTransformation;
 import dmodel.pipeline.core.state.ETransformationState;
 import dmodel.pipeline.evaluation.PerformanceEvaluation;
@@ -36,7 +37,7 @@ public class CoreBlackboardQueryFacadeImpl implements ICoreBlackboardQueryFacade
 	}
 
 	@Override
-	public void trackEndPipelineExecution(boolean success) {
+	public void trackEndPipelineExecution(HealthState success) {
 		performanceEvaluation.exitPipelineExecution(success);
 	}
 

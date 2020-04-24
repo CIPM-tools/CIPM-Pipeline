@@ -1,6 +1,7 @@
 package dmodel.pipeline.core.facade;
 
 import dmodel.pipeline.core.evaluation.ExecutionMeasuringPoint;
+import dmodel.pipeline.core.health.HealthState;
 import dmodel.pipeline.core.state.EPipelineTransformation;
 import dmodel.pipeline.core.state.ETransformationState;
 
@@ -11,7 +12,7 @@ public interface ICoreBlackboardQueryFacade extends IResettableQueryFacade {
 	// performance tracking events
 	public void trackStartPipelineExecution();
 
-	public void trackEndPipelineExecution(boolean success);
+	public void trackEndPipelineExecution(HealthState success);
 
 	public void track(ExecutionMeasuringPoint point);
 

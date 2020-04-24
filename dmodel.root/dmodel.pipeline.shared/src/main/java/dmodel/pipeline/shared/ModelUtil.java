@@ -59,7 +59,9 @@ public class ModelUtil {
 
 	public static <T extends EObject> void saveToFile(T model, File path) {
 		if (path != null) {
-			path.getParentFile().mkdirs();
+			if (path.getAbsoluteFile().getParentFile() != null) {
+				path.getAbsoluteFile().getParentFile().mkdirs();
+			}
 			saveToFile(model, path.getAbsolutePath());
 		}
 	}

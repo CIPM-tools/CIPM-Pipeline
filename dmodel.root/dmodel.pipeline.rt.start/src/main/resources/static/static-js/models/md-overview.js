@@ -8,6 +8,9 @@ $(document).ready(function() {
 	buildTree(usage, "#tree-usage", "Failed to get usage model from backend.");
 	buildTree(resenv, "#tree-resourceenv", "Failed to get resource environment model from backend.");
 	buildTree(allocation, "#tree-allocation", "Failed to get allocation model from backend.");
+	buildTree(instrumentation, "#tree-inm", "Failed to get instrumentation model from backend.");
+	buildTree(runtimeEnv, "#tree-rem", "Failed to get runtime environment from backend.");
+	buildTree(correspondences, "#tree-correspondence", "Failed to get correspondences from backend.");
 });
 
 function buildIconDatabase() {

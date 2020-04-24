@@ -77,9 +77,11 @@ var rest = {
 			status : "/runtime/pipeline/status"
 		},
 		validation : {
+			overview : "/runtime/validation/overview",
 			points : "/runtime/validation/points",
 			data : "/runtime/validation/data"
-		}
+		},
+		performance : "/runtime/pipeline/performance"
 	},
 	
 	health : {

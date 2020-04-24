@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -52,8 +53,6 @@ public class ThreadMonitoringController {
 
 	private static final ITimeSource TIME_SOURCE = MONITORING_CONTROLLER.getTimeSource();
 
-	private static volatile String sessionId;
-
 	private final IDFactory idFactory;
 	private final IScaleController scaleController;
 
@@ -61,6 +60,7 @@ public class ThreadMonitoringController {
 	private ThreadLocal<Stack<ServiceCallTrack>> serviceCallStack;
 	private ThreadLocal<InternalOptional<String>> remoteStack;
 	private ThreadLocal<Map<Pair<String, String>, Long>> startingTimesMap;
+	private ThreadLocal<String> currentSessionId;
 
 	private Set<String> monitoredIds = new HashSet<>();
 	private boolean monitoredIdsInited = false;
@@ -101,6 +101,12 @@ public class ThreadMonitoringController {
 			@Override
 			public String get() {
 				return ServiceCallRecord.EXTERNAL_CALL_ID;
+			}
+		});
+		this.currentSessionId = ThreadLocal.withInitial(new Supplier<String>() {
+			@Override
+			public String get() {
+				return null;
 			}
 		});
 		this.cpuSamplerActive = false;
@@ -229,14 +235,14 @@ public class ThreadMonitoringController {
 			ServiceCallTrack nTrack;
 			if (trace.empty()) {
 				if (remoteStack.get().isPresent()) {
-					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+					nTrack = new ServiceCallTrack(serviceId, getSessionId(), serviceParameters,
 							String.valueOf(System.identityHashCode(exId)), remoteStack.get().value, externalCallId);
 				} else {
-					nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+					nTrack = new ServiceCallTrack(serviceId, getSessionId(), serviceParameters,
 							String.valueOf(System.identityHashCode(exId)), null, externalCallId);
 				}
 			} else {
-				nTrack = new ServiceCallTrack(serviceId, sessionId, serviceParameters,
+				nTrack = new ServiceCallTrack(serviceId, trace.peek().sessionId, serviceParameters,
 						String.valueOf(System.identityHashCode(exId)), trace.peek().serviceExecutionId, externalCallId);
 			}
 
@@ -312,7 +318,8 @@ public class ThreadMonitoringController {
 			}
 
 			ServiceCallTrack currentTrack = trace.peek();
-			BranchRecord record = new BranchRecord(sessionId, currentTrack.serviceExecutionId, executedBranchId);
+			BranchRecord record = new BranchRecord(currentTrack.sessionId, currentTrack.serviceExecutionId,
+					executedBranchId);
 
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
@@ -338,7 +345,8 @@ public class ThreadMonitoringController {
 			}
 
 			ServiceCallTrack currentTrack = trace.peek();
-			LoopRecord record = new LoopRecord(sessionId, currentTrack.serviceExecutionId, loopId, loopIterationCount);
+			LoopRecord record = new LoopRecord(currentTrack.sessionId, currentTrack.serviceExecutionId, loopId,
+					loopIterationCount);
 			MONITORING_CONTROLLER.newMonitoringRecord(record);
 
 			analysis.exitLoopOverhead(loopId, start);
@@ -391,8 +399,8 @@ public class ThreadMonitoringController {
 				}
 
 				ServiceCallTrack currentTrack = trace.peek();
-				ResponseTimeRecord record = new ResponseTimeRecord(sessionId, currentTrack.serviceExecutionId,
-						internalActionId, resourceId, startTime, end);
+				ResponseTimeRecord record = new ResponseTimeRecord(currentTrack.sessionId,
+						currentTrack.serviceExecutionId, internalActionId, resourceId, startTime, end);
 				MONITORING_CONTROLLER.newMonitoringRecord(record);
 				threadMap.remove(query);
 				currentTrack.cumulatedMonitoringOverhead += (System.nanoTime() - start);
@@ -400,6 +408,10 @@ public class ThreadMonitoringController {
 
 			analysis.internalOverhead(internalActionId, start);
 		}
+	}
+
+	public static String generateSessionId() {
+		return UUID.randomUUID().toString();
 	}
 
 	public static ThreadMonitoringController getInstance() {
@@ -411,8 +423,11 @@ public class ThreadMonitoringController {
 	 *
 	 * @return The current session ids.
 	 */
-	public static String getSessionId() {
-		return sessionId;
+	public String getSessionId() {
+		if (currentSessionId.get() != null) {
+			return currentSessionId.get();
+		}
+		return generateSessionId();
 	}
 
 	/**
@@ -421,7 +436,7 @@ public class ThreadMonitoringController {
 	 * @param id The new session id.
 	 */
 	public static void setSessionId(final String id) {
-		sessionId = id;
+		getInstance().currentSessionId.set(id);
 	}
 
 	private class ServiceCallTrack {
