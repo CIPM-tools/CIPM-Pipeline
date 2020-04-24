@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.eclipse.emf.ecore.EObject;
 import org.emftext.language.java.members.Method;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
+import org.springframework.stereotype.Service;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -15,6 +16,7 @@ import com.github.javaparser.ast.body.Parameter;
 import dmodel.pipeline.instrumentation.project.ParsedApplicationProject;
 import dmodel.pipeline.vsum.domains.java.IJavaPCMCorrespondenceModel;
 
+@Service
 public class ServiceMappingSubImporter extends AbstractEMFMappingSubImporter {
 
 	@Override

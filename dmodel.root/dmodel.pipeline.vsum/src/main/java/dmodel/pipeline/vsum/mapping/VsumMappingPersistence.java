@@ -1,10 +1,14 @@
 package dmodel.pipeline.vsum.mapping;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.eclipse.emf.ecore.EObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,11 +23,14 @@ import tools.vitruv.framework.correspondence.Correspondence;
 import tools.vitruv.framework.correspondence.CorrespondenceFactory;
 import tools.vitruv.framework.correspondence.CorrespondenceModel;
 import tools.vitruv.framework.correspondence.Correspondences;
+import tools.vitruv.framework.domains.AbstractTuidAwareVitruvDomain;
 import tools.vitruv.framework.domains.TuidAwareVitruvDomain;
 import tools.vitruv.framework.domains.VitruvDomain;
 import tools.vitruv.framework.domains.VitruvDomainProvider;
 import tools.vitruv.framework.domains.repository.VitruvDomainRepository;
+import tools.vitruv.framework.tuid.HierarchicalTuidCalculatorAndResolver;
 import tools.vitruv.framework.tuid.Tuid;
+import tools.vitruv.framework.tuid.TuidCalculatorAndResolver;
 import tools.vitruv.framework.util.VitruviusConstants;
 import tools.vitruv.framework.uuid.UuidGeneratorAndResolver;
 
@@ -207,6 +214,9 @@ public class VsumMappingPersistence {
 	private EObject resolveObjectFromTuid(String tuidString) {
 		String[] splitUuid = tuidString.split(TUID_DELEMITER);
 		String fileExtension = FilenameUtils.getExtension(splitUuid[1].substring(FILE_PREFIX.length()));
+		String[] idSegment = new String[splitUuid.length - 3];
+		System.arraycopy(splitUuid, 3, idSegment, 0, splitUuid.length - 3);
+
 		List<EObject> possibleFiles = vsumManager.getFileExtensionPathMapping().get(fileExtension);
 
 		if (possibleFiles != null) {
@@ -214,16 +224,21 @@ public class VsumMappingPersistence {
 				if (domain.getDomain() instanceof TuidAwareVitruvDomain) {
 					TuidAwareVitruvDomain typedDomain = (TuidAwareVitruvDomain) domain.getDomain();
 					if (typedDomain.getNsUris().contains(splitUuid[0])) {
-						for (EObject possibleFile : possibleFiles) {
-							try {
-								EObject resolved = typedDomain.resolveEObjectFromRootAndFullTuid(possibleFile,
-										Tuid.getInstance(String.join(TUID_DELEMITER, splitUuid)));
-								if (resolved != null) {
-									return resolved;
+						TuidCalculatorAndResolver resolver = getTuidCalculatorAndResolver(typedDomain);
+
+						if (resolver != null && resolver instanceof HierarchicalTuidCalculatorAndResolver<?>) {
+							for (EObject possibleFile : possibleFiles) {
+								try {
+									EObject resolved = getIdentifiedEObjectWithinRoot(
+											(HierarchicalTuidCalculatorAndResolver<?>) resolver, possibleFile,
+											idSegment);
+									if (resolved != null) {
+										return resolved;
+									}
+								} catch (Exception e) {
+									// nothing to do here
+									log.fine("Failed to resolve a TUID in a specific model.");
 								}
-							} catch (Exception e) {
-								// nothing to do here
-								log.fine("Failed to resolve a TUID in a specific model.");
 							}
 						}
 					}
@@ -234,6 +249,27 @@ public class VsumMappingPersistence {
 		log.warning("Failed to resolve element with TUID '" + tuidString + "'. Some mappings may be corrupted!");
 
 		return null;
+	}
+
+	private EObject getIdentifiedEObjectWithinRoot(HierarchicalTuidCalculatorAndResolver<?> resolver, EObject root,
+			String[] idSegment) {
+		try {
+			EObject result = (EObject) MethodUtils.invokeMethod(resolver, true,
+					"getIdentifiedEObjectWithinRootEObjectInternal", root, idSegment);
+			return result;
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+			return null;
+		}
+	}
+
+	private TuidCalculatorAndResolver getTuidCalculatorAndResolver(TuidAwareVitruvDomain typedDomain) {
+		Field resolverField = FieldUtils.getDeclaredField(AbstractTuidAwareVitruvDomain.class,
+				"tuidCalculatorAndResolver", true);
+		try {
+			return (TuidCalculatorAndResolver) resolverField.get(typedDomain);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			return null;
+		}
 	}
 
 	private List<Tuid> calculateTuidsFromUuids(List<String> uuids, UuidGeneratorAndResolver resolver,

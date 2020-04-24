@@ -50,7 +50,7 @@ import dmodel.pipeline.shared.pcm.util.PCMUtils;
 import tools.vitruv.framework.correspondence.Correspondences;
 
 @RunWith(SpringRunner.class)
-public class AbstractCoreTest {
+public abstract class AbstractCoreTest {
 
 	@TestConfiguration
 	public static class CoreContextConfiguration {

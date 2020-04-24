@@ -19,6 +19,12 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven'
+    apply plugin: 'jacoco'
+    
+    jacoco {
+   		toolVersion = "0.8.5"
+    	reportsDir = file("$buildDir/jacocoReport")
+	}
     
     sourceSets {
 		main{
@@ -41,8 +47,11 @@ allprojects {
 	}
 	
 	dependencies {
-		// https://mvnrepository.com/artifact/org.projectlombok/lombok
-		compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+		// lombok
+		compileOnly 'org.projectlombok:lombok:1.18.12'
+		annotationProcessor 'org.projectlombok:lombok:1.18.12'
+		testCompileOnly 'org.projectlombok:lombok:1.18.12'
+		testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 	
 		// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 		compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
