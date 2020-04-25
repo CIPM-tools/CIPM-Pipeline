@@ -12,43 +12,85 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import dmodel.pipeline.core.health.AbstractHealthStateComponent;
 import dmodel.pipeline.core.health.HealthState;
+import dmodel.pipeline.core.health.HealthStateManager;
 import dmodel.pipeline.core.health.HealthStateObservedComponent;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * The main configuration container for the application. It mainly consists of
+ * four parts:
+ * <ul>
+ * <li>Project configuration</li>
+ * <li>Model configurations (paths)</li>
+ * <li>Monitoring data collection configuration</li>
+ * <li>Configuration of the validation feedback loop (VFL)</li>
+ * </ul>
+ * 
+ * @author David Monschein
+ *
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ConfigurationContainer extends AbstractHealthStateComponent {
 	// project config
+	/**
+	 * Project configuration (path and source folders).
+	 */
 	private ProjectConfiguration project;
 
 	// model config
+	/**
+	 * Configuration of the models (file paths).
+	 */
 	private ModelConfiguration models;
 
 	// processing md config
+	/**
+	 * Configuration of the monitoring data collection.
+	 */
 	private MonitoringDataEntryConfiguration entry;
 
 	// vfl
+	/**
+	 * Configuration of the validation feedback loop (VFL).
+	 */
 	private ValidationFeedbackLoopConfiguration vfl;
 
 	// path of the file
+	/**
+	 * Path where the configuration is physically stored.
+	 */
 	@JsonIgnore
 	private File fileBackedPath;
 
 	// create writer
+	/**
+	 * Object mapper for serializing and deserializing JSON objects.
+	 */
 	@JsonIgnore
 	private ObjectMapper writer = new ObjectMapper(new YAMLFactory());
 
+	/**
+	 * Creates a new configuration container.
+	 */
 	public ConfigurationContainer() {
 		super(HealthStateObservedComponent.CONFIGURATION);
 	}
 
+	/**
+	 * Validates the configuration after the application started.
+	 */
 	@PostConstruct
 	public void initialValidation() {
 		this.validateConfiguration();
 	}
 
+	/**
+	 * Validates the configuration and reports problems to the
+	 * {@link HealthStateManager}.
+	 */
 	public void validateConfiguration() {
 		this.removeAllProblems();
 
@@ -78,6 +120,12 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 		}
 	}
 
+	/**
+	 * Synchronizes the configuration with the file where the configuration is
+	 * stored.
+	 * 
+	 * @return true if the synchronization was successful, false otherwise
+	 */
 	public boolean syncWithFilesystem() {
 		this.validateConfiguration();
 
@@ -90,6 +138,9 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
 		// NOTHING TO DO HERE

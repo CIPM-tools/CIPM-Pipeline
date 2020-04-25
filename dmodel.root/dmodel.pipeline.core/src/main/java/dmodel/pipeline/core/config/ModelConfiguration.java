@@ -14,19 +14,60 @@ import dmodel.pipeline.shared.ModelUtil;
 import lombok.Data;
 import tools.vitruv.framework.correspondence.Correspondences;
 
+/**
+ * Configuration of the model paths.
+ * 
+ * @author David Monschein
+ *
+ */
 @Data
 public class ModelConfiguration {
-
+	/**
+	 * Path of the file where the {@link Repository} model should be stored.
+	 */
 	private String repositoryPath = null;
+
+	/**
+	 * Path of the file where the {@link System} model should be stored.
+	 */
 	private String systemPath = null;
+
+	/**
+	 * Path of the file where the {@link UsageModel} should be stored.
+	 */
 	private String usagePath = null;
+
+	/**
+	 * Path of the file where the {@link Allocation} model should be stored.
+	 */
 	private String allocationPath = null;
+
+	/**
+	 * Path of the file where the {@link ResourceEnvironment} model should be
+	 * stored.
+	 */
 	private String envPath = null;
 
+	/**
+	 * /** Path of the file where the {@link InstrumentationModel} should be stored.
+	 */
 	private String instrumentationModelPath = null;
+
+	/**
+	 * Path of the file where the {@link Correspondences} should be stored.
+	 */
 	private String correspondencePath = null;
+
+	/**
+	 * Path of the file where the {@link RuntimeEnvironmentModel} should be stored.
+	 */
 	private String runtimeEnvironmentPath = null;
 
+	/**
+	 * Determines whether the current model configuration is valid.
+	 * 
+	 * @return true if all paths are valid, false otherwise
+	 */
 	@JsonIgnore
 	public boolean isValid() {
 		boolean repositoryValid = ModelUtil.validateModelPath(repositoryPath, Repository.class);

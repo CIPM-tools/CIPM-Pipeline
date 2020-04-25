@@ -53,7 +53,7 @@ public class StaticSCGExtractionTest extends AbstractCoreTest {
 		resolver.resolveMappings(parsed, cpm);
 
 		StaticCodeReferenceAnalyzer analyzer = new StaticCodeReferenceAnalyzer();
-		File jarFile = new File("../dmodel.pipeline.rexample/build/libs/dmodel.pipeline.rexample.jar");
+		File jarFile = new File("test-data/dmodel.pipeline.rexample.jar");
 		ServiceCallGraph scg = analyzer.deriveSystemComposition(parsed, Lists.newArrayList(jarFile), repositoryQuery,
 				cpm);
 

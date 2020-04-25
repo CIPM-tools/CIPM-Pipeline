@@ -35,7 +35,7 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	private Map<String, Integer> hasDeploymentCache = Maps.newHashMap();
 
 	// this cache is used very often so it is designed to be high-performance
-	Map<Pair<String, String>, List<AssemblyContext>> componentContainerQueryCache = Maps.newHashMap();
+	private Map<Pair<String, String>, List<AssemblyContext>> componentContainerQueryCache = Maps.newHashMap();
 
 	@Override
 	public void deployAssembly(AssemblyContext ret, ResourceContainer host) {

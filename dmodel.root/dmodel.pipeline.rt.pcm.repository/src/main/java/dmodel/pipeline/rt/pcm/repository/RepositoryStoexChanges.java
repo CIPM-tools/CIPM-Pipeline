@@ -53,4 +53,8 @@ public class RepositoryStoexChanges {
 		});
 	}
 
+	public int size() {
+		return seffStoexChanges.size();
+	}
+
 }

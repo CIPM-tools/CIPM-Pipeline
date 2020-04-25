@@ -10,13 +10,28 @@ import com.google.common.collect.Sets;
 
 import dmodel.pipeline.core.ISpecificModelProvider;
 import dmodel.pipeline.core.facade.IInstrumentationModelQueryFacade;
+import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.InstrumentationModel;
 import dmodel.pipeline.dt.inmodel.InstrumentationMetamodel.ServiceInstrumentationPoint;
 
+/**
+ * Implementation according to {@link IInstrumentationModelQueryFacade}. This
+ * implementation uses no caches because it is not critical for the performance
+ * of the pipeline.
+ * 
+ * @author David Monschein
+ *
+ */
 @Component
 public class InstrumentationModelQueryImpl implements IInstrumentationModelQueryFacade {
+	/**
+	 * Used to access the {@link InstrumentationModel}.
+	 */
 	@Autowired
 	private ISpecificModelProvider modelProvider;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Set<ServiceInstrumentationPoint> getFineGrainedInstrumentedServices() {
 		return modelProvider.getInstrumentation().getPoints().stream().filter(instr -> {
@@ -24,6 +39,9 @@ public class InstrumentationModelQueryImpl implements IInstrumentationModelQuery
 		}).collect(Collectors.toSet());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Set<String> getInstrumentedActionIds() {
 		Set<String> ret = Sets.newHashSet();

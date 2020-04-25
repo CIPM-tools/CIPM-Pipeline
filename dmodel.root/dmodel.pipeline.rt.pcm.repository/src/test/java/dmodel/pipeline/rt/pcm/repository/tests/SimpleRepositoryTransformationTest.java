@@ -19,6 +19,7 @@ import dmodel.pipeline.monitoring.records.PCMContextRecord;
 import dmodel.pipeline.monitoring.util.MonitoringDataUtil;
 import dmodel.pipeline.rt.pcm.repository.AbstractRepositoryTransformationTestBase;
 import dmodel.pipeline.rt.pcm.repository.RepositoryDerivation;
+import dmodel.pipeline.rt.pcm.repository.RepositoryStoexChanges;
 import dmodel.pipeline.rt.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.pipeline.rt.pipeline.data.PCMPartionedMonitoringData;
 import dmodel.pipeline.rt.pipeline.data.PartitionedMonitoringData;
@@ -43,7 +44,8 @@ public class SimpleRepositoryTransformationTest extends AbstractRepositoryTransf
 				.getMonitoringDataFromFiles("test-data/repository/monitoring");
 		PartitionedMonitoringData<PCMContextRecord> pcmData = new PCMPartionedMonitoringData(dataset, 0.1f);
 
-		transformation.calibrateRepository(pcmData, blackboard.getPcmQuery(), new ValidationData(), Sets.newHashSet());
+		RepositoryStoexChanges changes = transformation.calibrateRepository(pcmData, blackboard.getPcmQuery(),
+				new ValidationData(), Sets.newHashSet());
 	}
 
 	@Before

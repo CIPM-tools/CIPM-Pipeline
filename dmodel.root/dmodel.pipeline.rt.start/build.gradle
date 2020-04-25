@@ -4,6 +4,13 @@ plugins {
 
 apply plugin: 'org.springframework.boot'
 
+bootJar {
+    baseName = 'DModel'
+    mainClassName = 'dmodel.pipeline.rt.start.DModelRuntimeStarter'
+    // Exclude manifest signature files
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/LICENSE'
+}
+
 dependencies {
 	compile project(":dmodel.pipeline.dt.system")
 
