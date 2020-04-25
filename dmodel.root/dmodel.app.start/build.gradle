@@ -1,0 +1,34 @@
+plugins {
+	id 'org.springframework.boot' version '2.1.2.RELEASE'
+}
+
+apply plugin: 'org.springframework.boot'
+
+bootJar {
+    baseName = 'DModel'
+    mainClassName = 'dmodel.app.start.DModelRuntimeStarter'
+    // Exclude manifest signature files
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/LICENSE'
+}
+
+dependencies {
+	compile project(":dmodel.designtime.system")
+
+	compile project(":dmodel.runtime.pipeline.validation")
+	compile project(":dmodel.runtime.pipeline.entry")
+	
+	compile project(":dmodel.runtime.pipeline")
+	
+	compile project(":dmodel.runtime.pipeline.pcm.resourceenv")
+	compile project(":dmodel.runtime.pipeline.pcm.usagemodel")
+	compile project(":dmodel.runtime.pipeline.pcm.system")
+	compile project(":dmodel.runtime.pipeline.validation")
+	
+	compile project(":dmodel.base.evaluation")
+	
+	compile project(":dmodel.app.rest")
+	
+	// https://mvnrepository.com/artifact/commons-cli/commons-cli
+	compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+}
+

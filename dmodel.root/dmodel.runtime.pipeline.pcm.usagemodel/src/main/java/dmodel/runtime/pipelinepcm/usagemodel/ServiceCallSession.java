@@ -1,0 +1,32 @@
+package dmodel.runtime.pipelinepcm.usagemodel;
+
+import java.util.List;
+
+import dmodel.designtime.monitoring.records.ServiceCallRecord;
+
+public class ServiceCallSession {
+	private String sessionId;
+	private List<ServiceCallRecord> entryCalls;
+
+	public ServiceCallSession(String sessionId, List<ServiceCallRecord> entryCalls) {
+		this.sessionId = sessionId;
+		this.entryCalls = entryCalls;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public List<ServiceCallRecord> getEntryCalls() {
+		return entryCalls;
+	}
+
+	public void setEntryCalls(List<ServiceCallRecord> entryCalls) {
+		this.entryCalls = entryCalls;
+	}
+
+}
