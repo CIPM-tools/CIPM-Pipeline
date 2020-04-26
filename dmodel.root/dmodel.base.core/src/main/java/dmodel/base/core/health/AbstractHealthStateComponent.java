@@ -8,6 +8,7 @@ import java.util.Set;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -144,6 +145,7 @@ public abstract class AbstractHealthStateComponent implements InitializingBean {
 		return HealthStateProblem.builder().source(component);
 	}
 
+	@JsonIgnore
 	public HealthState getState() {
 		return healthStateManager.getState(component);
 	}

@@ -8,14 +8,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import dmodel.designtime.monitoring.records.ServiceCallRecord;
-import dmodel.runtime.pipeline.entry.MonitoringEntryPoint;
 import kieker.common.configuration.Configuration;
 import kieker.common.record.IMonitoringRecord;
 import kieker.monitoring.core.configuration.ConfigurationFactory;
 import kieker.monitoring.core.controller.IMonitoringController;
 import kieker.monitoring.core.controller.MonitoringController;
 import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
+import lombok.extern.java.Log;
 
+@Log
 public class MultipleClientTest {
 
 	private ModifiedMonitoringEntryPoint entryPoint;
@@ -42,8 +43,7 @@ public class MultipleClientTest {
 		try {
 			waiter.await();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.warning("Failed to wait on sending.");
 		}
 
 		assertEquals(amount * 100, entryPoint.getCounter());
@@ -102,8 +102,7 @@ public class MultipleClientTest {
 			try {
 				this.afterPropertiesSet();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.warning("Failed to init test.");
 			}
 		}
 

@@ -21,7 +21,6 @@ import dmodel.runtime.pipeline.pcm.router.AccuracySwitch;
 import dmodel.runtime.pipeline.pcm.system.RuntimeSystemTransformation;
 import lombok.extern.java.Log;
 
-// TODO maybe the project and the package are not the correct location
 @Log
 public class ServiceCallTreeBuilder extends AbstractIterativePipelinePart<RuntimePipelineBlackboard> {
 

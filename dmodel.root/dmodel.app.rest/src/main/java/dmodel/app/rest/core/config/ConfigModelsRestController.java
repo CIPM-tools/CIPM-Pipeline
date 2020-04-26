@@ -86,7 +86,7 @@ public class ConfigModelsRestController {
 			}
 			modelContainer.loadArchitectureModel(into);
 
-			return config.syncWithFilesystem() ? "{\"success\" : true}" : "{\"success\" : false}";
+			return config.syncWithFilesystem(true) ? "{\"success\" : true}" : "{\"success\" : false}";
 		} catch (IOException e) {
 			e.printStackTrace();
 			return "{\"success\" : false}";

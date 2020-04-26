@@ -127,7 +127,6 @@ public class AutomatedMappingResolverImpl implements IAutomatedMappingResolver {
 	private void processExternalCallComment(ExternalCallMappingComment parsedComment, Comment comment,
 			IJavaPCMCorrespondenceModel cpm) {
 		Statement externalMethodCall = getSubsequentStatement(comment);
-		// TODO check if it is a method call necessary?
 		if (externalMethodCall != null) {
 			cpm.addExternalCallCorrespondence(tuidGenerator.generateId(externalMethodCall),
 					parsedComment.getExternalCallId());

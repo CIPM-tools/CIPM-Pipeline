@@ -1,13 +1,11 @@
 package dmodel.runtime.pipeline.inm.transformation;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.pcm.headless.shared.data.results.MeasuringPointType;
 import org.pcm.headless.shared.data.results.PlainMeasuringPoint;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
@@ -21,6 +19,8 @@ import dmodel.runtime.pipeline.annotation.InputPorts;
 import dmodel.runtime.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.runtime.pipeline.inm.transformation.predicate.ValidationPredicate;
 import dmodel.runtime.pipeline.validation.data.ValidationData;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.java.Log;
 
 @Log
@@ -31,8 +31,9 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 		super(ExecutionMeasuringPoint.T_INSTRUMENTATION_MODEL, null);
 	}
 
-	@Autowired
-	private List<ValidationPredicate> validationPredicates;
+	@Getter
+	@Setter
+	private ValidationPredicate validationPredicate;
 
 	@InputPorts({ @InputPort(PortIDs.T_VAL_IMM) })
 	public void adjustInstrumentationModel(ValidationData validation) {
@@ -51,9 +52,7 @@ public class InstrumentationModelTransformation extends AbstractIterativePipelin
 			if (isServiceMeasuringPoint(validationPoint.getMeasuringPoint())) {
 				String serviceId = validationPoint.getServiceId();
 				if (serviceId != null) {
-					boolean fulfilled = validationPredicates.stream().allMatch(predicate -> {
-						return predicate.satisfied(validationPoint);
-					});
+					boolean fulfilled = validationPredicate == null || validationPredicate.satisfied(validationPoint);
 
 					if (fulfilled) {
 						deInstrumentServices.add(serviceId);

@@ -44,7 +44,7 @@ public class ConfigPropertiesRestController {
 		// apply it
 		parsedConfig.applyTo(this.config);
 
-		if (this.config.syncWithFilesystem()) {
+		if (this.config.syncWithFilesystem(true)) {
 			return JsonUtil.wrapAsObject("success", true, false);
 		} else {
 			return JsonUtil.wrapAsObject("success", false, false);

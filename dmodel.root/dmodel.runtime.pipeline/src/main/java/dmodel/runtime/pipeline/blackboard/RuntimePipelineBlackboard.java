@@ -57,7 +57,6 @@ public class RuntimePipelineBlackboard {
 	@Autowired
 	private IPipelineHealthQueryFacade healthQuery;
 
-	// TODO below really here?
 	@Setter
 	private boolean applicationRunning = false;
 

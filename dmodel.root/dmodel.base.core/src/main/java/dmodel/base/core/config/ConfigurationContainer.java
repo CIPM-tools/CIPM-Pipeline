@@ -58,6 +58,11 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 	 */
 	private ValidationFeedbackLoopConfiguration vfl;
 
+	/**
+	 * Configuration of the rules for the instrumentation model transformation.
+	 */
+	private PredicateRuleConfiguration validationPredicates;
+
 	// path of the file
 	/**
 	 * Path where the configuration is physically stored.
@@ -126,8 +131,10 @@ public class ConfigurationContainer extends AbstractHealthStateComponent {
 	 * 
 	 * @return true if the synchronization was successful, false otherwise
 	 */
-	public boolean syncWithFilesystem() {
-		this.validateConfiguration();
+	public boolean syncWithFilesystem(boolean validateBefore) {
+		if (validateBefore) {
+			this.validateConfiguration();
+		}
 
 		writer.findAndRegisterModules();
 		try {

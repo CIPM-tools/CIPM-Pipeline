@@ -42,7 +42,7 @@ public class MonitoringDataUtil {
 		});
 
 		// TODO problem if we have a trace which is not complete in the monitoring data
-		// TODO this should be fixed
+		// TODO i dont think this is a problem anymore -> review this maybe
 		records.stream().forEach(scr -> {
 			if (!idMapping.containsKey(scr.getCallerServiceExecutionId())) {
 				// get own

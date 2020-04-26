@@ -16,6 +16,9 @@ public interface ITemplateMapping {
 	String CONFIG_CONCEPTUAL_FRAGMENT = "fragments/config/conceptualprops";
 	String CONFIG_CONCEPTUAL_FRAGMENT_JS = "fragments/config/js/conceptualprops";
 
+	String CONFIG_MONITORING_FRAGMENT = "fragments/config/monitoring";
+	String CONFIG_MONITORING_FRAGMENT_JS = "fragments/config/js/monitoring";
+
 	String CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT = "fragments/design/sys-extraction";
 	String CONFIG_DESIGNTIME_SYSTEM_EXTRACTION_FRAGMENT_JS = "fragments/design/js/sys-extraction";
 

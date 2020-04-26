@@ -39,6 +39,13 @@ var rest = {
 			get : "/config/conceptual/get",
 			validate : "/config/conceptual/validate",
 			save : "/config/conceptual/save"
+		},
+		
+		monitoring : {
+			predicate : {
+				save : "/config/monitoring/predicate/save",
+				get : "/config/monitoring/predicate/get"
+			}
 		}
 	},
 	

@@ -40,7 +40,7 @@ public class ConfigProjectRestController {
 		try {
 			JsonProjectConfiguration json = objectMapper.readValue(config, JsonProjectConfiguration.class);
 			json.flush(this.config);
-			return this.config.syncWithFilesystem() ? "{\"success\" : true}" : "{\"success\" : false}";
+			return this.config.syncWithFilesystem(true) ? "{\"success\" : true}" : "{\"success\" : false}";
 		} catch (IOException e) {
 			return "{\"success\" : false}";
 		}

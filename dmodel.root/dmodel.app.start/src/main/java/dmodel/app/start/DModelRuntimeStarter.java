@@ -31,13 +31,15 @@ import dmodel.base.models.inmodel.InstrumentationMetamodel.InstrumentationModelP
 import dmodel.base.models.runtimeenvironment.REModel.REModelPackage;
 import dmodel.base.shared.correspondence.CorrespondenceUtil;
 import dmodel.base.shared.pcm.util.PCMUtils;
+import lombok.extern.java.Log;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "dmodel.pipeline", "mir.reactions", "mir.routines" })
+@ComponentScan(basePackages = { "dmodel", "mir.reactions", "mir.routines" })
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties
 @EnableWebMvc
+@Log
 public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer, SchedulingConfigurer {
 	@Value("${config}")
 	private String configPath;
@@ -85,6 +87,8 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 
 		File configFile = new File(configPath);
 		if (!configFile.exists()) {
+			log.warning("Configuration file does not exist.");
+			log.warning("Path of specified configuration is '" + configPath + "'.");
 			return null;
 		}
 
@@ -97,7 +101,8 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 			output.setFileBackedPath(configFile); // => to save it properly
 			return output;
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.warning("Failed to parse the configuration.");
+			log.warning(e.getMessage());
 			// no valid configuration
 			return null;
 		}

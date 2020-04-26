@@ -46,6 +46,15 @@ public class TemplateController {
 		return "index";
 	}
 
+	@RequestMapping(value = { "/config/monitoring" }, method = RequestMethod.GET)
+	public String configMonitoring(Model model) {
+		this.prepareModel(model, "config");
+		model.addAttribute("fragment", ITemplateMapping.CONFIG_MONITORING_FRAGMENT);
+		model.addAttribute("fragment_js", ITemplateMapping.CONFIG_MONITORING_FRAGMENT_JS);
+
+		return "index";
+	}
+
 	@RequestMapping(value = { "/config/projectprops" }, method = RequestMethod.GET)
 	public String configProject(Model model) {
 		this.prepareModel(model, "config");

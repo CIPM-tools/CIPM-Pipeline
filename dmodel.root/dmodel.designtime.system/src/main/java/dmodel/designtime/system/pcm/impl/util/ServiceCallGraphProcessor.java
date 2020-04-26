@@ -29,7 +29,6 @@ public class ServiceCallGraphProcessor {
 		searchEntryNodes();
 	}
 
-	// TODO refactor
 	public List<RepositoryComponent> filterComponents(List<RepositoryComponent> init, RepositoryComponent from,
 			Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
 		if (scg == null || !target.anyPresent()) {
@@ -42,31 +41,9 @@ public class ServiceCallGraphProcessor {
 
 		Set<RepositoryComponent> outLinks = new HashSet<>();
 		if (target.rightPresent()) {
-			entryNodes.forEach(n -> {
-				OperationSignature sig = (OperationSignature) n.getSeff().getDescribedService__SEFF();
-				if (sig.getInterface__OperationSignature().getId().equals(iface.getId())) {
-					outLinks.add(n.getSeff().getBasicComponent_ServiceEffectSpecification());
-				}
-			});
+			filterEntryNodes(outLinks, iface);
 		} else if (target.leftPresent()) {
-			List<ServiceCallGraphNode> compNodes = scg.getNodes().stream().filter(
-					n -> n.getSeff().getBasicComponent_ServiceEffectSpecification().getId().equals(from.getId()))
-					.collect(Collectors.toList());
-
-			if (compNodes.size() > 0) {
-				compNodes.forEach(n -> {
-					if (scg.getOutgoingEdges().containsKey(n)) {
-						scg.getOutgoingEdges().get(n).forEach(out -> {
-							OperationSignature opSig = (OperationSignature) out.getTo().getSeff()
-									.getDescribedService__SEFF();
-							if (opSig.getId().equals(iface.getId()) && out.getExternalCall().getRole_ExternalService()
-									.getId().equals(target.getLeft().getRole().getId())) {
-								outLinks.add(out.getTo().getSeff().getBasicComponent_ServiceEffectSpecification());
-							}
-						});
-					}
-				});
-			}
+			filterSCGEdges(outLinks, iface, from, target);
 		}
 
 		List<RepositoryComponent> finalComps = Lists.newArrayList();
@@ -82,6 +59,37 @@ public class ServiceCallGraphProcessor {
 		}
 
 		return finalComps;
+	}
+
+	private void filterSCGEdges(Set<RepositoryComponent> outLinks, OperationInterface iface, RepositoryComponent from,
+			Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
+		List<ServiceCallGraphNode> compNodes = scg.getNodes().stream()
+				.filter(n -> n.getSeff().getBasicComponent_ServiceEffectSpecification().getId().equals(from.getId()))
+				.collect(Collectors.toList());
+
+		if (compNodes.size() > 0) {
+			compNodes.forEach(n -> {
+				if (scg.getOutgoingEdges().containsKey(n)) {
+					scg.getOutgoingEdges().get(n).forEach(out -> {
+						OperationSignature opSig = (OperationSignature) out.getTo().getSeff()
+								.getDescribedService__SEFF();
+						if (opSig.getId().equals(iface.getId()) && out.getExternalCall().getRole_ExternalService()
+								.getId().equals(target.getLeft().getRole().getId())) {
+							outLinks.add(out.getTo().getSeff().getBasicComponent_ServiceEffectSpecification());
+						}
+					});
+				}
+			});
+		}
+	}
+
+	private void filterEntryNodes(Set<RepositoryComponent> outLinks, OperationInterface iface) {
+		entryNodes.forEach(n -> {
+			OperationSignature sig = (OperationSignature) n.getSeff().getDescribedService__SEFF();
+			if (sig.getInterface__OperationSignature().getId().equals(iface.getId())) {
+				outLinks.add(n.getSeff().getBasicComponent_ServiceEffectSpecification());
+			}
+		});
 	}
 
 	private void searchEntryNodes() {
