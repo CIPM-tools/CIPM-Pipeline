@@ -59,6 +59,11 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		clearSynchronization();
 		architectureModel = InMemoryPCM.createFromFilesystemSynced(filesystemPCM);
 
+		// set corresponding models for allocation
+		architectureModel.getAllocationModel()
+				.setTargetResourceEnvironment_Allocation(architectureModel.getResourceEnvironmentModel());
+		architectureModel.getAllocationModel().setSystem_Allocation(architectureModel.getSystem());
+
 		// sync models
 		syncRemainingModels();
 

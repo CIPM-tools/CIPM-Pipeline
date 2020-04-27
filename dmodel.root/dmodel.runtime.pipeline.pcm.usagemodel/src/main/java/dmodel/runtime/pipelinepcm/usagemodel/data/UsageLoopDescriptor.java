@@ -46,7 +46,7 @@ public class UsageLoopDescriptor implements IAbstractUsageDescriptor {
 			UsageLoopDescriptor uldOther = (UsageLoopDescriptor) other;
 			this.iterations.addAll(uldOther.getIterations());
 
-			for (var i = 0; i < childs.size(); i++) {
+			for (int i = 0; i < childs.size(); i++) {
 				childs.get(i).merge(uldOther.childs.get(i));
 			}
 		}
