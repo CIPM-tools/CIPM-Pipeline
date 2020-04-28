@@ -1,0 +1,33 @@
+---
+project:
+  rootPath: ""
+  sourceFolders:
+  - "src/main/java"
+models:
+  repositoryPath: "test_models/repository.repository"
+  systemPath: "test_models/system.system"
+  usagePath: "test_models/usage.usagemodel"
+  allocationPath: "test_models/allocation.allocation"
+  envPath: "test_models/env.resourceenvironment"
+  instrumentationModelPath: "test_models/instrumentation.imm"
+  correspondencePath: "test_models/correspondences.correspondences"
+  runtimeEnvironmentPath: "test_models/runtimeenv.rem"
+entry:
+  slidingWindowSize: 1000
+  slidingWindowTrigger: 300
+vfl:
+  url: "127.0.0.1"
+  port: 8080
+  simulationTime: 150000
+  measurements: 10000
+  validationShare: 0.1
+validationPredicates:
+  condition: "AND"
+  value: 0.0
+  rules:
+  - id: "kstest"
+    operator: "less"
+    value: 0.15
+  - id: "avg_rel"
+    operator: "less"
+    value: 0.2
