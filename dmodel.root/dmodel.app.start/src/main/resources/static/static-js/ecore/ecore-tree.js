@@ -67,6 +67,10 @@ var ecoreTree = {
 	},
 	
 	getIcon(data) {
+		if (data.type === null) {
+			return "fa fa-question";
+		}
+		
 		if (ecoreTree.icons.hasOwnProperty(data.type)) {
 			return ecoreTree.icons[data.type];
 		} else if (ecoreTree.base_path !== null) {
@@ -77,6 +81,10 @@ var ecoreTree = {
 	},
 	
 	generateText(element) {
+		if (element.type === null || element.type === undefined) {
+			return "Not existing";
+		}
+		
 		baseText = element.type;
 		if (element.attributes.hasOwnProperty("id")) {
 			baseText += " (ID = " + element.attributes.id + ")";

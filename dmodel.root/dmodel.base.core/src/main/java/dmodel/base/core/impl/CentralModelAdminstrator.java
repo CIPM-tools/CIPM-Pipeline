@@ -128,42 +128,42 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 
 	@Override
 	public InstrumentationModel getInstrumentation() {
-		return instrumentationModel;
+		return architectureModel != null ? instrumentationModel : null;
 	}
 
 	@Override
 	public RuntimeEnvironmentModel getRuntimeEnvironment() {
-		return runtimeEnvironmentModel;
+		return architectureModel != null ? runtimeEnvironmentModel : null;
 	}
 
 	@Override
 	public Correspondences getCorrespondences() {
-		return correspondenceModel;
+		return architectureModel != null ? correspondenceModel : null;
 	}
 
 	@Override
 	public Repository getRepository() {
-		return architectureModel.getRepository();
+		return architectureModel != null ? architectureModel.getRepository() : null;
 	}
 
 	@Override
 	public System getSystem() {
-		return architectureModel.getSystem();
+		return architectureModel != null ? architectureModel.getSystem() : null;
 	}
 
 	@Override
 	public ResourceEnvironment getResourceEnvironment() {
-		return architectureModel.getResourceEnvironmentModel();
+		return architectureModel != null ? architectureModel.getResourceEnvironmentModel() : null;
 	}
 
 	@Override
 	public Allocation getAllocation() {
-		return architectureModel.getAllocationModel();
+		return architectureModel != null ? architectureModel.getAllocationModel() : null;
 	}
 
 	@Override
 	public UsageModel getUsage() {
-		return architectureModel.getUsageModel();
+		return architectureModel != null ? architectureModel.getUsageModel() : null;
 	}
 
 	@Override

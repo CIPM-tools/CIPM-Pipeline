@@ -21,15 +21,17 @@ public class JsonEObject {
 	public static JsonEObject create(EObject clone) {
 		JsonEObject ret = new JsonEObject();
 
-		ret.setType(clone.eClass().getName());
+		if (clone != null) {
+			ret.setType(clone.eClass().getName());
 
-		// get fields
-		for (EAttribute field : clone.eClass().getEAllAttributes()) {
-			ret.attributes.put(field.getName(), String.valueOf(clone.eGet(field)));
-		}
+			// get fields
+			for (EAttribute field : clone.eClass().getEAllAttributes()) {
+				ret.attributes.put(field.getName(), String.valueOf(clone.eGet(field)));
+			}
 
-		for (EObject child : clone.eContents()) {
-			ret.childs.add(JsonEObject.create(child));
+			for (EObject child : clone.eContents()) {
+				ret.childs.add(JsonEObject.create(child));
+			}
 		}
 
 		return ret;

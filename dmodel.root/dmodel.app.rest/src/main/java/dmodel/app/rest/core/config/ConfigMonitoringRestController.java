@@ -28,7 +28,7 @@ import lombok.extern.java.Log;
 @RestController
 @Log
 public class ConfigMonitoringRestController {
-	private static final Map<String, ValidationMetricType> predicateMetricMapping = new HashMap<>() {
+	private static final Map<String, ValidationMetricType> predicateMetricMapping = new HashMap<String, ValidationMetricType>() {
 		/**
 		 * Generated Serial UID.
 		 */
