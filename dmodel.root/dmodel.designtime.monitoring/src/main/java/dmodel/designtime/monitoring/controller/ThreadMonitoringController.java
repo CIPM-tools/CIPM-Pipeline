@@ -126,7 +126,7 @@ public class ThreadMonitoringController {
 		// configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
 		configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
 		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
-		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, "localhost");
+		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, MonitoringConfiguration.SERVER_HOSTNAME);
 		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
 
 		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);

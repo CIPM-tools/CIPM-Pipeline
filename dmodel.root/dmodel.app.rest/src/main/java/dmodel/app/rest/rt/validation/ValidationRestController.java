@@ -39,15 +39,17 @@ public class ValidationRestController {
 			if (correspondingData != null) {
 				JsonValidationPointOverview point = new JsonValidationPointOverview();
 				point.setEmpty(correspondingData.isEmpty());
-				point.setValidationPointCount(correspondingData.getValidationPoints().size() > 0
-						? correspondingData.getValidationPoints().size()
-						: 0);
-				point.setVisPresent(correspondingData.getValidationImprovementScore().isPresent());
 				point.setValidationDescription(schedulePoint.getName());
 				point.setValidationDescriptionEnum(schedulePoint.toString());
-
-				if (point.isVisPresent()) {
-					point.setValidationImprovementScore(correspondingData.getValidationImprovementScore().get());
+				if (!correspondingData.isEmpty()) {
+					point.setValidationPointCount(correspondingData.getValidationPoints().size() > 0
+							? correspondingData.getValidationPoints().size()
+							: 0);
+					point.setVisPresent(correspondingData.getValidationImprovementScore().isPresent());
+					
+					if (point.isVisPresent()) {
+						point.setValidationImprovementScore(correspondingData.getValidationImprovementScore().get());
+					}
 				}
 
 				overviewResult.getPoints().add(point);

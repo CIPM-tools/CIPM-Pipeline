@@ -16,14 +16,8 @@ function layoutPipeline(width, height, size) {
 		size : size,
 		text : "Update Resource\nEnvironment Model"
 	};
-	positions["t-allocation"] = {
-		x : step * 2 * width + size / 2,
-		y : height / 2,
-		size : size,
-		text : "Update Allocation Model"
-	};
 	positions["t-system"] = {
-		x : step * 3 * width + size / 2,
+		x : step * 2 * width + size / 2,
 		y : height / 2,
 		size : size,
 		text : "Update System Model"
@@ -31,13 +25,13 @@ function layoutPipeline(width, height, size) {
 
 	// switch
 	positions["t-usagemodel1"] = {
-		x : step * 4 * width + size / 2,
+		x : step * 3 * width + size / 2,
 		y : height / 4,
 		size : size,
 		text : "Update Usage Model"
 	};
 	positions["t-repository1"] = {
-		x : step * 4 * width + size / 2,
+		x : step * 3 * width + size / 2,
 		y : (height / 4) * 3,
 		size : size,
 		text : "Calibrate Resource Demands"
@@ -45,27 +39,27 @@ function layoutPipeline(width, height, size) {
 
 	// after switch simulation
 	positions["t-validation2-1"] = {
-		x : step * 5 * width + size / 2,
+		x : step * 4.25 * width + size / 2,
 		y : height / 4,
 		size : size,
 		text : "Self-Validation 2"
 	};
 	
 	positions["t-validation2-2"] = {
-			x : step * 5 * width + size / 2,
+			x : step * 4.25 * width + size / 2,
 			y : (height / 4) * 3,
 			size : size,
 			text : "Self-Validation 3"
 		};
 
 	positions["t-usagemodel2"] = {
-		x : step * 6.25 * width + size / 2,
+		x : step * 5.75 * width + size / 2,
 		y : height / 4,
 		size : size,
 		text : "Update Usage Model"
 	};
 	positions["t-repository2"] = {
-		x : step * 6.25 * width + size / 2,
+		x : step * 5.75 * width + size / 2,
 		y : (height / 4) * 3,
 		size : size,
 		text : "Calibrate Resource Demands"
@@ -88,10 +82,6 @@ function layoutPipeline(width, height, size) {
 		dashed : false
 	}, {
 		from : "t-resourceenv",
-		to : "t-allocation",
-		dashed : false
-	}, {
-		from : "t-allocation",
 		to : "t-system",
 		dashed : false
 	}, {
