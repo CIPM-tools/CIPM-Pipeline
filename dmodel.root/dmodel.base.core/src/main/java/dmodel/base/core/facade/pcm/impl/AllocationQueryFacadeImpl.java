@@ -80,14 +80,6 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 	}
 
 	@Override
-	public void deleteAllocation(AssemblyContext da) {
-		if (assemblyDeploymentCache.containsKey(da.getId())) {
-			AllocationContext correspondingCtx = assemblyDeploymentCache.get(da.getId());
-			removeAllocationContext(correspondingCtx);
-		}
-	}
-
-	@Override
 	public boolean hasDeployments(ResourceContainer presentContainer) {
 		return hasDeploymentCache.containsKey(presentContainer.getId())
 				? hasDeploymentCache.get(presentContainer.getId()) > 0
