@@ -26,27 +26,74 @@ import dmodel.base.shared.pcm.LocalFilesystemPCM;
 import tools.vitruv.framework.correspondence.CorrespondenceFactory;
 import tools.vitruv.framework.correspondence.Correspondences;
 
+/**
+ * Component that manages all models. It synchronizes them with files and
+ * provides them for other components.
+ * 
+ * @author David Monschein
+ *
+ */
 @Component
 public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		implements IPcmModelProvider, ISpecificModelProvider {
+	/**
+	 * Reference to the configuration.
+	 */
 	@Autowired
 	private ConfigurationContainer configuration;
 
+	/**
+	 * Underlying PCM model.
+	 */
 	private InMemoryPCM architectureModel;
+
+	/**
+	 * File system paths for the PCM models (for synchronization).
+	 */
 	private LocalFilesystemPCM filesystemPCM;
 
+	/**
+	 * Instrumentation model.
+	 */
 	private InstrumentationModel instrumentationModel;
+
+	/**
+	 * Runtime Environment model.
+	 */
 	private RuntimeEnvironmentModel runtimeEnvironmentModel;
+
+	/**
+	 * Correspondence model which is used by the VSUM manager.
+	 */
 	private Correspondences correspondenceModel;
 
+	/**
+	 * File that is used to synchronize the instrumentation model.
+	 */
 	private File instrumentationModelFile;
+
+	/**
+	 * File that is used to synchronize the runtime environment model.
+	 */
 	private File runtimeEnvironmentModelFile;
+
+	/**
+	 * File that is used to store the correspondences.
+	 */
 	private File correspondenceModelFile;
 
+	/**
+	 * Creates a new instance and registers it as model manager component.
+	 */
 	public CentralModelAdminstrator() {
 		super(HealthStateObservedComponent.MODEL_MANAGER, HealthStateObservedComponent.CONFIGURATION);
 	}
 
+	/**
+	 * Loads all models from a given configuration which contains the paths.
+	 * 
+	 * @param config the configuration which contains the paths
+	 */
 	public void loadArchitectureModel(ModelConfiguration config) {
 		if (!checkPreconditions()) {
 			return;
@@ -71,6 +118,9 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		reportConfigurationWorking();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onMessage(HealthStateObservedComponent source, HealthState state) {
 		if (source == HealthStateObservedComponent.CONFIGURATION && state == HealthState.WORKING) {
@@ -78,6 +128,9 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		}
 	}
 
+	/**
+	 * Stops the synchronization of the models with the files.
+	 */
 	private void clearSynchronization() {
 		if (architectureModel != null) {
 			architectureModel.clearListeners();
@@ -87,6 +140,10 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		FileBackedModelUtil.clear(runtimeEnvironmentModel);
 	}
 
+	/**
+	 * Synchronizes instrumentation model, correspondence model and runtime
+	 * environment model with files.
+	 */
 	private void syncRemainingModels() {
 		if (correspondenceModel == null) {
 			correspondenceModel = CorrespondenceFactory.eINSTANCE.createCorrespondences();
@@ -98,6 +155,13 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 				RuntimeEnvironmentModel.class);
 	}
 
+	/**
+	 * Loads the instrumentation model, the runtime environment model and the
+	 * correspondence model from files.
+	 * 
+	 * @param config the model configuration which contains the file paths of the
+	 *               models
+	 */
 	private void buildRemainingModels(ModelConfiguration config) {
 		instrumentationModelFile = new File(config.getInstrumentationModelPath());
 		runtimeEnvironmentModelFile = new File(config.getRuntimeEnvironmentPath());
@@ -108,6 +172,12 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		correspondenceModel = ModelUtil.readFromFile(correspondenceModelFile, Correspondences.class);
 	}
 
+	/**
+	 * Builds the file system PCM which is synchronized with the current models.
+	 * 
+	 * @param config the model configuration which contains the paths where the PCM
+	 *               should be stored
+	 */
 	private void buildFileSystemPCM(ModelConfiguration config) {
 		filesystemPCM = new LocalFilesystemPCM();
 		filesystemPCM.setAllocationModelFile(
@@ -120,52 +190,82 @@ public class CentralModelAdminstrator extends AbstractHealthStateComponent
 		filesystemPCM.setUsageModelFile(config.getUsagePath().length() > 0 ? new File(config.getUsagePath()) : null);
 	}
 
+	/**
+	 * Removes all problems and reports the configuration component as working.
+	 */
 	private void reportConfigurationWorking() {
 		super.removeAllProblems();
 		super.updateState();
 		super.sendStateMessage(HealthStateObservedComponent.VSUM_MANAGER);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public InstrumentationModel getInstrumentation() {
 		return architectureModel != null ? instrumentationModel : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public RuntimeEnvironmentModel getRuntimeEnvironment() {
 		return architectureModel != null ? runtimeEnvironmentModel : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Correspondences getCorrespondences() {
 		return architectureModel != null ? correspondenceModel : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Repository getRepository() {
 		return architectureModel != null ? architectureModel.getRepository() : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public System getSystem() {
 		return architectureModel != null ? architectureModel.getSystem() : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ResourceEnvironment getResourceEnvironment() {
 		return architectureModel != null ? architectureModel.getResourceEnvironmentModel() : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Allocation getAllocation() {
 		return architectureModel != null ? architectureModel.getAllocationModel() : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public UsageModel getUsage() {
 		return architectureModel != null ? architectureModel.getUsageModel() : null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public InMemoryPCM getRaw() {
 		return architectureModel;

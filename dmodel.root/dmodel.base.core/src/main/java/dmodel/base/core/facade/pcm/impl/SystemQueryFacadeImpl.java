@@ -35,80 +35,158 @@ import dmodel.base.shared.pcm.util.deprecation.IDeprecationProcessor;
 import dmodel.base.shared.pcm.util.system.PCMSystemUtil;
 import dmodel.base.shared.structure.DirectedGraph;
 
+/**
+ * Implementation of the {@link ISystemQueryFacade} interface. Uses a lot of
+ * caches to guarantee fast accesses.
+ * 
+ * @author David Monschein
+ *
+ */
 @Component
 public class SystemQueryFacadeImpl implements ISystemQueryFacade {
+	/**
+	 * Provider of the underlying models.
+	 */
 	@Autowired
 	private IPcmModelProvider pcmModelProvider;
 
+	/**
+	 * Facade for accessing the allocation model.
+	 */
 	@Autowired
 	private IAllocationQueryFacade allocationQuery;
 
+	/**
+	 * Set of IDs of the assembly contexts within the system model.
+	 */
 	private Set<String> assemblyIdsCache = Sets.newHashSet();
 
+	/**
+	 * Mapping of ID string to elements in the system model.
+	 */
 	private Map<String, Identifier> idElementCache = Maps.newHashMap();
 
+	/**
+	 * A list of all assembly connectors in the system model.
+	 */
 	private List<AssemblyConnector> assemblyConnectors = Lists.newArrayList();
+
+	/**
+	 * A list of all provided delegation connectors in the system model.
+	 */
 	private List<ProvidedDelegationConnector> providedDelegationConnectors = Lists.newArrayList();
+
+	/**
+	 * A list of all required delegation connectors in the system model.
+	 */
 	private List<RequiredDelegationConnector> requiredDelegationConnectors = Lists.newArrayList();
 
+	/**
+	 * A list of all provided roles of the enclosing system.
+	 */
 	private List<OperationProvidedRole> systemProvidedRoles = Lists.newArrayList();
 
+	/**
+	 * All required roles of the system that are not linked yet.
+	 */
 	private Set<OperationRequiredRole> openOuterRequiredRoles = Sets.newHashSet();
+
+	/**
+	 * All provided roles of the system that are not linked yet.
+	 */
 	private Set<OperationProvidedRole> openOuterProvidedRoles = Sets.newHashSet();
+
+	/**
+	 * Set of pairs (assembly context, required role) of required roles that are not
+	 * satisfied yet.
+	 */
 	private Set<Pair<AssemblyContext, OperationRequiredRole>> openInnerRequiredRoles = Sets.newHashSet();
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void reset(boolean hard) {
 		clearCaches();
 		buildCaches();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getId() {
 		return pcmModelProvider.getSystem().getId();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Set<String> getAssemblyIds() {
 		return assemblyIdsCache;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Collection<AssemblyConnector> getAssemblyConnectors() {
 		return assemblyConnectors;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Collection<AssemblyContext> getAssemblyContexts() {
 		return pcmModelProvider.getSystem().getAssemblyContexts__ComposedStructure();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Collection<ProvidedDelegationConnector> getProvidedDelegationConnectors() {
 		return providedDelegationConnectors;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Collection<RequiredDelegationConnector> getRequiredDelegationConnectors() {
 		return requiredDelegationConnectors;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationInterface> getProvidedInterfaces() {
 		return systemProvidedRoles.stream().map(r -> r.getProvidedInterface__OperationProvidedRole())
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationProvidedRole> getProvidedRoles() {
 		return systemProvidedRoles;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationProvidedRole> getProvidedRoleBySignature(Signature describedService__SEFF) {
 		return getProvidedRoleBySignature(describedService__SEFF, pcmModelProvider.getSystem());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationProvidedRole> getProvidedRoleBySignature(Signature describedService__SEFF,
 			InterfaceProvidingEntity entity) {
@@ -119,11 +197,17 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public AssemblyContext getAssemblyById(String assembly) {
 		return (AssemblyContext) idElementCache.get(assembly);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public AssemblyContext createAssemblyContext(RepositoryComponent component) {
 		long timestamp = System.currentTimeMillis() / 1000;
@@ -133,6 +217,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		return nCtx;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void removeConnectors(List<Connector> connectors) {
 		for (Connector connector : connectors) {
@@ -140,6 +227,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean hasConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
 			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole) {
@@ -151,6 +241,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 						&& cn.getProvidedRole_AssemblyConnector().getId().equals(correspondingProvidedRole.getId()));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean hasConnector(OperationProvidedRole outerProvidedRole, AssemblyContext ctx,
 			OperationProvidedRole innerProvidedRole) {
@@ -160,6 +253,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 				&& c.getInnerProvidedRole_ProvidedDelegationConnector().getId().equals(innerProvidedRole.getId()));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean hasConnector(OperationRequiredRole outerRequiredRole, AssemblyContext ctx,
 			OperationRequiredRole innerRequiredRole) {
@@ -169,6 +265,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 				&& c.getInnerRequiredRole_RequiredDelegationConnector().getId().equals(innerRequiredRole.getId()));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public AssemblyConnector createConnector(AssemblyContext correspondingACtx, OperationRequiredRole requiredRole,
 			AssemblyContext correspondingACtxTarget, OperationProvidedRole correspondingProvidedRole) {
@@ -178,6 +277,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		return nConnector;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void reconnectOuterProvidedRole(OperationProvidedRole systemProvidedRole, AssemblyContext ctx,
 			OperationProvidedRole role) {
@@ -193,6 +295,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void reconnectOuterRequiredRole(OperationRequiredRole selectedOuter, AssemblyContext left,
 			OperationRequiredRole right) {
@@ -209,21 +314,33 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<Pair<AssemblyContext, OperationRequiredRole>> getUnsatisfiedInnerRequiredRoles() {
 		return new ArrayList<>(openInnerRequiredRoles);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationProvidedRole> getUnsatisfiedOuterProvidedRoles() {
 		return new ArrayList<>(openOuterProvidedRoles);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<OperationRequiredRole> getNonLinkedOuterRequiredRoles() {
 		return new ArrayList<>(openOuterRequiredRoles);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void removeInconsistentConnectors(AssemblyConnector connector) {
 		List<Connector> inconsistentConnectors = Lists.newArrayList();
@@ -251,20 +368,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
-	private boolean requiringEntityEqual(AssemblyConnector c, AssemblyConnector connector) {
-		return c.getRequiredRole_AssemblyConnector().getId()
-				.equals(connector.getRequiredRole_AssemblyConnector().getId())
-				&& c.getRequiringAssemblyContext_AssemblyConnector().getId()
-						.equals(connector.getRequiringAssemblyContext_AssemblyConnector().getId());
-	}
-
-	private boolean providingEntityEqual(AssemblyConnector c, AssemblyConnector connector) {
-		return c.getProvidedRole_AssemblyConnector().getId()
-				.equals(connector.getProvidedRole_AssemblyConnector().getId())
-				&& c.getProvidingAssemblyContext_AssemblyConnector().getId()
-						.equals(connector.getRequiringAssemblyContext_AssemblyConnector().getId());
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void processUnreachableAssemblys(IDeprecationProcessor deprecationProcessor) {
 		DirectedGraph<String, Integer> assemblyInvocationGraph = new DirectedGraph<>();
@@ -291,6 +397,48 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		deprecationProcessor.iterationFinished();
 	}
 
+	/**
+	 * Determines whether the requiring entity of two assembly connectors are equal,
+	 * based on their IDs.
+	 * 
+	 * @param c         the first connector
+	 * @param connector the second connector
+	 * @return true, if the requiring entity of two assembly connectors are equal
+	 *         (according to their IDs), false otherwise
+	 */
+	private boolean requiringEntityEqual(AssemblyConnector c, AssemblyConnector connector) {
+		return c.getRequiredRole_AssemblyConnector().getId()
+				.equals(connector.getRequiredRole_AssemblyConnector().getId())
+				&& c.getRequiringAssemblyContext_AssemblyConnector().getId()
+						.equals(connector.getRequiringAssemblyContext_AssemblyConnector().getId());
+	}
+
+	/**
+	 * Determines whether the providing entity of two assembly connectors are equal,
+	 * based on their IDs.
+	 * 
+	 * @param c         the first connector
+	 * @param connector the second connector
+	 * @return true, if the providing entity of two assembly connectors are equal
+	 *         (according to their IDs), false otherwise
+	 */
+	private boolean providingEntityEqual(AssemblyConnector c, AssemblyConnector connector) {
+		return c.getProvidedRole_AssemblyConnector().getId()
+				.equals(connector.getProvidedRole_AssemblyConnector().getId())
+				&& c.getProvidingAssemblyContext_AssemblyConnector().getId()
+						.equals(connector.getRequiringAssemblyContext_AssemblyConnector().getId());
+	}
+
+	/**
+	 * Determines all nodes that are reachable within a graph. This enables the
+	 * finding of unused assembly contexts within the system.
+	 * 
+	 * @param assemblyInvocationGraph a graph that contains the IDs of the assembly
+	 *                                contexts as nodes and the edges represent that
+	 *                                two nodes are connected with a
+	 *                                {@link Connector}.
+	 * @return set of IDs of all reachable assembly contexts
+	 */
 	private Set<String> getReachableNodes(DirectedGraph<String, Integer> assemblyInvocationGraph) {
 		Set<String> marked = Sets.newHashSet();
 		// create transitive closure
@@ -312,6 +460,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		return marked;
 	}
 
+	/**
+	 * Clears all caches within this facade.
+	 */
 	private void clearCaches() {
 		assemblyIdsCache.clear();
 		idElementCache.clear();
@@ -325,6 +476,9 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		openInnerRequiredRoles.clear();
 	}
 
+	/**
+	 * Rebuilds all caches within this facade.
+	 */
 	private void buildCaches() {
 		// process system as it
 		pcmModelProvider.getSystem().getProvidedRoles_InterfaceProvidingEntity().stream()
@@ -346,6 +500,11 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
+	/**
+	 * Introduces a new connector into the facade internal caches.
+	 * 
+	 * @param connector the connector that should be cached
+	 */
 	private void cacheConnector(Connector connector) {
 		if (connector instanceof AssemblyConnector) {
 			AssemblyConnector cConnector = (AssemblyConnector) connector;
@@ -368,6 +527,11 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		}
 	}
 
+	/**
+	 * Introduces a new assembly context into the facade internal caches.
+	 * 
+	 * @param actx the assembly context that should be cached
+	 */
 	private void cacheAssembly(AssemblyContext actx) {
 		assemblyIdsCache.add(actx.getId());
 		idElementCache.put(actx.getId(), actx);
@@ -377,6 +541,12 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 				.map(r -> Pair.of(actx, r)).forEach(openInnerRequiredRoles::add);
 	}
 
+	/**
+	 * Removes a connector from the internal caches.
+	 * 
+	 * @param connector the connector that should be removed from all internal
+	 *                  caches
+	 */
 	private void removeConnector(Connector connector) {
 		assemblyConnectors.remove(connector);
 		requiredDelegationConnectors.remove(connector);
@@ -399,6 +569,11 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 		pcmModelProvider.getSystem().getConnectors__ComposedStructure().remove(connector);
 	}
 
+	/**
+	 * Removes an assembly context from the internal caches.
+	 * 
+	 * @param ctx assembly context that should be removed from all internal caches.
+	 */
 	private void removeAssembly(AssemblyContext ctx) {
 		assemblyIdsCache.remove(ctx.getId());
 		idElementCache.remove(ctx.getId());

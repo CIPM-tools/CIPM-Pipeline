@@ -21,22 +21,47 @@ import com.google.common.collect.Maps;
 import dmodel.base.core.IPcmModelProvider;
 import dmodel.base.core.facade.pcm.IAllocationQueryFacade;
 
+/**
+ * Implementation of the {@link IAllocationQueryFacade} interface. Uses caching
+ * mechanisms to speedup the accesses to model elements.
+ * 
+ * @author David Monschein
+ *
+ */
 @Component
 public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
+	/**
+	 * Provider for the underlying models.
+	 */
 	@Autowired
 	private IPcmModelProvider pcmModelProvider;
 
+	/**
+	 * Cache of the mapping between ID -> allocation context.
+	 */
 	private Cache<String, AllocationContext> allocationContextIdCache = new Cache2kBuilder<String, AllocationContext>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
+	/**
+	 * Caching between assembly context ID -> allocation context.
+	 */
 	private Cache<String, AllocationContext> assemblyDeploymentCache = new Cache2kBuilder<String, AllocationContext>() {
 	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
 
+	/**
+	 * Caches whether a specific assembly context with a given ID is deployed.
+	 */
 	private Map<String, Integer> hasDeploymentCache = Maps.newHashMap();
 
 	// this cache is used very often so it is designed to be high-performance
+	/**
+	 * Mapping between pair (component ID, container ID) -> assembly context.
+	 */
 	private Map<Pair<String, String>, List<AssemblyContext>> componentContainerQueryCache = Maps.newHashMap();
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void deployAssembly(AssemblyContext ret, ResourceContainer host) {
 		AllocationContext nAllocation = AllocationFactory.eINSTANCE.createAllocationContext();
@@ -49,6 +74,9 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		importAllocationContext(nAllocation);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void undeployAssembly(AssemblyContext ctx) {
 		if (assemblyDeploymentCache.containsKey(ctx.getId())) {
@@ -56,11 +84,17 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isDeployed(AssemblyContext ac) {
 		return assemblyDeploymentCache.containsKey(ac.getId());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ResourceContainer getContainerByAssembly(AssemblyContext asCtx) {
 		if (assemblyDeploymentCache.containsKey(asCtx.getId())) {
@@ -69,6 +103,9 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		return null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<AssemblyContext> getDeployedAssembly(BasicComponent componentType, ResourceContainer container) {
 		Pair<String, String> queryPair = Pair.of(componentType.getId(), container.getId());
@@ -79,6 +116,9 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean hasDeployments(ResourceContainer presentContainer) {
 		return hasDeploymentCache.containsKey(presentContainer.getId())
@@ -86,6 +126,9 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 				: false;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void reset(boolean hard) {
 		assemblyDeploymentCache.clear();
@@ -99,6 +142,12 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		}
 	}
 
+	/**
+	 * Imports an allocation context into this facade and introduces it to all
+	 * internal caches.
+	 * 
+	 * @param ctx the allocation context that should be imported
+	 */
 	private void importAllocationContext(AllocationContext ctx) {
 		allocationContextIdCache.put(ctx.getId(), ctx);
 		assemblyDeploymentCache.put(ctx.getAssemblyContext_AllocationContext().getId(), ctx);
@@ -118,6 +167,12 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		}
 	}
 
+	/**
+	 * Removes an allocation context from the underlying model and updates all
+	 * caches.
+	 * 
+	 * @param ctx the allocation context that should be removed
+	 */
 	private void removeAllocationContext(AllocationContext ctx) {
 		pcmModelProvider.getAllocation().getAllocationContexts_Allocation().remove(ctx);
 
@@ -135,6 +190,12 @@ public class AllocationQueryFacadeImpl implements IAllocationQueryFacade {
 		}
 	}
 
+	/**
+	 * Generates a pair (component ID, container ID) for a given allocation context.
+	 * 
+	 * @param ctx the allocation context
+	 * @return the generated pair (component ID, container ID)
+	 */
 	private Pair<String, String> generateQueryPair(AllocationContext ctx) {
 		return Pair.of(ctx.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext().getId(),
 				ctx.getResourceContainer_AllocationContext().getId());
