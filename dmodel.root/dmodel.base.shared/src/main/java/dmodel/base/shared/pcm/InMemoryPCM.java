@@ -27,23 +27,57 @@ import dmodel.base.shared.pcm.util.PCMUtils;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * Represents an instance of a Palladio Component Model (PCM) with all
+ * corresponding model types (repository, system, usage model, allocation and
+ * resource environment). Furthermore provides features for copying, modifying
+ * and synchronizing it.
+ * 
+ * @author David Monschein
+ *
+ */
 @Data
 public class InMemoryPCM {
 
+	/**
+	 * Contained repository model.
+	 */
 	private Repository repository;
+
+	/**
+	 * Contained system model.
+	 */
 	private System system;
+
+	/**
+	 * Contained usage model.
+	 */
 	private UsageModel usageModel;
+
+	/**
+	 * Contained allocation model.
+	 */
 	private Allocation allocationModel;
+
+	/**
+	 * Contained resource environment model.
+	 */
 	private ResourceEnvironment resourceEnvironmentModel;
 
-	private long lastUpdatedRepository;
-	private long lastUpdatedSystem;
-	private long lastUpdatedUsage;
-	private long lastUpdatedAllocation;
-	private long lastUpdatedResourceEnv;
-
+	/**
+	 * This instance can be synchronized with the file system.
+	 */
 	private LocalFilesystemPCM reflected;
 
+	/**
+	 * Creates a new instance which holds the references to the PCM parts.
+	 * 
+	 * @param repository               the repository model
+	 * @param system                   the system model
+	 * @param usageModel               the usage model
+	 * @param allocationModel          the allocation model
+	 * @param resourceEnvironmentModel the resource environment model
+	 */
 	@Builder
 	public InMemoryPCM(Repository repository, System system, UsageModel usageModel, Allocation allocationModel,
 			ResourceEnvironment resourceEnvironmentModel) {
@@ -52,52 +86,40 @@ public class InMemoryPCM {
 		this.usageModel = usageModel;
 		this.allocationModel = allocationModel;
 		this.resourceEnvironmentModel = resourceEnvironmentModel;
-
-		this.updatedAllocation();
-		this.updatedRepository();
-		this.updatedResourceEnv();
-		this.updatedSystem();
-		this.updatedUsage();
 	}
 
+	/**
+	 * Creates an empty PCM instance in the memory.
+	 */
 	public InMemoryPCM() {
-		this.updatedAllocation();
-		this.updatedRepository();
-		this.updatedResourceEnv();
-		this.updatedSystem();
-		this.updatedUsage();
 	}
 
+	/**
+	 * Synchronizes the model with given file system paths.
+	 * 
+	 * @param pcm the file system paths for the models
+	 */
 	public void syncWithFilesystem(LocalFilesystemPCM pcm) {
 		// The order is important!
-		FileBackedModelUtil.synchronize(this.getRepository(), pcm.getRepositoryFile(), Repository.class,
-				n -> this.updatedRepository(), null);
+		FileBackedModelUtil.synchronize(this.getRepository(), pcm.getRepositoryFile(), Repository.class);
 		FileBackedModelUtil.synchronize(this.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
-				ResourceEnvironment.class, n -> this.updatedResourceEnv(), null);
-		FileBackedModelUtil.synchronize(this.getSystem(), pcm.getSystemFile(), System.class, n -> this.updatedSystem(),
-				null);
-		FileBackedModelUtil.synchronize(this.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
-				n -> this.updatedAllocation(), null);
-		FileBackedModelUtil.synchronize(this.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
-				n -> this.updatedUsage(), null);
+				ResourceEnvironment.class);
+		FileBackedModelUtil.synchronize(this.getSystem(), pcm.getSystemFile(), System.class);
+		FileBackedModelUtil.synchronize(this.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class);
+		FileBackedModelUtil.synchronize(this.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class);
 		this.reflected = pcm;
 	}
 
+	/**
+	 * Loads the model from the file system and synchronizes it with the underlying
+	 * files.
+	 * 
+	 * @param pcm the file system paths of the models
+	 * @return the created PCM model container
+	 */
 	public static InMemoryPCM createFromFilesystemSynced(LocalFilesystemPCM pcm) {
 		InMemoryPCM ret = createFromFilesystem(pcm);
-
-		FileBackedModelUtil.synchronize(ret.getRepository(), pcm.getRepositoryFile(), Repository.class,
-				n -> ret.updatedRepository(), null);
-		FileBackedModelUtil.synchronize(ret.getResourceEnvironmentModel(), pcm.getResourceEnvironmentFile(),
-				ResourceEnvironment.class, n -> ret.updatedResourceEnv(), null);
-		FileBackedModelUtil.synchronize(ret.getSystem(), pcm.getSystemFile(), System.class, n -> ret.updatedSystem(),
-				null);
-		FileBackedModelUtil.synchronize(ret.getAllocationModel(), pcm.getAllocationModelFile(), Allocation.class,
-				n -> ret.updatedAllocation(), null);
-		FileBackedModelUtil.synchronize(ret.getUsageModel(), pcm.getUsageModelFile(), UsageModel.class,
-				n -> ret.updatedUsage(), null);
-		ret.reflected = pcm;
-
+		ret.syncWithFilesystem(pcm);
 		return ret;
 	}
 
@@ -150,6 +172,11 @@ public class InMemoryPCM {
 		return ret;
 	}
 
+	/**
+	 * Saves the models to the file system.
+	 * 
+	 * @param pcm file system paths where the PCM should be saved
+	 */
 	public void saveToFilesystem(LocalFilesystemPCM pcm) {
 		// The order is important
 		// Because of the dependencies in the models
@@ -160,35 +187,18 @@ public class InMemoryPCM {
 		ModelUtil.saveToFile(this.getUsageModel(), pcm.getUsageModelFile());
 	}
 
-	private void updatedRepository() {
-		this.lastUpdatedRepository = java.lang.System.currentTimeMillis();
-	}
-
-	private void updatedSystem() {
-		this.lastUpdatedSystem = java.lang.System.currentTimeMillis();
-	}
-
-	private void updatedUsage() {
-		this.lastUpdatedUsage = java.lang.System.currentTimeMillis();
-	}
-
-	private void updatedAllocation() {
-		this.lastUpdatedAllocation = java.lang.System.currentTimeMillis();
-	}
-
-	private void updatedResourceEnv() {
-		this.lastUpdatedResourceEnv = java.lang.System.currentTimeMillis();
-	}
-
+	/**
+	 * Exchanges the system model and makes sure that it is synchronized with the
+	 * underlying file system.
+	 * 
+	 * @param currentSystem the new system that should be applied
+	 */
 	public void swapSystem(System currentSystem) {
 		FileBackedModelUtil.clear(this.system);
 		if (reflected != null) {
-			this.system = FileBackedModelUtil.synchronize(currentSystem, reflected.getSystemFile(), System.class,
-					n -> updatedSystem(), null);
-			this.updatedSystem();
+			this.system = FileBackedModelUtil.synchronize(currentSystem, reflected.getSystemFile(), System.class);
 		} else {
 			this.system = currentSystem;
-			this.updatedSystem();
 		}
 
 		// update link to system
@@ -200,6 +210,9 @@ public class InMemoryPCM {
 		toRemoveCtxs.forEach(ac -> this.allocationModel.getAllocationContexts_Allocation().remove(ac));
 	}
 
+	/**
+	 * Clears all listeners and therefore disables the synchronization.
+	 */
 	public void clearListeners() {
 		FileBackedModelUtil.clear(allocationModel);
 		FileBackedModelUtil.clear(repository);
@@ -208,12 +221,25 @@ public class InMemoryPCM {
 		FileBackedModelUtil.clear(system);
 	}
 
+	/**
+	 * Copies all model references, the underlying models are equal!
+	 * 
+	 * @return a new model container instance, having the same references as this
+	 *         instance
+	 */
 	public InMemoryPCM copyReference() {
 		return InMemoryPCM.builder().repository(getRepository()).system(getSystem())
 				.resourceEnvironmentModel(getResourceEnvironmentModel()).allocationModel(getAllocationModel())
 				.usageModel(getUsageModel()).build();
 	}
 
+	/**
+	 * Makes a deep copy of the models. Copies the content of the models and
+	 * transforms the references.
+	 * 
+	 * @return a new model container with own models, that are encapsulated from
+	 *         this instance
+	 */
 	public InMemoryPCM copyDeep() {
 		TransitiveModelTransformerUtil transformer = new TransitiveModelTransformerUtil();
 		List<EObject> orgs = Lists.newArrayList(allocationModel, repository, resourceEnvironmentModel, usageModel,
@@ -223,7 +249,7 @@ public class InMemoryPCM {
 
 		Repository repo = copies.stream().filter(f -> f instanceof Repository).map(Repository.class::cast).findFirst()
 				.orElse(null);
-		System system = copies.stream().filter(f -> f instanceof System).map(System.class::cast).findFirst()
+		System systemInner = copies.stream().filter(f -> f instanceof System).map(System.class::cast).findFirst()
 				.orElse(null);
 		ResourceEnvironment env = copies.stream().filter(f -> f instanceof ResourceEnvironment)
 				.map(ResourceEnvironment.class::cast).findFirst().orElse(null);
@@ -232,7 +258,7 @@ public class InMemoryPCM {
 		UsageModel usage = copies.stream().filter(f -> f instanceof UsageModel).map(UsageModel.class::cast).findFirst()
 				.orElse(null);
 
-		return InMemoryPCM.builder().repository(repo).system(system).resourceEnvironmentModel(env)
+		return InMemoryPCM.builder().repository(repo).system(systemInner).resourceEnvironmentModel(env)
 				.allocationModel(alloc).usageModel(usage).build();
 	}
 }

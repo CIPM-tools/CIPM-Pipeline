@@ -8,16 +8,36 @@ import java.util.TreeMap;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 
+/**
+ * Represents a double distribution which can be converted into a PCM stochastic
+ * expression.
+ * 
+ * @author David Monschein
+ *
+ */
 public class DoubleDistribution {
 
+	/**
+	 * Counts the occurrences of the certain numbers.
+	 */
 	private Map<Double, Long> occs;
 	private int precision;
 
+	/**
+	 * Creates a new distribution with a given accuracy.
+	 * 
+	 * @param precision the precision, expressed in digits after the decimal point
+	 */
 	public DoubleDistribution(int precision) {
 		this.occs = new TreeMap<>();
 		this.precision = precision;
 	}
 
+	/**
+	 * Adds a new number to the distribution.
+	 * 
+	 * @param d number to add
+	 */
 	public void put(double d) {
 		double r = roundTo(d, precision);
 		if (!occs.containsKey(r)) {
@@ -27,16 +47,32 @@ public class DoubleDistribution {
 		}
 	}
 
+	/**
+	 * Multiplies the whole distribution with a given number.
+	 * 
+	 * @param factor the number to multiply the distribution with
+	 */
 	public void multiply(double factor) {
 		Map<Double, Long> copy = new HashMap<>();
 		occs.entrySet().forEach(et -> copy.put(roundTo(et.getKey() * factor, precision), et.getValue()));
 		this.occs = copy;
 	}
 
+	/**
+	 * Divides the whole distribution by a given number.
+	 * 
+	 * @param factor the number to divide
+	 */
 	public void divide(double factor) {
 		this.multiply(1 / factor);
 	}
 
+	/**
+	 * Converts the distribution to a stochastic expression that can be used within
+	 * PCM models.
+	 * 
+	 * @return stochastic expression
+	 */
 	public PCMRandomVariable toStoex() {
 		if (occs.size() == 1) {
 			return buildDoubleLiteral(occs.entrySet().stream().findFirst().get().getKey());

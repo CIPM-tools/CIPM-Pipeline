@@ -1,7 +1,6 @@
 package dmodel.base.core.facade.pcm.impl;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -37,7 +36,7 @@ public class RepositoryQueryFacadeImpl implements IRepositoryQueryFacade {
 	 * model.
 	 */
 	private Cache<String, Identifier> elementIdCache = new Cache2kBuilder<String, Identifier>() {
-	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
+	}.eternal(true).build();
 
 	/**
 	 * {@inheritDoc}
@@ -52,6 +51,10 @@ public class RepositoryQueryFacadeImpl implements IRepositoryQueryFacade {
 	 */
 	@Override
 	public <T extends Identifier> T getElementById(String id, Class<T> type) {
+		if (id == null) {
+			return null;
+		}
+
 		if (elementIdCache.containsKey(id)) {
 			return type.cast(elementIdCache.get(id));
 		} else {

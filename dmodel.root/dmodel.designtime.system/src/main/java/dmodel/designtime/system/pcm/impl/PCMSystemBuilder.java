@@ -18,7 +18,7 @@ import org.palladiosimulator.pcm.system.SystemFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 
 import dmodel.base.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.base.core.health.AbstractHealthStateComponent;

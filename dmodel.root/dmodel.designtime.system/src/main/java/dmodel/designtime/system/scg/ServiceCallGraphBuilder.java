@@ -45,6 +45,7 @@ public class ServiceCallGraphBuilder extends AbstractHealthStateComponent implem
 					vsumManager.getJavaCorrespondences());
 			super.removeAllProblems();
 		} catch (Exception e) {
+			e.printStackTrace();
 			super.reportError(
 					"Service-Call-Graph extraction failed to due to a faulty configuration of the project or the binary JAR files.");
 		}

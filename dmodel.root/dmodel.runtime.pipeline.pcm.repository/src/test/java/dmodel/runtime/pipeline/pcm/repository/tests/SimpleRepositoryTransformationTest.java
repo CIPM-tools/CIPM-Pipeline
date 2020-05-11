@@ -19,6 +19,7 @@ import dmodel.base.models.runtimeenvironment.REModel.RuntimeEnvironmentModel;
 import dmodel.base.shared.ModelUtil;
 import dmodel.designtime.monitoring.records.PCMContextRecord;
 import dmodel.designtime.monitoring.util.MonitoringDataUtil;
+import dmodel.runtime.pipeline.AbstractPipelineTestBase;
 import dmodel.runtime.pipeline.blackboard.RuntimePipelineBlackboard;
 import dmodel.runtime.pipeline.data.PCMPartionedMonitoringData;
 import dmodel.runtime.pipeline.data.PartitionedMonitoringData;
@@ -31,7 +32,7 @@ import tools.vitruv.framework.correspondence.Correspondences;
 
 @RunWith(SpringRunner.class)
 @Import(AbstractRepositoryTransformationTestBase.RepositoryTransformationTestConfiguration.class)
-public class SimpleRepositoryTransformationTest extends AbstractRepositoryTransformationTestBase {
+public class SimpleRepositoryTransformationTest extends AbstractPipelineTestBase {
 	@Autowired
 	private RepositoryDerivation transformation;
 

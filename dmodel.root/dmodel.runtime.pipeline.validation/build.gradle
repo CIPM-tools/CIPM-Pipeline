@@ -1,19 +1,26 @@
 
 dependencies {
-	compile project(":dmodel.base.shared")
-	compile project(":dmodel.base.vsum")
-	compile project(":dmodel.base.models.inmodel")
+	api project(":dmodel.base.shared")
+	api project(":dmodel.base.vsum")
 	
-	compile project(":dmodel.designtime.monitoring")
+	testFixturesApi(testFixtures(project(":dmodel.base.vsum")))
+	testImplementation(testFixtures(project(":dmodel.base.vsum")))
 	
-	compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+	implementation project(":dmodel.base.models.inmodel")
+	implementation project(":dmodel.base.models.runtimeenvironment")
+	
+	api project(":dmodel.designtime.monitoring")
+	
+	/* External */
+	
+	implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 	
 	// https://mvnrepository.com/artifact/org.eclipse.core/runtime
-	compile group: 'org.eclipse.core', name: 'runtime', version: '3.10.0-v20140318-2214'
+	implementation group: 'org.eclipse.core', name: 'runtime', version: '3.10.0-v20140318-2214'
 	
 	// https://mvnrepository.com/artifact/lpg.runtime/java
-	compile group: 'lpg.runtime', name: 'java', version: '2.0.17-v201004271640'
+	implementation group: 'lpg.runtime', name: 'java', version: '2.0.17-v201004271640'
 	
-	compile 'org.antlr:antlr-runtime:3.5.2' 
+	implementation 'org.antlr:antlr-runtime:3.5.2' 
 }
 

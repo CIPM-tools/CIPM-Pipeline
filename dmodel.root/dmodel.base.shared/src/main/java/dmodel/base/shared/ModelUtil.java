@@ -15,8 +15,22 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 
+/**
+ * General utility which provides operations for EMF models.
+ * 
+ * @author David Monschein
+ *
+ */
 public class ModelUtil {
 
+	/**
+	 * Reads a model from a file.
+	 * 
+	 * @param <T>   type of the model
+	 * @param path  file path
+	 * @param clazz model type class
+	 * @return the model parsed from the file or null if it is not valid
+	 */
 	public static <T> T readFromFile(File path, Class<T> clazz) {
 		ResourceSet resourceSet = new ResourceSetImpl();
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
@@ -29,11 +43,12 @@ public class ModelUtil {
 	}
 
 	/**
-	 * Reads a Model from file with a given class
+	 * Reads a Model from file with a given class.
 	 * 
+	 * @param <T>   type of the model
 	 * @param path  file path
 	 * @param clazz model type class
-	 * @return parsed model
+	 * @return the model parsed from the file or null if it is not valid
 	 */
 	public static <T> T readFromFile(String path, Class<T> clazz) {
 		ResourceSet resourceSet = new ResourceSetImpl();
@@ -46,6 +61,14 @@ public class ModelUtil {
 		return clazz.cast(resource.getContents().get(0));
 	}
 
+	/**
+	 * Reads a model from a resource.
+	 * 
+	 * @param <T>      type of the model
+	 * @param resource resource
+	 * @param clazz    class of the model type
+	 * @return the parsed model or null if it is not valid
+	 */
 	public static <T> T readFromResource(URL resource, Class<T> clazz) {
 		ResourceSet resourceSet = new ResourceSetImpl();
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
@@ -57,6 +80,13 @@ public class ModelUtil {
 		return clazz.cast(rresource.getContents().get(0));
 	}
 
+	/**
+	 * Saves a model to a file.
+	 * 
+	 * @param <T>   model type
+	 * @param model model to save
+	 * @param path  file where the model shoud be saved
+	 */
 	public static <T extends EObject> void saveToFile(T model, File path) {
 		if (path != null) {
 			if (path.getAbsoluteFile().getParentFile() != null) {
@@ -67,10 +97,11 @@ public class ModelUtil {
 	}
 
 	/**
-	 * Saves a model to file
+	 * Saves a model to a file.
 	 * 
+	 * @param <T>   model type
 	 * @param model model to save
-	 * @param path  path for the file
+	 * @param path  file where the model shoud be saved
 	 */
 	public static <T extends EObject> void saveToFile(T model, String path) {
 		URI writeModelURI = URI.createFileURI(path);
@@ -91,9 +122,18 @@ public class ModelUtil {
 		}
 	}
 
+	/**
+	 * Validates a file path and checks if it is a valid model.
+	 * 
+	 * @param path the file path
+	 * @param type the model type
+	 * @return true if the model saved in the given path is a valid model of the
+	 *         given type
+	 */
 	public static boolean validateModelPath(String path, Class<? extends EObject> type) {
-		if (path == null || path.isEmpty())
+		if (path == null || path.isEmpty()) {
 			return false;
+		}
 		File file = new File(path);
 		if (file.exists()) {
 			try {
@@ -108,6 +148,15 @@ public class ModelUtil {
 		return false;
 	}
 
+	/**
+	 * Gets all objects of a given type within a model.
+	 * 
+	 * @param <T>      type of the objects
+	 * @param pcmModel the model
+	 * @param type     the class corresponding to the type of the objects
+	 * @return a list of all objects within the given model which conform to the
+	 *         given type
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends EObject> List<T> getObjects(final EObject pcmModel, final Class<T> type) {
 		List<T> results = new ArrayList<>();

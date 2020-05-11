@@ -1,23 +1,20 @@
 
 dependencies {
 	// https://mvnrepository.com/artifact/net.kieker-monitoring/kieker
-	compile group: 'net.kieker-monitoring', name: 'kieker', version: '1.13'
+	api group: 'net.kieker-monitoring', name: 'kieker', version: '1.13'
 	
 	// https://mvnrepository.com/artifact/commons-codec/commons-codec
-	compile group: 'commons-codec', name: 'commons-codec', version: '1.12'
-	
-	implementation 'com.github.oshi:oshi-core:3.13.3'
+	implementation group: 'commons-codec', name: 'commons-codec', version: '1.12'
 	
 	// https://mvnrepository.com/artifact/org.hyperic/sigar
-	compile group: 'org.hyperic', name: 'sigar', version: '1.6.4'
+	implementation group: 'org.hyperic', name: 'sigar', version: '1.6.4'
 	
-	compile project(":dmodel.base.shared")
+	api project(":dmodel.base.shared")
 }
 
 task packSources(type: Zip) {
-    baseName = 'monitoring-agent'
+    archiveFileName = new File(project.rootDir, "/dmodel.designtime.instrumentation/src/main/resources/monitoring-agent.zip").getAbsolutePath()
     from sourceSets*.allSource
     exclude '**/LogarithmicScaleTest.java'
     exclude 'dmodel/designtime/monitoring/util/*'
-    destinationDir new File(project.rootDir, "/dmodel.designtime.instrumentation/src/main/resources/")
 }

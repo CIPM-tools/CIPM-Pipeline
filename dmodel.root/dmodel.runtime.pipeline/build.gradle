@@ -1,16 +1,18 @@
 
 dependencies {
-	compile project(":dmodel.base.shared")
-	compile project(":dmodel.base.core")
-	compile project(":dmodel.base.vsum")
-	compile project(":dmodel.base.evaluation")
+	api project(":dmodel.base.shared")
+	api project(":dmodel.base.core")
+	api project(":dmodel.base.vsum")
+	api project(":dmodel.base.evaluation")
 	
-	compile project(":dmodel.base.models.callgraph")
-	compile project(":dmodel.base.models.runtimeenvironment")
-	compile project(":dmodel.base.models.inmodel")
+	implementation project(":dmodel.base.models.callgraph")
+	implementation project(":dmodel.base.models.runtimeenvironment")
+	implementation project(":dmodel.base.models.inmodel")
 	
-	compile project(":dmodel.designtime.monitoring")
+	api project(":dmodel.designtime.monitoring")
+	api project(":dmodel.runtime.pipeline.validation")
 	
-	compile project(":dmodel.runtime.pipeline.validation")
+	testFixturesApi(testFixtures(project(":dmodel.runtime.pipeline.validation")))
+	testImplementation(testFixtures(project(":dmodel.runtime.pipeline.validation")))
 }
 

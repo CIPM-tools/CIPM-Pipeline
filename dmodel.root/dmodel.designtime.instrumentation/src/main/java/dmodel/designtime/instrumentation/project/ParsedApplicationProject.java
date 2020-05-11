@@ -14,7 +14,9 @@ import com.google.common.collect.Lists;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.java.Log;
 
+@Log
 public class ParsedApplicationProject {
 	private List<Pair<SourceRoot, String>> roots;
 
@@ -43,10 +45,14 @@ public class ParsedApplicationProject {
 			}
 		}).map(root -> root.getLeft()).collect(Collectors.toList());
 
+		log.info("Search for " + pckg + "." + clazz);
+		possibleRoots.forEach(r -> log.info("Possible root: " + r.getRoot()));
+
 		if (possibleRoots.size() == 1) {
 			return possibleRoots.get(0).parse(pckg, clazz);
 		} else if (possibleRoots.size() > 1) {
-			throw new IllegalStateException("Ambiguous Java class definitions cannot be resolved.");
+			log.warning("Ambiguous Java class definitions for '" + pckg + "." + clazz + "'.");
+			return possibleRoots.get(0).parse(pckg, clazz);
 		} else {
 			return null;
 		}

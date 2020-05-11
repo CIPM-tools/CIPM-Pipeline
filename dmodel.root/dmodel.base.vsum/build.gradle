@@ -1,12 +1,15 @@
 
 dependencies {
-	compile project(":dmodel.base.shared")
-	compile project(":dmodel.base.core")
+	api project(":dmodel.base.shared")
+	api project(":dmodel.base.core")
 	
-	compile project(":dmodel.base.models.runtimeenvironment")
-	compile project(":dmodel.base.models.inmodel")
+	testFixturesApi(testFixtures(project(":dmodel.base.core")))
+	testImplementation(testFixtures(project(":dmodel.base.core")))
+	
+	implementation project(":dmodel.base.models.runtimeenvironment")
+	implementation project(":dmodel.base.models.inmodel")
 	
 	// Vitruv Reactions however need this dependency
-	compile group: 'log4j', name: 'log4j', version: '1.2.17'
+	implementation group: 'log4j', name: 'log4j', version: '1.2.17'
 }
 

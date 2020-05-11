@@ -17,16 +17,19 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.pcm.PcmPackage;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.repository.OperationProvidedRole;
-import org.palladiosimulator.pcm.repository.OperationRequiredRole;
-import org.palladiosimulator.pcm.repository.ProvidedRole;
-import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.ResourcetypePackage;
 
 import de.uka.ipd.sdq.identifier.Identifier;
 
+/**
+ * Utility functions that simplify the interaction with Palladio Component Model
+ * (PCM) models.
+ * 
+ * @author David Monschein
+ *
+ */
 public class PCMUtils {
 
 	/**
@@ -40,6 +43,11 @@ public class PCMUtils {
 		initPathmaps();
 	}
 
+	/**
+	 * Gets the default resource repository of the PCM.
+	 * 
+	 * @return the default resource repository of the PCM
+	 */
 	public static ResourceRepository getDefaultResourceRepository() {
 		ResourceSet resourceSet = new ResourceSetImpl();
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
@@ -52,6 +60,15 @@ public class PCMUtils {
 		return (ResourceRepository) resource.getContents().get(0);
 	}
 
+	/**
+	 * Searches a given element and looks for an element with a given type and ID.
+	 * 
+	 * @param <T>    the type of the element to search for
+	 * @param parent the parent element that should be searched
+	 * @param type   the type of the element to find
+	 * @param id     the ID of the element to find
+	 * @return the element with the given type and ID or null if it does not exist
+	 */
 	@SuppressWarnings("unchecked") // it IS a type safe cast
 	public static <T> T getElementById(EObject parent, Class<T> type, String id) {
 		Optional<Identifier> result = getElementById(parent, id);
@@ -65,6 +82,16 @@ public class PCMUtils {
 		}
 	}
 
+	/**
+	 * Gets all elements of a given type within a specified root element.
+	 * 
+	 * @param <T>    the type of the elements to search for
+	 * @param parent the root element which should be searched
+	 * @param class1 the class corresponding to the type of the elements to search
+	 *               for
+	 * @return a list of elements that are contained by the root element and conform
+	 *         to the given type
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> List<T> getElementsByType(EObject parent, Class<T> class1) {
 		List<T> ret = new ArrayList<>();
@@ -78,6 +105,14 @@ public class PCMUtils {
 		return ret;
 	}
 
+	/**
+	 * Gets an element by ID within a parent element.
+	 * 
+	 * @param parent the element to search
+	 * @param id     the ID to search for
+	 * @return an optional which either contains the element to search for or
+	 *         otherwise is empty
+	 */
 	public static Optional<Identifier> getElementById(EObject parent, String id) {
 		TreeIterator<EObject> it = parent.eAllContents();
 		while (it.hasNext()) {
@@ -92,6 +127,11 @@ public class PCMUtils {
 		return Optional.empty();
 	}
 
+	/**
+	 * Initializes all models that are commonly references by PCM models. If this is
+	 * not done before interacting with the models, IDs are generated randomly and
+	 * metric references do not work.
+	 */
 	private static void initPathmaps() {
 		final String metricSpecModel = "models/Palladio.resourcetype";
 		final URL url = PCMUtils.class.getClassLoader().getResource(metricSpecModel);
@@ -112,21 +152,18 @@ public class PCMUtils {
 		m.put("resourcetype", new XMIResourceFactoryImpl());
 	}
 
+	/**
+	 * Creates an instance of {@link PCMRandomVariable} by a given string
+	 * specification.
+	 * 
+	 * @param string the specification for the stochastic expression
+	 * @return the generated instance of {@link PCMRandomVariable} with the given
+	 *         specification
+	 */
 	public static PCMRandomVariable createRandomVariableFromString(String string) {
 		PCMRandomVariable var = CoreFactory.eINSTANCE.createPCMRandomVariable();
 		var.setSpecification(string);
 		return var;
-	}
-
-	public static ProvidedRole getProvideRoleByRequiredRole(RepositoryComponent comp, OperationRequiredRole reqRole) {
-		return comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(pr -> {
-			if (pr instanceof OperationProvidedRole) {
-				OperationProvidedRole opr = (OperationProvidedRole) pr;
-				return opr.getProvidedInterface__OperationProvidedRole().getId()
-						.equals(reqRole.getRequiredInterface__OperationRequiredRole().getId());
-			}
-			return false;
-		}).findFirst().orElse(null);
 	}
 
 }

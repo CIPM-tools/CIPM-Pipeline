@@ -3,11 +3,13 @@ package dmodel.base.shared.pcm.util.repository;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.Repository;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
+import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 public class PCMRepositoryUtil {
@@ -36,6 +38,19 @@ public class PCMRepositoryUtil {
 					}
 					return false;
 				}).map(r -> (OperationRequiredRole) r).findFirst().orElse(null);
+	}
+
+	public static ResourceDemandingSEFF getParentService(AbstractAction ext) {
+		EObject current = ext;
+		while (current != null && !(current instanceof ResourceDemandingSEFF)) {
+			current = current.eContainer();
+		}
+
+		if (current != null && current instanceof ResourceDemandingSEFF) {
+			return (ResourceDemandingSEFF) current;
+		} else {
+			return null;
+		}
 	}
 
 }

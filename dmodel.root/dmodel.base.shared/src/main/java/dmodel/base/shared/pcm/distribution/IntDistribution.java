@@ -8,14 +8,31 @@ import java.util.Map.Entry;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 
+/**
+ * Describes a distribution of integer numbers.
+ * 
+ * @author David Monschein
+ *
+ */
 public class IntDistribution {
-
+	/**
+	 * Number of occurences of the numbers.
+	 */
 	private Map<Integer, Long> distribution;
 
+	/**
+	 * Creates a new, empty distribution.
+	 */
 	public IntDistribution() {
 		this.distribution = new HashMap<>();
 	}
 
+	/**
+	 * Converts this instance to a stochastic expression that can be used within PCM
+	 * models.
+	 * 
+	 * @return the generated stochastic expression
+	 */
 	public PCMRandomVariable toStochasticExpression() {
 		if (distribution.size() == 1) {
 			return buildIntLiteral(distribution.entrySet().stream().findFirst().get().getKey());
@@ -36,10 +53,21 @@ public class IntDistribution {
 		}
 	}
 
+	/**
+	 * Adds an integer to the distribution.
+	 * 
+	 * @param iterations integer to add
+	 */
 	public void push(int iterations) {
 		this.push(iterations, 1L);
 	}
 
+	/**
+	 * Adds an integer to the distribution which occured a certain number of times
+	 * 
+	 * @param iterations the integer to add
+	 * @param value      the number of occurences of the integer
+	 */
 	public void push(int iterations, long value) {
 		if (distribution.containsKey(iterations)) {
 			distribution.put(iterations, distribution.get(iterations) + value);
@@ -48,6 +76,11 @@ public class IntDistribution {
 		}
 	}
 
+	/**
+	 * Adds another distribution to this instance.
+	 * 
+	 * @param iterations the distribution to add
+	 */
 	public void push(IntDistribution iterations) {
 		iterations.distribution.entrySet().forEach(it -> {
 			this.push(it.getKey(), it.getValue());

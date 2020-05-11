@@ -38,10 +38,9 @@ def listConfigurationDependencies(Configuration configuration) {
 }
 
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'java-test-fixtures'
     apply plugin: 'eclipse'
-    apply plugin: 'maven'
-    apply plugin: 'jacoco'
     
     /* Tested with Gradle 6.3 */
 
@@ -63,11 +62,6 @@ allprojects {
     	}
 	}
     
-    jacoco {
-   		toolVersion = "0.8.5"
-    	reportsDir = file("$buildDir/jacocoReport")
-	}
-    
     sourceSets {
 		main{
         	java {
@@ -83,7 +77,7 @@ allprojects {
     	}
     	test {
         	java {
-            	srcDirs = ['src/test/java']
+            	srcDirs = ['src/test/java', 'src/testFixtures/java']
         	}
     	}
 	}
@@ -96,27 +90,37 @@ allprojects {
 		testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 	
 		// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-		compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
+		implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
 		
 		// https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml
-		compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.8'
+		implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.8'
 		
 		// https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-		compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+		implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
 		
 		// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
-		compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.0.RELEASE'
+		implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.0.RELEASE'
 		
 		// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf
-		compile group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf', version: '2.2.0.RELEASE'
+		implementation group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf', version: '2.2.0.RELEASE'
+		
+		implementation group: 'org.codehaus.groovy', name: 'groovy', version: '3.0.3'
 		
 		// https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect
-		compile group: 'nz.net.ultraq.thymeleaf', name: 'thymeleaf-layout-dialect', version: '2.4.1'
+		implementation group: 'nz.net.ultraq.thymeleaf', name: 'thymeleaf-layout-dialect', version: '2.4.1'
 		
 		// https://mvnrepository.com/artifact/junit/junit
-		testCompile group: 'junit', name: 'junit', version: '4.12'
+		testImplementation group: 'junit', name: 'junit', version: '4.12'
 		
-		testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.6.RELEASE'
+		testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.6.RELEASE'
+		
+		/* Test Fixtures */
+		testFixturesImplementation group: 'junit', name: 'junit', version: '4.12'
+		
+		testFixturesImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.2.0.RELEASE'
+		testFixturesImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.6.RELEASE'
+		testFixturesImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.8'
+		testFixturesImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
 	}
 
     repositories {
@@ -126,8 +130,7 @@ allprojects {
             	artifact()
         	}
 		}
-		maven {url 'http://repo.typesafe.com/typesafe/maven-releases/'}
-		maven {url 'http://www.jabylon.org/maven/'}
+		maven {url 'https://repo.typesafe.com/typesafe/maven-releases/'}
 		mavenCentral()
 		jcenter()
     }

@@ -9,7 +9,6 @@ import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.stereotype.Component;
 
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -28,6 +27,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import dmodel.base.core.facade.pcm.IRepositoryQueryFacade;
 import dmodel.base.models.callgraph.ServiceCallGraph.ServiceCallGraph;
 import dmodel.base.models.callgraph.ServiceCallGraph.ServiceCallGraphFactory;
+import dmodel.base.shared.pcm.util.repository.PCMRepositoryUtil;
 import dmodel.base.vsum.domains.java.IJavaPCMCorrespondenceModel;
 import dmodel.designtime.instrumentation.project.ParsedApplicationProject;
 import dmodel.designtime.instrumentation.tuid.JavaTuidGeneratorAndResolver;
@@ -63,53 +63,28 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 		AnalyzerData analyzerData = new AnalyzerData(parsedApplication, typeSolver, symbolSolver, output, repository,
 				correspondence);
 
-		correspondence.getSeffCorrespondences().forEach(seffCorrespondence -> {
-			MethodDeclaration method = tuidResolver.resolveMethod(parsedApplication, seffCorrespondence.getLeft());
-			inspectMethodDeclaration(analyzerData, method, seffCorrespondence.getRight());
+		correspondence.getExternalCallCorrespondences().forEach(extCall -> {
+			Statement stmt = tuidResolver.resolveStatement(parsedApplication, extCall.getLeft());
+			ExternalCallAction ext = repository.getElementById(extCall.getRight(), ExternalCallAction.class);
+			ResourceDemandingSEFF seff = PCMRepositoryUtil.getParentService(ext);
+
+			List<MethodCallExpr> calls = stmt.findAll(MethodCallExpr.class);
+			calls.forEach(call -> inspectMethodCall(analyzerData, call, ext, seff));
 		});
 
 		return output;
 	}
 
-	private void inspectMethodDeclaration(AnalyzerData data, MethodDeclaration method, String seffId) {
-		ResourceDemandingSEFF seff = data.repository.getServiceById(seffId);
-		if (seff != null) {
-			// get method declarations
-			List<MethodCallExpr> innerMethodCalls = method.findAll(MethodCallExpr.class);
-			for (MethodCallExpr methodCall : innerMethodCalls) {
-				inspectMethodCall(data, methodCall, seff);
-			}
-		}
-	}
-
-	private void inspectMethodCall(AnalyzerData data, MethodCallExpr methodCall, ResourceDemandingSEFF source) {
+	private void inspectMethodCall(AnalyzerData data, MethodCallExpr methodCall, ExternalCallAction externalCallAction,
+			ResourceDemandingSEFF source) {
 		for (Pair<String, String> seffCorrespondence : data.cpm.getSeffCorrespondences()) {
 			MethodDeclaration correspondingMethod = this.tuidResolver.resolveMethod(data.pap,
 					seffCorrespondence.getLeft());
 			if (methodConformsTo(data, correspondingMethod, methodCall)) {
-				String externalCallId = getExternalCallId(data, methodCall);
-				ExternalCallAction externalCallAction = data.repository.getElementById(externalCallId,
-						ExternalCallAction.class);
-
 				ResourceDemandingSEFF target = data.repository.getServiceById(seffCorrespondence.getRight());
 				data.graph.incrementEdge(source, target, null, null, externalCallAction);
 			}
 		}
-	}
-
-	private String getExternalCallId(AnalyzerData data, Node node) {
-		String foundId = null;
-		while (node.getParentNode().isPresent()) {
-			node = node.getParentNode().get();
-			if (node instanceof Statement) {
-				foundId = data.cpm.getCorrespondingExternalCallId(this.tuidResolver.generateId((Statement) node));
-				if (foundId != null) {
-					return foundId;
-				}
-			}
-		}
-
-		return foundId;
 	}
 
 	private boolean methodConformsTo(AnalyzerData data, MethodDeclaration correspondingMethod,

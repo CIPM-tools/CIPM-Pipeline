@@ -1,10 +1,16 @@
 
 dependencies {
-	compile project(":dmodel.base.shared")
+	api project(":dmodel.base.shared")
 	
-	compile project(":dmodel.designtime.monitoring")
+	api project(":dmodel.designtime.monitoring")
 
-	compile project(":dmodel.runtime.pipeline")
-	compile project(":dmodel.runtime.pipeline.pcm.router")
+	api project(":dmodel.runtime.pipeline")
+	api project(":dmodel.runtime.pipeline.pcm.router")
+	
+	implementation project(":dmodel.base.models.callgraph")
+	implementation project(":dmodel.base.models.runtimeenvironment")
+	
+	testFixturesApi(testFixtures(project(":dmodel.runtime.pipeline")))
+	testImplementation(testFixtures(project(":dmodel.runtime.pipeline")))
 }
 

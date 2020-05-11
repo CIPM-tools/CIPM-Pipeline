@@ -29,8 +29,8 @@ import dmodel.base.core.config.ConfigurationContainer;
 import dmodel.base.core.impl.CentralModelAdminstrator;
 import dmodel.base.models.inmodel.InstrumentationMetamodel.InstrumentationModelPackage;
 import dmodel.base.models.runtimeenvironment.REModel.REModelPackage;
-import dmodel.base.shared.correspondence.CorrespondenceUtil;
 import dmodel.base.shared.pcm.util.PCMUtils;
+import dmodel.base.shared.vitruv.VitruviusUtil;
 import lombok.extern.java.Log;
 
 @SpringBootApplication
@@ -81,7 +81,7 @@ public class DModelRuntimeStarter implements InitializingBean, WebMvcConfigurer,
 	public ConfigurationContainer loadConfiguration() {
 		// load our emf models
 		PCMUtils.loadPCMModels();
-		CorrespondenceUtil.initVitruv();
+		VitruviusUtil.initVitruv();
 		InstrumentationModelPackage.eINSTANCE.eClass();
 		REModelPackage.eINSTANCE.eClass();
 
