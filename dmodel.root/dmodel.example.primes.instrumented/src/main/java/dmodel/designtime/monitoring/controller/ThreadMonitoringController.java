@@ -38,7 +38,7 @@ import kieker.monitoring.core.sampler.ScheduledSamplerJob;
 import kieker.monitoring.timer.ITimeSource;
 import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 
-// this should be java 7 compatible to be useable with all kinds of applications
+// this should be java 7 compatible to be usable with all kinds of applications
 public class ThreadMonitoringController {
 	private static IMonitoringController MONITORING_CONTROLLER;
 	private static final ThreadMonitoringController instance;
@@ -126,7 +126,7 @@ public class ThreadMonitoringController {
 		// configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
 		configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
 		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
-		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, "localhost");
+		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, MonitoringConfiguration.SERVER_HOSTNAME);
 		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
 
 		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);

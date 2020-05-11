@@ -9,8 +9,6 @@ import java.util.Optional;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import lombok.extern.java.Log;
-import oshi.SystemInfo;
-import oshi.hardware.HardwareAbstractionLayer;
 
 @Log
 public class HostNameFactory {
@@ -43,11 +41,7 @@ public class HostNameFactory {
 	}
 
 	private static void buildHostId() {
-		// TODO check if the id is valid, otherwise use processor
-		SystemInfo si = new SystemInfo();
-		HardwareAbstractionLayer hw = si.getHardware();
-
-		// Try well known MAC addresses
+		// Use well known MAC addresses
 		try {
 			CURRENT_HOSTID = Optional.of(DigestUtils.md5Hex(getMACAddress()));
 		} catch (SocketException | UnknownHostException e) {
