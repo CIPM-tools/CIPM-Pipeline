@@ -1,10 +1,9 @@
 package dmodel.base.evaluation;
 
-import java.io.IOException;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dmodel.base.core.evaluation.ExecutionMeasuringPoint;
@@ -19,18 +18,12 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws JsonProcessingException {
 		ExecutionData data = new ExecutionData();
 		data.trackPoint(ExecutionMeasuringPoint.T_PRE_FILTER);
 		data.trackPoint(ExecutionMeasuringPoint.T_PRE_FILTER);
 
-		try {
-			String ret = objectMapper.writeValueAsString(data);
-
-			System.out.println(ret);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		objectMapper.writeValueAsString(data);
 	}
 
 }

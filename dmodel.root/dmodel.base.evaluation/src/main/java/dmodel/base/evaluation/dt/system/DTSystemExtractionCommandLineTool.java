@@ -25,6 +25,13 @@ import dmodel.designtime.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
 import dmodel.designtime.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
 import dmodel.designtime.system.pcm.impl.util.Xor;
 
+/**
+ * Command line tool for the system extraction as design time. Conflicts are
+ * printed to the console and the user needs to select the solutions.
+ * 
+ * @author David Monschein
+ *
+ */
 @Service
 public class DTSystemExtractionCommandLineTool {
 	private BufferedReader inputReader;
@@ -35,11 +42,19 @@ public class DTSystemExtractionCommandLineTool {
 
 	private ServiceCallGraph serviceCallGraph;
 
+	/**
+	 * Creates a new instance of the command line tool.
+	 */
 	public DTSystemExtractionCommandLineTool() {
 		PCMUtils.loadPCMModels();
 		ServiceCallGraphPackage.eINSTANCE.eClass();
 	}
 
+	/**
+	 * Starts the system extraction process with a given configuration.
+	 * 
+	 * @param config configuration of the system extraction tool
+	 */
 	public void startSystemExtraction(DTSystemExtractionConfiguration config) {
 		inputReader = new BufferedReader(new InputStreamReader(System.in));
 		configuration = config;
