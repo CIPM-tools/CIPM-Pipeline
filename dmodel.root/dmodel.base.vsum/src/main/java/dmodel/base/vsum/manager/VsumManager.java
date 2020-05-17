@@ -113,7 +113,21 @@ public class VsumManager extends AbstractHealthStateComponent {
 		vsum.executeCommand(cb);
 	}
 
+	private void clearAdaptersOfRoots() {
+		clearAdaptersRecursive(pcmModelContainer.getResourceEnvironment());
+		clearAdaptersRecursive(pcmModelContainer.getRepository());
+		clearAdaptersRecursive(specificModelContainer.getInstrumentation());
+		clearAdaptersRecursive(specificModelContainer.getRuntimeEnvironment());
+	}
+
+	private void clearAdaptersRecursive(EObject obj) {
+		obj.eResource().eAdapters().clear();
+		obj.eAdapters().clear();
+		obj.eAllContents().forEachRemaining(e -> e.eAdapters().clear());
+	}
+
 	public void propagateChange(EChange change, VsumChangeSource source) {
+		clearAdaptersOfRoots();
 		this.vsum.propagateChange(
 				VitruviusChangeFactory.getInstance().createConcreteChangeWithVuri(change, vuriMapping.get(source)));
 	}

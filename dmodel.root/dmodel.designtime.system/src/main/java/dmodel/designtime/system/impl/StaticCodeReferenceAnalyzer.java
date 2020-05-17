@@ -36,15 +36,28 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.java.Log;
 
+/**
+ * Very simple and basic analyzer that checks external calls for their types
+ * (all conforming subtypes are also checked).
+ * 
+ * @author David Monschein
+ *
+ */
 @Component
 @Log
 public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 	private JavaTuidGeneratorAndResolver tuidResolver;
 
+	/**
+	 * Creates a new instance of the analyzer.
+	 */
 	public StaticCodeReferenceAnalyzer() {
 		this.tuidResolver = new JavaTuidGeneratorAndResolver();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ServiceCallGraph deriveSystemComposition(ParsedApplicationProject parsedApplication,
 			List<File> binaryJarFiles, IRepositoryQueryFacade repository, IJavaPCMCorrespondenceModel correspondence) {

@@ -66,7 +66,7 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 	@Test
 	public void resourceEnvironmentScalabilityTest1() {
 		Map<Integer, Long> combinedMap = Maps.newHashMap();
-		for (int i = 5; i <= 20; i += 5) {
+		for (int i = 4; i <= 40; i += 4) {
 			loadModelsAndVsum();
 
 			List<String> generatedHostIds = IntStream.range(0, i).mapToObj(t -> UUID.randomUUID().toString())

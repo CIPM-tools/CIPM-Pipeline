@@ -88,8 +88,9 @@ public class UsageModelTransformationScalabilityTest extends AbstractScalability
 					.get(selectedUserSessions));
 		}
 
-		createPlot(combinedMap, "test-results/scalability_1userNactions.png", "N user actions per session",
-				"Amount of actions per session", "Execution time in seconds", 1);
+		createPlot(combinedMap, "test-results/scalability_1userNactions.png",
+				"N user actions per session (25000 users)", "Amount of actions per session",
+				"Execution time in seconds", 1);
 		saveRawData(combinedMap, "test-results/scalability_1userNactions_raw.json");
 	}
 

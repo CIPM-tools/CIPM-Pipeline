@@ -65,7 +65,6 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 	@InputPorts({ @InputPort(PortIDs.T_SC_ROUTER), @InputPort(PortIDs.T_RAW_ROUTER),
 			@InputPort(PortIDs.T_SYSTEM_ROUTER) })
 	@OutputPorts(@OutputPort(to = FinalValidationTask.class, async = false, id = PortIDs.T_FINAL_VALIDATION))
-	// TODO split up
 	public void accuracyRouter(List<Tree<ServiceCallRecord>> entryCalls,
 			PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
 		log.info("Running usage model and repository derivation.");
@@ -104,6 +103,12 @@ public class AccuracySwitch extends AbstractIterativePipelinePart<RuntimePipelin
 		validationRepository = getBlackboard().getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_REPO);
 		validationUsage = getBlackboard().getValidationResultsQuery().get(ValidationSchedulePoint.AFTER_T_USAGE);
 
+		// 3.1
+		doCrossValidationAndFinalize(entryCalls, rawMonitoringData);
+	}
+
+	private void doCrossValidationAndFinalize(List<Tree<ServiceCallRecord>> entryCalls,
+			PartitionedMonitoringData<PCMContextRecord> rawMonitoringData) {
 		// 3.1. check which one is better
 		getBlackboard().getQuery().track(ExecutionMeasuringPoint.T_CROSS_VALIDATION);
 		int crossValidationResult = getBlackboard().getValidationQuery().compare(validationRepository, validationUsage);

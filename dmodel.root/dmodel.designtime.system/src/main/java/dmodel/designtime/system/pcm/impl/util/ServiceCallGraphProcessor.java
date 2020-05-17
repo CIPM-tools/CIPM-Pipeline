@@ -17,18 +17,39 @@ import dmodel.designtime.system.pcm.impl.PCMSystemBuilder.AssemblyRequiredRole;
 import dmodel.designtime.system.pcm.impl.PCMSystemBuilder.SystemProvidedRole;
 import lombok.Getter;
 
+/**
+ * This class can be used to resolve conflicts automatically. To enable this, a
+ * service-call-graph (SCG) is needed as input.
+ * 
+ * @author David Monschein
+ *
+ */
 public class ServiceCallGraphProcessor {
 	private ServiceCallGraph scg;
 
 	@Getter
 	private List<ServiceCallGraphNode> entryNodes;
 
+	/**
+	 * Creates a new instance with a given SCG
+	 * 
+	 * @param serviceCallGraph the SCG
+	 */
 	public ServiceCallGraphProcessor(ServiceCallGraph serviceCallGraph) {
 		this.scg = serviceCallGraph;
 
 		searchEntryNodes();
 	}
 
+	/**
+	 * Filters the components of a connection conflict by using the underlying SCG
+	 * 
+	 * @param init   a list of possible components
+	 * @param from   the source of the connection
+	 * @param target the target that should be satisfied
+	 * @return a filtered list of components that are possible according to the
+	 *         underlying SCG
+	 */
 	public List<RepositoryComponent> filterComponents(List<RepositoryComponent> init, RepositoryComponent from,
 			Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
 		if (scg == null || !target.anyPresent()) {
