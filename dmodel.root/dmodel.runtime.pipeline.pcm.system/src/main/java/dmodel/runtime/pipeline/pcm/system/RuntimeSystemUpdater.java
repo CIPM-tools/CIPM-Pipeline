@@ -36,6 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.java.Log;
 
+// TODO update to fix multiple connect
 @Service
 @Log
 public class RuntimeSystemUpdater {
@@ -179,8 +180,8 @@ public class RuntimeSystemUpdater {
 					outgoingEdge.getTo().getSeff().getBasicComponent_ServiceEffectSpecification(),
 					outgoingEdge.getTo().getHost());
 
-			OperationProvidedRole correspondingProvidedRole = isPrioritized(requiredRole, outgoingEdge.getTo(),
-					requiredRole.getRequiredInterface__OperationRequiredRole(), metadata);
+			OperationProvidedRole correspondingProvidedRole = getCorrespondingProvidedRole(requiredRole,
+					outgoingEdge.getTo(), requiredRole.getRequiredInterface__OperationRequiredRole(), metadata);
 
 			if (correspondingProvidedRole != null) {
 				// => prioritized
@@ -200,15 +201,15 @@ public class RuntimeSystemUpdater {
 		}
 	}
 
-	private OperationProvidedRole isPrioritized(OperationRequiredRole requiredRole, ServiceCallGraphNode to,
-			OperationInterface iface, CallGraphMergeMetadata metadata) {
+	private OperationProvidedRole getCorrespondingProvidedRole(OperationRequiredRole requiredRole,
+			ServiceCallGraphNode to, OperationInterface iface, CallGraphMergeMetadata metadata) {
 		ComponentInterfaceBinding binding = new ComponentInterfaceBinding(
 				to.getSeff().getBasicComponent_ServiceEffectSpecification(), to.getHost(), iface);
 		if (metadata.getBindingPriorityMap().containsKey(binding)) {
 			int fIndex = metadata.getBindingPriorityMap().get(binding).indexOf(requiredRole);
 			List<OperationProvidedRole> openRoles = getProvidedRoleAmount(binding.getComponent(), iface);
-			if (fIndex >= 0 && fIndex < openRoles.size()) {
-				return openRoles.get(fIndex);
+			if (openRoles.size() > 0) {
+				return openRoles.get(fIndex % openRoles.size());
 			}
 		}
 

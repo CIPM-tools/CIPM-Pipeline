@@ -70,15 +70,6 @@ function createGraph() {
 	};
 	var options = {
 			autoResize: false,
-			"physics": {
-			    "forceAtlas2Based": {
-			      "gravitationalConstant": -138,
-			      "centralGravity": 0.02,
-			      "springLength": 200
-			    },
-			    "minVelocity": 0.75,
-			    "solver": "forceAtlas2Based",
-			},
 			nodes: {
 	            shape: 'dot',
 	            size: 20,
@@ -95,7 +86,7 @@ function createGraph() {
 	            	strokeColor : 'white',
 	            	color : 'white'
 	            }
-	        },
+	        }
 	    };
 	
 	scgNetwork = new vis.Network(container, data, options);

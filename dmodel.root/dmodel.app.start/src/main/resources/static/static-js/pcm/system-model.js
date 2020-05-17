@@ -85,7 +85,8 @@ class PCMSystemGraph {
 		
 		style = mxUtils.clone(org_style);
 		style[mxConstants.STYLE_STROKECOLOR] = '#037d50';
-		style[mxConstants.STYLE_DASHED] = true;
+		style[mxConstants.STYLE_DASHED] = false;
+		style[mxConstants.STYLE_STROKEWIDTH] = 3;
 		this.graph.getStylesheet().putCellStyle('assembly_marked', style);
 		
 		style = mxUtils.clone(org_style);
@@ -304,6 +305,7 @@ class PCMSystemGraph {
 			if (connector.delegation) {
 				var role1 = this.elementMapping[connector.role1];
 				var role2 = this.elementMapping[connector.role2];
+				
 				this.delegateRoles(role2, role1, connector.delegationDirection);
 			} else {
 				var roleFrom = this.elementMapping[connector.role1];
@@ -314,11 +316,19 @@ class PCMSystemGraph {
 	}
 	
 	markAssemblyContext(ctxId) {
-		this.elementMapping[ctxId].setStyle("assembly_marked");
+		var el = this.elementMapping[ctxId];
+		
+		this.update(function(graph) {
+			graph.getModel().setStyle(el, "assembly_marked");
+		}, this.graph);
 	}
 	
 	unmarkAssemblyContext(ctxId) {
-		this.elementMapping[ctxId].setStyle("assembly");
+		var el = this.elementMapping[ctxId];
+		
+		this.update(function(graph) {
+			graph.getModel().setStyle(el, "assembly");
+		}, this.graph);
 	}
 	
 	markRequiredRole(roleId) {
@@ -344,6 +354,8 @@ class PCMSystemGraph {
 	drawRoles(parent, obj) {
 		obj.provided.forEach(function(role) {
 			var pos = this.layouter.getPosition(this.model.root, role.id);
+			
+			console.log(role);
 			
 			this.elementMapping[role.id] = this.drawProvidedRole(parent, pos.x, pos.y, pos.width, role.name.substring(0, 5));
 			this.elementMappingReversed[this.elementMapping[role.id]] = role.id;
@@ -435,10 +447,12 @@ class PCMSystemGraph {
 					// zero is the point on the parent because we draw the edge
 					// from parent
 					// to role
-					var pointOnRect = _this.absoluteToRelative(state.absolutePoints[0]);
-					
-					var nGeometry = new mxGeometry(pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16);
-					delegate.img.setGeometry(nGeometry);
+					if (state !== undefined) {
+						var pointOnRect = _this.absoluteToRelative(state.absolutePoints[0]);
+						
+						var nGeometry = new mxGeometry(pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16);
+						delegate.img.setGeometry(nGeometry);
+					}
 				}
 				
 				graph.refresh();
@@ -496,7 +510,7 @@ class PCMSystemGraph {
 		var outer_cell = outer_line.source.parent;
 		
 		this.update(function() {
-			image = graph.insertVertex(outer_cell, null, '', pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16, 'provided_delegate');
+			image = graph.insertVertex(outer_cell, null, '', pointOnRect.x + 4, pointOnRect.y - 16 / 2, 16, 16, img_style);
 			graph.insertEdge(outer_cell, null, '', image, inner, 'connect_line');
 		});
 		

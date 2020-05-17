@@ -10,6 +10,13 @@ import dmodel.designtime.instrumentation.mapping.comment.ExternalCallMappingComm
 import dmodel.designtime.instrumentation.mapping.comment.InternalActionMappingComment;
 import dmodel.designtime.instrumentation.mapping.comment.LoopMappingComment;
 
+/**
+ * Parser for comments in the source code that describe mappings to architecture
+ * model elements.
+ * 
+ * @author David Monschein
+ *
+ */
 public class MappingCommentParser {
 	private static final Pattern ACTION_PATTERN = Pattern.compile("@(.*) ");
 	private static final Pattern TARGET_PATTERN = Pattern.compile("(.*)\\{.*?\\}");
@@ -25,6 +32,14 @@ public class MappingCommentParser {
 	private static final String KEYWORD_TYPE_BRANCH = "BRANCH";
 	private static final String KEYWORD_TYPE_EXTERNAL_CALL = "EXTERNAL_CALL";
 
+	/**
+	 * Parses a specific comment and returns the parsed information about the
+	 * mapping (if present).
+	 * 
+	 * @param content the comment to parse
+	 * @return the parsed content or an empty optional if the comment does not
+	 *         contain valid mappings
+	 */
 	public Optional<AbstractMappingComment> parseComment(String content) {
 		if (!content.trim().startsWith("@")) {
 			return Optional.empty();

@@ -509,7 +509,8 @@ public class PCMSystemBuilder extends AbstractHealthStateComponent {
 		}).findFirst().orElse(null);
 
 		if (selectedRole != null) {
-			openProvidedRoles.remove(selectedRole);
+			// support multiple use of roles
+			// openProvidedRoles.remove(selectedRole);
 			return selectedRole;
 		} else {
 			log.severe(

@@ -1,12 +1,12 @@
 package dmodel.runtime.pipeline.validation.facade;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Maps;
 
 import dmodel.base.core.ISpecificModelProvider;
 import dmodel.base.core.facade.IRuntimeEnvironmentQueryFacade;
@@ -28,10 +28,8 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 	@Autowired
 	private VsumManager vsumManager;
 
-	private Cache<String, RuntimeResourceContainer> containerCache = new Cache2kBuilder<String, RuntimeResourceContainer>() {
-	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
-	private Cache<Pair<String, String>, RuntimeResourceContainerConnection> linkCache = new Cache2kBuilder<Pair<String, String>, RuntimeResourceContainerConnection>() {
-	}.eternal(true).resilienceDuration(30, TimeUnit.SECONDS).refreshAhead(false).build();
+	private Map<String, RuntimeResourceContainer> containerCache = Maps.newHashMap();
+	private Map<Pair<String, String>, RuntimeResourceContainerConnection> linkCache = Maps.newHashMap();
 
 	@Override
 	public RuntimeResourceContainer getContainerById(String hostId) {

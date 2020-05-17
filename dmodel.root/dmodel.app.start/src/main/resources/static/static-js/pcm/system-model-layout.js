@@ -60,7 +60,7 @@ class HorizontalSystemModelLayouter {
 		for (var r in max_height) {
 			this.rowStartY[root.id][r] = calc_height;
 			calc_height += max_height[r] * SystemGraphConsts.ASS_PROVIDED_SIZE +
-				((max_height[r] - 1) * SystemGraphConsts.ASS_SPACING_ROLES) + (max_height[r] * SystemGraphConsts.ASS_SPACING);
+				((max_height[r] - 1) * SystemGraphConsts.ASS_SPACING_ROLES) + (max_height[r] * SystemGraphConsts.ASS_SPACING_X);
 			last_i = r;
 		}
 		this.rowStartY[root.id][parseInt(last_i) + 1] = calc_height;
@@ -74,7 +74,7 @@ class HorizontalSystemModelLayouter {
 				SystemGraphConsts.ASS_MARGIN_LEFT + SystemGraphConsts.ASS_MARGIN_RIGHT +
 				SystemGraphConsts.ASSEMBLY_WIDTH * (max_col + 1) +
 				((max_col + 1) * ((SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_PROVIDED_SIZE + SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_REQUIRED_SIZE))) +
-				SystemGraphConsts.ASS_SPACING * max_col);
+				SystemGraphConsts.ASS_SPACING_X * max_col);
 		var fX = SystemGraphConsts.SYSTEM_PROVIDED_SIZE + SystemGraphConsts.COMPOSITE_ROLE_LEN;
 		var fY = SystemGraphConsts.COMPOSITE_MARGIN_TOP;
 		
@@ -103,9 +103,9 @@ class HorizontalSystemModelLayouter {
 			
 			var fX = SystemGraphConsts.ASS_MARGIN_LEFT +
 			grid_position[0] *
-			(SystemGraphConsts.ASSEMBLY_WIDTH + SystemGraphConsts.ASS_ROLE_LEN * 2 + SystemGraphConsts.ASS_SPACING + SystemGraphConsts.ASS_PROVIDED_SIZE + SystemGraphConsts.ASS_REQUIRED_SIZE)
+			(SystemGraphConsts.ASSEMBLY_WIDTH + SystemGraphConsts.ASS_ROLE_LEN * 2 + SystemGraphConsts.ASS_SPACING_X + SystemGraphConsts.ASS_PROVIDED_SIZE + SystemGraphConsts.ASS_REQUIRED_SIZE)
 			+ SystemGraphConsts.ASS_ROLE_LEN + SystemGraphConsts.ASS_PROVIDED_SIZE;
-			var fY = this.rowStartY[parent.id][grid_position[1]];
+			var fY = this.rowStartY[parent.id][grid_position[1]] + grid_position[1] * SystemGraphConsts.ASS_SPACING_Y;
 			var fWidth = SystemGraphConsts.ASSEMBLY_WIDTH;
 			
 			var fHeight = this.rowStartY[parent.id][grid_position[1] + 1] - this.rowStartY[parent.id][grid_position[1]];
@@ -188,7 +188,7 @@ class HorizontalSystemModelLayouter {
 			var pmaxy = 0;
 			for (var i = 0; i < provs.length; i++) {
 				var out_ass = this.assemblyByProvidedRole(provs[i].role2);
-				var inner_pos = this.calibratePosition(out_ass, grid);
+				var inner_pos = this.calibratePosition(out_ass, grid, igrid);
 				
 				psumx += (inner_pos[0] + 1);
 				pmaxy = Math.max(inner_pos[1], pmaxy);
@@ -205,7 +205,7 @@ class HorizontalSystemModelLayouter {
 			}
 			grid[ass.id] = [pos_x, pos_y];
 			
-			return this.grid[ass.id];
+			return grid[ass.id];
 		}
 	}
 	

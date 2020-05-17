@@ -48,6 +48,7 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 	@Override
 	public ServiceCallGraph deriveSystemComposition(ParsedApplicationProject parsedApplication,
 			List<File> binaryJarFiles, IRepositoryQueryFacade repository, IJavaPCMCorrespondenceModel correspondence) {
+		parsedApplication.reparse(); // reparse whole project
 		ServiceCallGraph output = ServiceCallGraphFactory.eINSTANCE.createServiceCallGraph();
 
 		CombinedTypeSolver typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver());
@@ -68,8 +69,12 @@ public class StaticCodeReferenceAnalyzer implements ISystemCompositionAnalyzer {
 			ExternalCallAction ext = repository.getElementById(extCall.getRight(), ExternalCallAction.class);
 			ResourceDemandingSEFF seff = PCMRepositoryUtil.getParentService(ext);
 
-			List<MethodCallExpr> calls = stmt.findAll(MethodCallExpr.class);
-			calls.forEach(call -> inspectMethodCall(analyzerData, call, ext, seff));
+			if (stmt != null) {
+				List<MethodCallExpr> calls = stmt.findAll(MethodCallExpr.class);
+				calls.forEach(call -> inspectMethodCall(analyzerData, call, ext, seff));
+			} else {
+				log.warning("Failed to resolve Java statement: '" + extCall.getLeft() + "'.");
+			}
 		});
 
 		return output;

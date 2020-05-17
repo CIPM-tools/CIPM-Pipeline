@@ -23,6 +23,19 @@ import org.eclipse.emf.ecore.util.FeatureMapUtil;
  *
  */
 public class ExtendedEqualityHelper {
+
+	/**
+	 * Determines whether two EObjects are equal by using the original
+	 * {@link EqualityHelper} of the EMF. The extension is that already visited
+	 * objects are not considered. This makes it possible to deal with loops in the
+	 * models.
+	 * 
+	 * @param eObject1       the first model
+	 * @param eObject2       the second model
+	 * @param visitedObjects set of already visited objects within the models
+	 * @return true if the objects are equal (including childs, attributes, ...),
+	 *         false otherwise
+	 */
 	public boolean equals(EObject eObject1, EObject eObject2, Set<EObject> visitedObjects) {
 		if (eObject1 == null) {
 			return eObject2 == null;
@@ -81,7 +94,7 @@ public class ExtendedEqualityHelper {
 		return true;
 	}
 
-	public boolean equals(List<EObject> list1, List<EObject> list2, Set<EObject> feats) {
+	protected boolean equals(List<EObject> list1, List<EObject> list2, Set<EObject> feats) {
 		int size = list1.size();
 		if (size != list2.size()) {
 			return false;

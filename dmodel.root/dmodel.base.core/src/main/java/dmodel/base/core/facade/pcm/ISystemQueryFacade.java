@@ -16,6 +16,7 @@ import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.system.System;
 
 import dmodel.base.core.facade.IResettableQueryFacade;
@@ -253,5 +254,15 @@ public interface ISystemQueryFacade extends IResettableQueryFacade {
 	 *                             removed or not
 	 */
 	void processUnreachableAssemblys(IDeprecationProcessor deprecationProcessor);
+
+	/**
+	 * Determines whether a specific service is an entry call (at the border of the
+	 * system). An entry call is an action where the user directly triggers a
+	 * function of the system (which is provided via a provided role).
+	 * 
+	 * @param seff the service to check whether it is an entry call
+	 * @return true, if it is an entry call, false otherwise
+	 */
+	boolean isEntryCall(ResourceDemandingSEFF seff);
 
 }

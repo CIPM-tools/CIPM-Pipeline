@@ -30,6 +30,14 @@ import dmodel.designtime.instrumentation.project.ParsedApplicationProject;
 import dmodel.designtime.instrumentation.tuid.JavaTuidGeneratorAndResolver;
 import dmodel.designtime.monitoring.util.ManualMapping;
 
+/**
+ * Component that automatically resolves mappings between source code elements
+ * and architecture model elements. It parses comments within the code to
+ * retrieve the mappings.
+ * 
+ * @author David Monschein
+ *
+ */
 @Service
 public class AutomatedMappingResolverImpl implements IAutomatedMappingResolver {
 	private JavaTuidGeneratorAndResolver tuidGenerator = new JavaTuidGeneratorAndResolver();
@@ -37,16 +45,24 @@ public class AutomatedMappingResolverImpl implements IAutomatedMappingResolver {
 
 	private Map<String, Comment> counterPartMapping;
 
+	/**
+	 * Creates a new instance of the automated mapping resolver component.
+	 */
 	public AutomatedMappingResolverImpl() {
 		this.counterPartMapping = Maps.newHashMap();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void resolveMappings(ParsedApplicationProject project, IJavaPCMCorrespondenceModel cpm) {
 		counterPartMapping.clear();
 		if (project.getSource() == null) {
 			return;
 		}
+		cpm.clear();
+		project.reparse();
 
 		// get all files for all roots
 		File rootPath = new File(project.getSource().getRootPath());

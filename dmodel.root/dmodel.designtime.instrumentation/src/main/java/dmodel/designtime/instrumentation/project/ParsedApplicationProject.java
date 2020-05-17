@@ -28,11 +28,7 @@ public class ParsedApplicationProject {
 		this.source = source;
 		this.roots = Lists.newArrayList();
 
-		File basePath = new File(source.getRootPath());
-		for (String sourceFolder : source.getSourceFolders()) {
-			File srcFolder = new File(basePath, sourceFolder);
-			roots.add(Pair.of(new SourceRoot(srcFolder.toPath()), sourceFolder));
-		}
+		this.reparse();
 	}
 
 	public CompilationUnit getCompilationUnit(String pckg, String clazz) {
@@ -45,13 +41,13 @@ public class ParsedApplicationProject {
 			}
 		}).map(root -> root.getLeft()).collect(Collectors.toList());
 
-		log.info("Search for " + pckg + "." + clazz);
-		possibleRoots.forEach(r -> log.info("Possible root: " + r.getRoot()));
+		log.fine("Search for " + pckg + "." + clazz);
+		possibleRoots.forEach(r -> log.fine("Possible root: " + r.getRoot()));
 
 		if (possibleRoots.size() == 1) {
 			return possibleRoots.get(0).parse(pckg, clazz);
 		} else if (possibleRoots.size() > 1) {
-			log.warning("Ambiguous Java class definitions for '" + pckg + "." + clazz + "'.");
+			log.fine("Ambiguous Java class definitions for '" + pckg + "." + clazz + "'.");
 			return possibleRoots.get(0).parse(pckg, clazz);
 		} else {
 			return null;
@@ -69,6 +65,16 @@ public class ParsedApplicationProject {
 
 	public List<SourceRoot> getRoots() {
 		return roots.stream().map(p -> p.getLeft()).collect(Collectors.toList());
+	}
+
+	public void reparse() {
+		roots.clear();
+
+		File basePath = new File(source.getRootPath());
+		for (String sourceFolder : source.getSourceFolders()) {
+			File srcFolder = new File(basePath, sourceFolder);
+			roots.add(Pair.of(new SourceRoot(srcFolder.toPath()), sourceFolder));
+		}
 	}
 
 }

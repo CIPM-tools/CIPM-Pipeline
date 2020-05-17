@@ -61,6 +61,7 @@ public class ApplicationProjectInstrumenterImpl implements IApplicationProjectIn
 
 	@Override
 	public void transform(ParsedApplicationProject pap, IJavaPCMCorrespondenceModel correspondence) {
+		pap.reparse();
 		alreadyPreparedMethods = Sets.newHashSet();
 		loopActionInstrumenter.prepare();
 

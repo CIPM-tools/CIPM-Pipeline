@@ -8,12 +8,20 @@ import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * Utilities for the interaction with zip-compressed files.
+ * 
+ * @author David Monschein
+ *
+ */
 public class ZipUtils {
 
 	/**
+	 * Unzips a stream of zip-compressed data into a target directory.
+	 * 
 	 * @param source zip stream
 	 * @param target target directory
-	 * @throws IOException extraction failed
+	 * @throws IOException if the extraction failed
 	 */
 	public static void unzip(InputStream source, File target) throws IOException {
 		final ZipInputStream zipStream = new ZipInputStream(source);

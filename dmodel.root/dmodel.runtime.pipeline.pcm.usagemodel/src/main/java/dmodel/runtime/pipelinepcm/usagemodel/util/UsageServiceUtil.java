@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.usagemodel.AbstractUserAction;
@@ -38,15 +37,7 @@ public class UsageServiceUtil {
 			ServiceCallRecord rec) {
 		ResourceDemandingSEFF seff = repository.getServiceById(rec.getServiceId());
 
-		for (OperationInterface pi : system.getProvidedInterfaces()) {
-			for (OperationSignature sig : pi.getSignatures__OperationInterface()) {
-				if (sig.getId().equals(seff.getDescribedService__SEFF().getId())) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return system.isEntryCall(seff);
 	}
 
 	public static UsageServiceCallDescriptor createDescriptor(ServiceCallRecord rec, IRepositoryQueryFacade repository,

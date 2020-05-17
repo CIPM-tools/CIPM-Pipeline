@@ -155,7 +155,6 @@ class PCMRepositoryGraph {
 	}
 	
 	markComponent(id) {
-		var _this = this;
 		var el = this.containerMapping[id];
 		
 		this.update(function(graph) {
@@ -164,7 +163,6 @@ class PCMRepositoryGraph {
 	}
 	
 	unmarkComponent(id) {
-		var _this = this;
 		var el = this.containerMapping[id];
 		
 		this.update(function(graph) {

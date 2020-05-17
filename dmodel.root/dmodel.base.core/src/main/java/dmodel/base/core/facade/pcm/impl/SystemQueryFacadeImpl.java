@@ -18,8 +18,10 @@ import org.palladiosimulator.pcm.core.entity.InterfaceProvidingEntity;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
 import org.palladiosimulator.pcm.repository.OperationRequiredRole;
+import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -95,6 +97,11 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	 * All provided roles of the system that are not linked yet.
 	 */
 	private Set<OperationProvidedRole> openOuterProvidedRoles = Sets.newHashSet();
+
+	/**
+	 * Caches the mapping between service IDs and whether they are entry calls.
+	 */
+	private Map<String, Boolean> isEntryCallIdCache = Maps.newHashMap();
 
 	/**
 	 * Set of pairs (assembly context, required role) of required roles that are not
@@ -398,6 +405,27 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isEntryCall(ResourceDemandingSEFF seff) {
+		if (isEntryCallIdCache.containsKey(seff.getId())) {
+			return isEntryCallIdCache.get(seff.getId());
+		} else {
+			for (OperationInterface pi : getProvidedInterfaces()) {
+				for (OperationSignature sig : pi.getSignatures__OperationInterface()) {
+					if (sig.getId().equals(seff.getDescribedService__SEFF().getId())) {
+						isEntryCallIdCache.put(seff.getId(), true);
+						return true;
+					}
+				}
+			}
+			isEntryCallIdCache.put(seff.getId(), false);
+			return false;
+		}
+	}
+
+	/**
 	 * Determines whether the requiring entity of two assembly connectors are equal,
 	 * based on their IDs.
 	 * 
@@ -474,6 +502,7 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 
 		openOuterRequiredRoles.clear();
 		openInnerRequiredRoles.clear();
+		isEntryCallIdCache.clear();
 	}
 
 	/**

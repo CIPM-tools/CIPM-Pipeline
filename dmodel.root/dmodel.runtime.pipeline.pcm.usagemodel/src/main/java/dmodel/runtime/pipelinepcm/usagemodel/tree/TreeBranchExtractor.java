@@ -16,13 +16,13 @@ import dmodel.base.shared.structure.Tree.TreeNode;
 import dmodel.designtime.monitoring.records.ServiceCallRecord;
 import dmodel.runtime.pipelinepcm.usagemodel.IUsageDataExtractor;
 import dmodel.runtime.pipelinepcm.usagemodel.ServiceCallSession;
+import dmodel.runtime.pipelinepcm.usagemodel.clustering.DBScanUsageSessionClusterer;
+import dmodel.runtime.pipelinepcm.usagemodel.clustering.IUsageSessionClustering;
 import dmodel.runtime.pipelinepcm.usagemodel.data.IAbstractUsageDescriptor;
 import dmodel.runtime.pipelinepcm.usagemodel.data.UsageBranchDescriptor;
 import dmodel.runtime.pipelinepcm.usagemodel.data.UsageBranchTransition;
 import dmodel.runtime.pipelinepcm.usagemodel.data.UsageGroup;
 import dmodel.runtime.pipelinepcm.usagemodel.data.UsageServiceCallDescriptor;
-import dmodel.runtime.pipelinepcm.usagemodel.tree.path.IPathExtractor;
-import dmodel.runtime.pipelinepcm.usagemodel.tree.path.SimpleComparisonPathExtractor;
 import dmodel.runtime.pipelinepcm.usagemodel.tree.transition.ITransitionTreeExtractor;
 import dmodel.runtime.pipelinepcm.usagemodel.tree.transition.ReferenceTransitionTreeExtractor;
 import dmodel.runtime.pipelinepcm.usagemodel.util.UsageServiceUtil;
@@ -31,17 +31,16 @@ import lombok.extern.java.Log;
 @Log
 public class TreeBranchExtractor implements IUsageDataExtractor {
 	private static final double MIN_RELEVANCE = 0.05;
-	private static final float USER_GROUP_MAX_VARIANCE = 0.25f;
 	private static final double NANO_TO_MS = 1000000;
 
 	private ITransitionTreeExtractor treeExtractor;
-	private IPathExtractor pathExtractor;
+	private IUsageSessionClustering sessionClusterer;
 
 	private int currentGroupId;
 
 	public TreeBranchExtractor() {
 		this.treeExtractor = new ReferenceTransitionTreeExtractor();
-		this.pathExtractor = new SimpleComparisonPathExtractor();
+		this.sessionClusterer = new DBScanUsageSessionClusterer();
 	}
 
 	@Override
@@ -67,33 +66,32 @@ public class TreeBranchExtractor implements IUsageDataExtractor {
 		long highest = entryCalls.stream().map(c -> c.getEntryTime()).max(Long::compare).get();
 		double interarrivalOverall = ((highest - lowest) / NANO_TO_MS) / ((double) sessionNumber);
 
+		// 2.1 cluster sessions
+		List<List<ServiceCallSession>> clusters = sessionClusterer.clusterSessions(sessions);
+
 		// 3. create probability tree
-		log.info("Extract tree.");
-		Tree<DescriptorTransition<UsageServiceCallDescriptor>> transitionTree = treeExtractor
-				.extractProbabilityCallTree(sessions, repository, system);
+		log.info("Extract trees.");
+		List<Tree<DescriptorTransition<UsageServiceCallDescriptor>>> transitionTrees = clusters.stream()
+				.map(c -> treeExtractor.extractProbabilityCallTree(c, repository, system)).collect(Collectors.toList());
 
 		// 4. find loop structures
 		// 4.1. bundle consecutive identical calls
 		log.info("Identify paths.");
-		Tree<DescriptorTransition<IAbstractUsageDescriptor>> treeWithoutLoops = new Tree<>(
-				new DescriptorTransition<>(transitionTree.getRoot().getData().getCall(), 1.0f));
-		copyTree(treeWithoutLoops.getRoot(), transitionTree.getRoot());
 
-		// 4.2. identify all paths through tree
-		List<Tree<DescriptorTransition<IAbstractUsageDescriptor>>> subTrees = pathExtractor
-				.extractRelevantPaths(treeWithoutLoops, (1.0f - USER_GROUP_MAX_VARIANCE));
+		List<Tree<DescriptorTransition<IAbstractUsageDescriptor>>> subTrees = Lists.newArrayList();
+		for (Tree<DescriptorTransition<UsageServiceCallDescriptor>> transitionTree : transitionTrees) {
+			Tree<DescriptorTransition<IAbstractUsageDescriptor>> treeWithoutLoops = new Tree<>(
+					new DescriptorTransition<>(transitionTree.getRoot().getData().getCall(), 1.0f));
+			copyTree(treeWithoutLoops.getRoot(), transitionTree.getRoot());
+			subTrees.add(treeWithoutLoops);
+		}
 
-		// 4.3. compress paths
-		// makes in a lot of cases no sense (because of the parameters)
-
-		// 4.4. collect relevant paths
-		log.info("Collect relevant paths.");
-		List<Tree<DescriptorTransition<IAbstractUsageDescriptor>>> relevantPaths = subTrees.stream()
-				.filter(p -> estimateRelevance(p) >= MIN_RELEVANCE).collect(Collectors.toList());
+		// 4.2. filter out not relevant trees
+		// TODO
 
 		// 5. build final groups
 		log.info("Finalize usage scenarios.");
-		return relevantPaths.stream().map(relevantTree -> {
+		return subTrees.stream().map(relevantTree -> {
 			if (relevantTree.getRoot().getChildren().size() > 0) {
 				double relevance = estimateRelevance(relevantTree);
 				double interarrival = interarrivalOverall / relevance;

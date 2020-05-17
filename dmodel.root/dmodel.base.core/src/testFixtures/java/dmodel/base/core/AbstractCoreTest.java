@@ -63,6 +63,11 @@ public abstract class AbstractCoreTest {
 		}
 
 		@Bean
+		public ObjectMapper objectMapper() {
+			return new ObjectMapper();
+		}
+
+		@Bean
 		public StaticModelProviderImpl provideModels() {
 			return new StaticModelProviderImpl();
 		}
