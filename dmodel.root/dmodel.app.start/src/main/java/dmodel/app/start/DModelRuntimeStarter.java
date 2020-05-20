@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.CacheControl;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
@@ -34,7 +35,16 @@ import dmodel.base.shared.vitruv.VitruviusUtil;
 import lombok.extern.java.Log;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "dmodel", "mir.reactions", "mir.routines" })
+@ComponentScan(basePackages = { "dmodel", "mir.reactions", "mir.routines" }, excludeFilters = {
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.base.core.AbstractCoreTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.BasePipelineTestConfiguration.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.validation.ValidationProcessorTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.base.vsum.VsumManagerTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.designtime.system.DesignTimeSystemExtractionTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.pcm.usagemodel.AbstractBaseUsageModelDerivationTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.pcm.system.AbstractBaseSystemTransformationTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.pcm.resourceenv.AbstractResourceEnvironmentTransformationTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "dmodel.runtime.pipeline.pcm.repository.AbstractRepositoryTransformationTestBase.*") })
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties
