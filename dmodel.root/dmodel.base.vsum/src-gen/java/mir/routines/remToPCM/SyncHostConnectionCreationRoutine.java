@@ -117,6 +117,7 @@ public class SyncHostConnectionCreationRoutine extends AbstractRepairRoutineReal
 		if (containerTo == null) {
 			return false;
 		}
+
 		registerObjectUnderModification(containerTo);
 		org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment parent = getCorrespondingElement(
 				userExecution.getCorrepondenceSourceParent(affectedObject, containerFrom, containerTo), // correspondence

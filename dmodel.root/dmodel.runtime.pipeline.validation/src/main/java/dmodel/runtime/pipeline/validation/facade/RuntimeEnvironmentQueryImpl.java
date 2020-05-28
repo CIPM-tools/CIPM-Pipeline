@@ -48,7 +48,7 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 	}
 
 	@Override
-	public void createResourceContainer(String hostId, String hostName) {
+	public RuntimeResourceContainer createResourceContainer(String hostId, String hostName) {
 		RuntimeResourceContainer nContainer = REModelFactory.eINSTANCE.createRuntimeResourceContainer();
 		nContainer.setHostID(hostId);
 		nContainer.setHostname(hostName);
@@ -59,6 +59,8 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 			vsum.createdObject(nContainer, VsumChangeSource.RUNTIME_ENVIRONMENT);
 			return null;
 		});
+
+		return nContainer;
 	}
 
 	@Override

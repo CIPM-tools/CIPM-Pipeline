@@ -45,11 +45,24 @@ public class ServiceCallGenerator extends AbstractMonitoringDataGenerator {
 	@Builder.Default
 	private long exitTime = 0;
 
+	@Builder.Default
+	private Optional<StartStopTimeGenerator> intervalGenerator = Optional.empty();
+
 	@Override
 	protected Pair<PCMContextRecord, Optional<String>> generateRecord(String sessionId, Optional<String> parentId) {
 		String externalCallIdGen = externalCallId.orElse(ServiceCallRecord.EXTERNAL_CALL_ID);
 		String genId = factory.createId();
 		String genServiceId = serviceIds.get(RANDOM.nextInt(serviceIds.size()));
+
+		long entryTime, exitTime;
+		if (intervalGenerator.isPresent()) {
+			Pair<Long, Long> gen = this.intervalGenerator.get().generateNextInterval();
+			entryTime = gen.getLeft();
+			exitTime = gen.getRight();
+		} else {
+			entryTime = this.entryTime;
+			exitTime = this.exitTime;
+		}
 
 		return Pair.of(new ServiceCallRecord(sessionId, genId, hostId, hostName, genServiceId, parameters.toString(),
 				parentId.orElse(null), externalCallIdGen, null, entryTime, exitTime), Optional.of(genId));

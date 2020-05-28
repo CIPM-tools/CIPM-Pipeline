@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,8 +13,12 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMLParserPoolImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 
 /**
  * General utility which provides operations for EMF models.
@@ -57,7 +62,22 @@ public class ModelUtil {
 
 		URI filePathUri = org.eclipse.emf.common.util.URI.createFileURI(new File(path).getAbsolutePath());
 
-		Resource resource = resourceSet.getResource(filePathUri, true);
+		Resource resource = resourceSet.createResource(filePathUri);
+
+		Map<Object, Object> loadOptions = ((XMLResourceImpl) resource).getDefaultLoadOptions();
+		loadOptions.put(XMLResource.OPTION_DEFER_ATTACHMENT, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_DEFER_IDREF_RESOLUTION, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_DEPRECATED_METHODS, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, new XMLParserPoolImpl());
+		loadOptions.put(XMLResource.OPTION_USE_XML_NAME_TO_FEATURE_MAP, new HashMap<>());
+
+		((ResourceImpl) resource).setIntrinsicIDToEObjectMap(new HashMap<>());
+		try {
+			resource.load(loadOptions);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		return clazz.cast(resource.getContents().get(0));
 	}
 
@@ -69,15 +89,30 @@ public class ModelUtil {
 	 * @param clazz    class of the model type
 	 * @return the parsed model or null if it is not valid
 	 */
-	public static <T> T readFromResource(URL resource, Class<T> clazz) {
+	public static <T> T readFromResource(URL resourceURL, Class<T> clazz) {
 		ResourceSet resourceSet = new ResourceSetImpl();
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
 				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
 
-		URI resourceUri = org.eclipse.emf.common.util.URI.createURI(resource.toString());
+		URI resourceUri = org.eclipse.emf.common.util.URI.createURI(resourceURL.toString());
 
-		Resource rresource = resourceSet.getResource(resourceUri, true);
-		return clazz.cast(rresource.getContents().get(0));
+		Resource resource = resourceSet.createResource(resourceUri);
+
+		Map<Object, Object> loadOptions = ((XMLResourceImpl) resource).getDefaultLoadOptions();
+		loadOptions.put(XMLResource.OPTION_DEFER_ATTACHMENT, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_DEFER_IDREF_RESOLUTION, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_DEPRECATED_METHODS, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, new XMLParserPoolImpl());
+		loadOptions.put(XMLResource.OPTION_USE_XML_NAME_TO_FEATURE_MAP, new HashMap<>());
+
+		((ResourceImpl) resource).setIntrinsicIDToEObjectMap(new HashMap<>());
+		try {
+			resource.load(loadOptions);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return clazz.cast(resource.getContents().get(0));
 	}
 
 	/**

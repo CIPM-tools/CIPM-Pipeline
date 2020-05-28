@@ -164,7 +164,6 @@ public class RuntimeSystemTransformation extends AbstractIterativePipelinePart<R
 			String externalCallId = node.getData().getExternalCallId();
 			ExternalCallAction externalCallAction = getBlackboard().getPcmQuery().getRepository()
 					.getElementById(externalCallId, ExternalCallAction.class);
-
 			if (fromSeff != null && toSeff != null && fromContainer != null && toContainer != null
 					&& externalCallAction != null) {
 				// connect in scg

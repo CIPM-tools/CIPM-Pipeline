@@ -42,9 +42,8 @@ public abstract class AbstractScalabilityTestBase extends VsumManagerTestBase {
 	private ObjectMapper objectMapper;
 
 	@Before
-	public void prepareTest() {
+	public void prepareScalabilityTest() {
 		performanceEval.enterPipelineExecution();
-		blackboard.reset(true);
 	}
 
 	@After

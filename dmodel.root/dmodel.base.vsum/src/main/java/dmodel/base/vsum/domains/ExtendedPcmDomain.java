@@ -1,7 +1,14 @@
 package dmodel.base.vsum.domains;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.emf.ecore.xmi.XMLResource;
+import org.eclipse.emf.ecore.xmi.impl.XMLParserPoolImpl;
 import org.palladiosimulator.pcm.core.entity.EntityPackage;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
+
+import com.google.common.collect.Maps;
 
 import de.uka.ipd.sdq.identifier.IdentifierPackage;
 import tools.vitruv.domains.emf.builder.VitruviusEmfBuilderApplicator;
@@ -38,6 +45,22 @@ public class ExtendedPcmDomain extends AbstractTuidAwareVitruvDomain {
 	@Override
 	public VitruviusProjectBuilderApplicator getBuilderApplicator() {
 		return new VitruviusEmfBuilderApplicator();
+	}
+
+	@Override
+	public boolean isRelinkUuids() {
+		return false;
+	}
+
+	@Override
+	public Map<Object, Object> getDefaultLoadOptions() {
+		Map<Object, Object> loadOptions = Maps.newHashMap();
+		loadOptions.put(XMLResource.OPTION_DEFER_ATTACHMENT, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_DEFER_IDREF_RESOLUTION, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_DEPRECATED_METHODS, Boolean.TRUE);
+		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, new XMLParserPoolImpl());
+		loadOptions.put(XMLResource.OPTION_USE_XML_NAME_TO_FEATURE_MAP, new HashMap<>());
+		return loadOptions;
 	}
 
 	@Override

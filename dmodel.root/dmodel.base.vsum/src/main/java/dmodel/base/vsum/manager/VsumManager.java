@@ -8,14 +8,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.transaction.impl.InternalTransactionalEditingDomain;
+import org.eclipse.emf.transaction.impl.TransactionChangeRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +61,7 @@ import tools.vitruv.framework.uuid.UuidGeneratorAndResolver;
 import tools.vitruv.framework.vsum.InternalVirtualModel;
 import tools.vitruv.framework.vsum.VirtualModelConfiguration;
 import tools.vitruv.framework.vsum.VirtualModelImpl;
+import tools.vitruv.framework.vsum.repositories.ModelRepositoryImpl;
 
 @Component
 @Log
@@ -100,6 +105,7 @@ public class VsumManager extends AbstractHealthStateComponent {
 	private List<File> usedFiles;
 	private Map<VsumChangeSource, VURI> vuriMapping;
 	private Set<String> currentCorrespondences;
+	private ModelRepositoryImpl internalModelRepository;
 
 	public VsumManager() {
 		super(HealthStateObservedComponent.VSUM_MANAGER, HealthStateObservedComponent.MODEL_MANAGER);
@@ -113,23 +119,23 @@ public class VsumManager extends AbstractHealthStateComponent {
 		vsum.executeCommand(cb);
 	}
 
-	private void clearAdaptersOfRoots() {
-		clearAdaptersRecursive(pcmModelContainer.getResourceEnvironment());
-		clearAdaptersRecursive(pcmModelContainer.getRepository());
-		clearAdaptersRecursive(specificModelContainer.getInstrumentation());
-		clearAdaptersRecursive(specificModelContainer.getRuntimeEnvironment());
-	}
+	public void propagateCompositeChanges(List<EChange> changes, VsumChangeSource source) {
+		this.vsum.propagateChange(VitruviusChangeFactory.getInstance().createCompositeChange(changes.stream().map(c -> {
+			return VitruviusChangeFactory.getInstance().createConcreteChangeWithVuri(c, vuriMapping.get(source));
+		}).collect(Collectors.toList())));
 
-	private void clearAdaptersRecursive(EObject obj) {
-		obj.eResource().eAdapters().clear();
-		obj.eAdapters().clear();
-		obj.eAllContents().forEachRemaining(e -> e.eAdapters().clear());
+		// clean up memory leaks
+		this.flushHistories();
+		this.internalModelRepository.cleanupRootElements();
 	}
 
 	public void propagateChange(EChange change, VsumChangeSource source) {
-		clearAdaptersOfRoots();
 		this.vsum.propagateChange(
 				VitruviusChangeFactory.getInstance().createConcreteChangeWithVuri(change, vuriMapping.get(source)));
+
+		// clean up memory leaks
+		this.flushHistories();
+		this.internalModelRepository.cleanupRootElements();
 	}
 
 	public CorrespondenceModel getCorrespondenceModel() {
@@ -144,6 +150,36 @@ public class VsumManager extends AbstractHealthStateComponent {
 		if (source == HealthStateObservedComponent.MODEL_MANAGER && state == HealthState.WORKING) {
 			this.buildVSUM();
 		}
+	}
+
+	private void flushHistories() {
+		this.flushHistory(pcmModelContainer.getRepository());
+		this.flushHistory(pcmModelContainer.getResourceEnvironment());
+		this.flushHistory(specificModelContainer.getRuntimeEnvironment());
+		this.flushHistory(specificModelContainer.getInstrumentation());
+		if (vsum.getCorrespondenceModel().getAllCorrespondences().size() > 0) {
+			this.flushHistory(vsum.getCorrespondenceModel().getAllCorrespondences().get(0).getParent());
+		}
+	}
+
+	private void flushHistory(EObject obj) {
+		this.flushListeners(obj);
+		this.flushListeners(obj.eResource());
+	}
+
+	private void flushListeners(Notifier obj) {
+		if (obj != null) {
+			obj.eAdapters().forEach(adapter -> {
+				if (adapter instanceof TransactionChangeRecorder) {
+					this.flushListener((TransactionChangeRecorder) adapter);
+				}
+			});
+		}
+	}
+
+	private void flushListener(TransactionChangeRecorder changeRecorder) {
+		InternalTransactionalEditingDomain domain = changeRecorder.getEditingDomain();
+		domain.getCommandStack().flush();
 	}
 
 	@PostConstruct
@@ -187,15 +223,19 @@ public class VsumManager extends AbstractHealthStateComponent {
 		Field tuidResolverField = FieldUtils.getField(InternalCorrespondenceModelImpl.class, "tuidResolver", true);
 		Field cpmDelegate = FieldUtils.getField(GenericCorrespondenceModelViewImpl.class, "correspondenceModelDelegate",
 				true);
+		Field modelRepositoryField = FieldUtils.getField(VirtualModelImpl.class, "modelRepository", true);
 
 		try {
 			Object repository = domainRepositoryField.get(vsum);
 			Object delegate = cpmDelegate.get(vsum.getCorrespondenceModel());
 			Object resolver = tuidResolverField.get(delegate);
+			Object modelRepository = modelRepositoryField.get(vsum);
 
-			if (repository instanceof VitruvDomainRepository && resolver instanceof TuidResolver) {
+			if (repository instanceof VitruvDomainRepository && resolver instanceof TuidResolver
+					&& modelRepository instanceof ModelRepositoryImpl) {
 				this.domainRepository = (VitruvDomainRepository) repository;
 				this.tuidResolver = (TuidResolver) resolver;
+				this.internalModelRepository = (ModelRepositoryImpl) modelRepository;
 				super.removeAllProblems();
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -212,6 +252,7 @@ public class VsumManager extends AbstractHealthStateComponent {
 
 		if (vsum != null) {
 			log.info("Tear down current VSUM.");
+			// remove files
 			try {
 				FileUtils.deleteDirectory(vsum.getFolder());
 			} catch (IOException e) {

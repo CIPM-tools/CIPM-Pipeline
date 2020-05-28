@@ -2,6 +2,7 @@ package dmodel.base.vsum.persistence;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,11 @@ public class CorrespondencePersistenceTest extends VsumManagerTestBase {
 
 	@Autowired
 	private VsumMappingPersistence persistence;
+
+	@Before
+	public void startup() {
+		super.startup();
+	}
 
 	@Test
 	public void createRemContainerTest() {

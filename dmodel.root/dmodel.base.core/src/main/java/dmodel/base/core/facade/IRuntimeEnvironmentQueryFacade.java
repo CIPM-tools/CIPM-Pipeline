@@ -55,8 +55,9 @@ public interface IRuntimeEnvironmentQueryFacade extends IResettableQueryFacade {
 	 * 
 	 * @param hostId   host ID of the container to create
 	 * @param hostName host name of the container to create
+	 * @return
 	 */
-	public void createResourceContainer(String hostId, String hostName);
+	public RuntimeResourceContainer createResourceContainer(String hostId, String hostName);
 
 	/**
 	 * Creates a link between two resource containers.

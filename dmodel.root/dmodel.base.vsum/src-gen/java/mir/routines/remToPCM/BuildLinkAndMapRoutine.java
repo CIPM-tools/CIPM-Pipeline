@@ -69,7 +69,6 @@ public class BuildLinkAndMapRoutine extends AbstractRepairRoutineRealization {
 				@Extension final RoutinesFacade _routinesFacade) {
 			EList<LinkingResource> _linkingResources__ResourceEnvironment = parent
 					.getLinkingResources__ResourceEnvironment();
-			System.out.println(nLink.eAdapters().size());
 			_linkingResources__ResourceEnvironment.add(nLink);
 			_routinesFacade.createCorrespondenceLinks(conn, nLink);
 		}

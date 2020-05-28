@@ -14,6 +14,8 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.seff_performance.ParametricResourceDemand;
 
+import com.beust.jcommander.internal.Maps;
+
 import dmodel.base.core.facade.IPCMQueryFacade;
 import dmodel.base.shared.ModelUtil;
 import dmodel.designtime.monitoring.records.ServiceCallRecord;
@@ -33,9 +35,12 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 
 	private List<IResourceDemandTimeline> timelines;
 
+	private Map<String, Set<String>> demandingResourcesCache;
+
 	public ResourceDemandEstimatorAlternative(IPCMQueryFacade pcm) {
 		this.pcm = pcm;
 		this.timelines = new ArrayList<>();
+		this.demandingResourcesCache = Maps.newHashMap();
 	}
 
 	@Override
@@ -44,6 +49,7 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 		// build service call tree
 		List<TreeNode<ServiceCallRecord>> callRoots = new ArrayList<>();
 		Map<String, TreeNode<ServiceCallRecord>> idMapping = new HashMap<>();
+		demandingResourcesCache.clear();
 
 		// sort
 		List<ServiceCallRecord> sortedServiceCalls = data.getServiceCalls().getServiceCalls().stream()
@@ -137,10 +143,16 @@ public class ResourceDemandEstimatorAlternative implements IResourceDemandEstima
 	}
 
 	private Set<String> getDemandingResources(ResourceDemandingSEFF seff) {
-		return ModelUtil.getObjects(seff, ParametricResourceDemand.class).stream()
-				.filter(demand -> demand.getRequiredResource_ParametricResourceDemand() != null)
-				.map(demand -> demand.getRequiredResource_ParametricResourceDemand().getId())
-				.collect(Collectors.toSet());
+		if (demandingResourcesCache.containsKey(seff.getId())) {
+			return demandingResourcesCache.get(seff.getId());
+		} else {
+			Set<String> result = ModelUtil.getObjects(seff, ParametricResourceDemand.class).stream()
+					.filter(demand -> demand.getRequiredResource_ParametricResourceDemand() != null)
+					.map(demand -> demand.getRequiredResource_ParametricResourceDemand().getId())
+					.collect(Collectors.toSet());
+			demandingResourcesCache.put(seff.getId(), result);
+			return result;
+		}
 	}
 
 	private ResourceContainer getContainerByAssemblyId(AssemblyContext asCtx) {

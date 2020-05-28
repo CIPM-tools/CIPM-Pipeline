@@ -36,10 +36,7 @@ public class BaseVsumIntegrationTest extends VsumManagerTestBase {
 
 	@Before
 	public void startup() {
-		setSpecific(null, null, null); // empty models 2
-		setPcm(null, null, null, null, null); // empty models
-
-		this.reloadVsum();
+		super.startup();
 	}
 
 	@Test

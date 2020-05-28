@@ -22,7 +22,7 @@ public class ScalabilityMonitoringDataGenerator {
 		List<PCMContextRecord> result = Lists.newArrayList();
 
 		childs.stream().forEach(child -> {
-			int toGenerate = (int) Math.floor(amount * child.getOccurences());
+			int toGenerate = (int) Math.round(amount * child.getOccurences());
 			for (int i = 0; i < toGenerate; i++) {
 				result.addAll(child.generateMonitoringData());
 			}

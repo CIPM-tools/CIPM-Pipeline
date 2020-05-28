@@ -8,6 +8,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,11 +50,16 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 
 	// BEFORE
 	@Before
+	public void resetBefore() {
+		Logger.getRootLogger().setLevel(Level.DEBUG);
+
+		this.loadModelsAndVsum();
+		super.reloadVsum();
+	}
+
 	public void loadModelsAndVsum() {
 		loadModels();
-		super.reloadVsum();
 		blackboard.reset();
-
 		transformation.setBlackboard(blackboard);
 	}
 
@@ -64,18 +71,22 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 
 	// TESTS
 	@Test
-	public void resourceEnvironmentScalabilityTest1() {
+	public void resourceEnvironmentScalabilityTest1() throws NoSuchMethodException, SecurityException {
 		Map<Integer, Long> combinedMap = Maps.newHashMap();
-		for (int i = 4; i <= 40; i += 4) {
-			loadModelsAndVsum();
 
+		for (int i = 4; i <= 40; i += 4) {
 			List<String> generatedHostIds = IntStream.range(0, i).mapToObj(t -> UUID.randomUUID().toString())
 					.collect(Collectors.toList());
 			ScalabilityMonitoringDataGenerator generator = createGeneratorFullyMeshed(generatedHostIds);
 			Map<Integer, Long> stats = generateScabailityData(generator, generator.getChilds().size(),
 					generator.getChilds().size(), 1);
 			combinedMap.put(i, stats.get(generator.getChilds().size()));
+
+			this.resetBefore();
 		}
+
+		System.out.println(blackboard.getPcmQuery().getRaw().getResourceEnvironmentModel()
+				.getResourceContainer_ResourceEnvironment().size());
 
 		createPlot(combinedMap, "test-results/scalability_resourceenv_fullymeshed.png", "Fully meshed hosts",
 				"Amount of hosts", "Execution time in seconds", 1);
@@ -85,7 +96,7 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 	@Test
 	public void resourceEnvironmentScalabilityTest2() {
 		Map<Integer, Long> combinedMap = Maps.newHashMap();
-		for (int i = 25; i <= 500; i += 25) {
+		for (int i = 20; i <= 700; i += 20) {
 			loadModelsAndVsum();
 
 			List<String> generatedHostIds = IntStream.range(0, i).mapToObj(t -> UUID.randomUUID().toString())
