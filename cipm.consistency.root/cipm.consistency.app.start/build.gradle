@@ -1,0 +1,52 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.3.RELEASE'
+}
+
+apply plugin: 'org.springframework.boot'
+
+def jarName = 'cipm.consistency-Bundled.jar'
+
+bootJar {
+    archiveFileName = jarName
+    mainClassName = 'cipm.consistency.app.start.CIPMConsistencyStarter'
+    // Exclude manifest signature files
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/LICENSE'
+}
+
+dependencies {
+	api project(":cipm.consistency.designtime.systemextraction")
+
+	api project(":cipm.consistency.runtime.pipeline.validation")
+	api project(":cipm.consistency.runtime.pipeline.entry")
+	
+	api project(":cipm.consistency.runtime.pipeline")
+	
+	api project(":cipm.consistency.runtime.pipeline.pcm")
+	api project(":cipm.consistency.runtime.pipeline.validation")
+	
+	api project(":cipm.consistency.base.evaluation")
+	
+	api project(":cipm.consistency.app.rest")
+	
+	implementation project(":cipm.consistency.base.models.scg")
+	implementation project(":cipm.consistency.base.models.runtimeenvironment")
+	implementation project(":cipm.consistency.base.models.instrumentation")
+	
+	// https://mvnrepository.com/artifact/commons-cli/commons-cli
+	implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
+}
+
+task buildDockerImages {
+    doLast {
+    	copy {
+    		from 'build/libs/' + jarName
+       		into '../cipm.consistency.tools.evaluation.docker/teastore/cipm-consistency'
+    	}
+    	copy {
+    		from 'build/libs/' + jarName
+       		into '../cipm.consistency.tools.evaluation.docker/cocome/cipm-consistency'
+    	}
+    }
+}
+
+bootJar.finalizedBy(buildDockerImages)

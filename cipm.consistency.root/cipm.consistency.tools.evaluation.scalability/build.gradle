@@ -1,0 +1,37 @@
+plugins {
+    id "java"
+}
+
+repositories {
+    jcenter()
+}
+
+test {
+	exclude 'cipm/consistency/tools/evaluation/scalability/**'
+}
+
+dependencies {
+    api project(":cipm.consistency.base.shared")
+	api project(":cipm.consistency.base.core")
+	api project(":cipm.consistency.base.vitruv")
+	api project(":cipm.consistency.base.evaluation")
+	
+	implementation project(":cipm.consistency.base.models.scg")
+	implementation project(":cipm.consistency.base.models.runtimeenvironment")
+	implementation project(":cipm.consistency.base.models.instrumentation")
+	
+	api project(":cipm.consistency.bridge.monitoring")
+	api project(":cipm.consistency.runtime.pipeline")
+	api project(":cipm.consistency.runtime.pipeline.validation")
+	
+	api project(":cipm.consistency.runtime.pipeline.pcm")
+	
+	testImplementation testFixtures(project(':cipm.consistency.runtime.pipeline'))
+	testImplementation testFixtures(project(':cipm.consistency.base.vitruv'))
+    
+    implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.0' 
+    implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.6.RELEASE')    {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation group: 'junit', name: 'junit', version: '4.12'
+}

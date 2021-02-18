@@ -1,0 +1,116 @@
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+	<li class="breadcrumb-item"><a href="#">Design-Time</a></li>
+	<li class="breadcrumb-item active">Instrumentation Manager</li>
+</ol>
+
+<div class="row card-full-size">
+	<div class="col-lg-7">
+		<div class="card mb-3">
+			<div class="card-header">
+				<i class="fas fa-hammer"></i> Application Instrumentation
+			</div>
+
+			<div class="card-body">
+				<span>The instrumentation is fully automated and allows to
+					observe the application under investigation. This requires that the
+					mapping between the source code elements and the architecture model
+					already exists.
+				</span>
+				<hr>
+
+				<div class="mb-3">
+					<label for="username">Output path <span class="text-muted">(*)</span>:
+					</label>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text">path</span>
+						</div>
+						<input type="text" class="form-control" id="output_path"
+							placeholder="Instrumented project output path">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><img id="output_image"
+								src="/config/img/iconfinder_Close_Icon_1398919.png" width="18" /></span>
+						</div>
+					</div>
+				</div>
+
+				<div class="mb-3">
+					<label>Instrumentation Model URL <span class="text-muted">(*)</span>:<br>
+						<span class="text-secondary">(If you use this running
+							instance this defaults to: <span th:text="${default_inm}"></span>)
+					</span></label>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text">URL</span>
+						</div>
+						<input type="text" class="form-control" id="inm_url"
+							placeholder="http://host:port/path/to/inm">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><img id="inm_image"
+								src="/config/img/iconfinder_Close_Icon_1398919.png" width="18" /></span>
+						</div>
+					</div>
+				</div>
+
+				<hr>
+
+				<span>Logarithmic scaling makes it possible to limit the size
+					of the monitoring data. Many consecutive monitoring records that
+					observe the same element (e.g. service or loop) are only stored to
+					a certain extent. Therefore, the number of stored records scales
+					logarithmically.</span>
+
+				<div class="form-check" style="margin-top: 15px; margin-bottom: 15px;">
+					<input class="form-check-input" type="checkbox" value="" checked
+						id="logarithmicActivated"> <label class="form-check-label"
+						for="logarithmicActivated"> Enable logarithmic scaling </label>
+				</div>
+
+				<div class="mb-3">
+					<label>Logarithmic scaling recovery interval: </label>
+					<div class="input-group">
+						<div class="input-group-prepend">
+							<span class="input-group-text">milliseconds</span>
+						</div>
+						<input type="text" class="form-control" id="recovery"
+							placeholder="e.g. 1000">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><img id="recovery_image"
+								src="/config/img/iconfinder_Close_Icon_1398919.png" width="18" /></span>
+						</div>
+					</div>
+				</div>
+
+				<hr>
+				
+				<div class="form-check" style="margin-top: 15px;">
+					<input class="form-check-input" type="checkbox" value=""
+						id="mapping_before"> <label class="form-check-label"
+						for="mapping_before"> Extract mapping from code before instrumentation </label>
+				</div>
+				
+				<hr>
+
+				<div class="row">
+					<div class="col-12">
+						<div class="progress">
+							<div id="progress-el" class="progress-bar" role="progressbar"
+								style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+								aria-valuemax="100"></div>
+						</div>
+					</div>
+				</div>
+
+				<hr>
+
+				<div class="col-sm-12 col-md-4 float-right">
+					<button class="btn btn-primary btn-block" disabled type="submit"
+						id="instrument">Start instrumentation</button>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+</div>

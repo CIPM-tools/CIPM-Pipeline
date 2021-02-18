@@ -1,0 +1,47 @@
+def baseName = 'scenario-orchestrator'
+def baseVersion = '0.0.1'
+
+archivesBaseName = baseName
+version = baseVersion
+
+apply plugin: 'java'
+
+dependencies {
+	// https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.2.2'
+	implementation group: 'com.github.docker-java', name: 'docker-java', version: '3.2.7'
+	
+	api project(":cipm.consistency.base.shared")
+	api project(":cipm.consistency.base.models.instrumentation")
+}
+
+task buildDockerImages {
+    doLast {
+    	copy {
+    		from 'build/libs/' + baseName + "-" + baseVersion + "-all.jar"
+       		into '../cipm.consistency.tools.evaluation.docker/teastore/cipm-orchestration'
+    	}
+    }
+}
+
+task fatJar(type: Jar) {
+	classifier = 'all'
+	from {
+    	configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    	configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+	{
+		exclude 'META-INF/MANIFEST.MF'
+		exclude 'META-INF/*.SF'
+		exclude 'META-INF/*.DSA'
+		exclude 'META-INF/*.RSA'
+	}
+	manifest {
+        attributes('Implementation-Title': 'ScenarioOrchestrator',
+                   'Implementation-Version': version,
+                   'Main-Class': "cipm.consistency.tools.evaluation.scenario.start.StartScenarioOrchestrator")
+    }
+	with jar
+}
+
+fatJar.finalizedBy(buildDockerImages)

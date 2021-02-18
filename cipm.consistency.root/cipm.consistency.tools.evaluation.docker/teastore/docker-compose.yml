@@ -1,0 +1,118 @@
+version: '2.2'
+services:
+  jmeter:
+    ports:
+      - '10100:8080'
+    expose:
+      - '8080'
+    image: cipm/teastore-load
+    depends_on:
+      webui:
+        condition: service_healthy
+  dmodel:
+    image: cipm/consistency
+    ports:
+      - '8090:8080'
+    expose:
+      - '8080'
+      - '10133'
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:8080/index.html'
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    depends_on:
+      pcm-docker:
+        condition: service_healthy
+  pcm-docker:
+    image: davmonsch/pcm-headless-rest
+    ports:
+    - '8100:8080'
+    expose:
+      - '8080'
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:8080'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  registry:
+    image: teastore-registry
+    expose:
+      - '8080'
+  db:
+    image: 'descartesresearch/teastore-db:1.3.3'
+    expose:
+      - '3306'
+    ports:
+      - '3306:3306'
+    depends_on:
+      dmodel:
+        condition: service_healthy
+  persistence:
+    image: teastore-persistence
+    expose:
+      - '8080'
+    environment:
+      REGISTRY_HOST: registry
+      DB_HOST: db
+      DB_PORT: '3306'
+    depends_on:
+      dmodel:
+        condition: service_healthy
+  auth:
+    image: teastore-auth
+    expose:
+      - '8080'
+    environment:
+      REGISTRY_HOST: registry
+    depends_on:
+      dmodel:
+        condition: service_healthy
+  image:
+    image: teastore-image
+    expose:
+      - '8080'
+    environment:
+      REGISTRY_HOST: registry
+    depends_on:
+      dmodel:
+        condition: service_healthy
+  recommender:
+    image: teastore-recommender
+    ports:
+      - '10200:8080'
+    expose:
+      - '8080'
+    environment:
+      REGISTRY_HOST: registry
+    depends_on:
+      dmodel:
+        condition: service_healthy
+  webui:
+    image: teastore-webui
+    expose:
+      - '8080'
+    environment:
+      REGISTRY_HOST: registry
+    depends_on:
+      dmodel:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:8080/tools.descartes.teastore.webui/status'
+      interval: 45s
+      timeout: 10s
+      retries: 10

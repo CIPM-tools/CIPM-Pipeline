@@ -1,0 +1,96 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.3.RELEASE'
+}
+
+apply plugin: 'org.springframework.boot'
+
+ext.jmVersion="5.4"
+
+def jarName = 'cipm.consistency-LoadOrchestrator.jar'
+
+task buildDockerImages {
+    doLast {
+    	copy {
+    		from 'build/libs/' + jarName
+       		into '../cipm.consistency.tools.evaluation.docker/teastore/cipm-teastore-load'
+    	}
+    	copy {
+    		from 'build/libs/' + jarName
+       		into '../cipm.consistency.tools.evaluation.docker/cocome/cipm-cocome-load'
+    	}
+    }
+}
+
+bootJar {
+    archiveFileName = jarName
+    mainClassName = 'cipm.consistency.tools.evaluation.load.LoadOrchestratorStart'
+    // Exclude manifest signature files
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/LICENSE'
+}
+
+bootJar.finalizedBy(buildDockerImages)
+
+dependencies {
+	//jm dependencies
+    implementation("org.apache.jmeter:ApacheJMeter_components:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_http:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_jdbc:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_core:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_tcp:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_junit:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_java:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_mail:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_ldap:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_ftp:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_functions:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_jms:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_config:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_junit:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+	implementation("org.apache.jmeter:ApacheJMeter_components:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_config:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_mongodb:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter_native:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:ApacheJMeter:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+    implementation("org.apache.jmeter:jorphan:${jmVersion}") {
+    	exclude group: "org.apache.jmeter", module: "bom"
+  	}
+}
+

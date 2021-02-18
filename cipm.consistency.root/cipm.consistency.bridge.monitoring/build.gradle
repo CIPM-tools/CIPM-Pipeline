@@ -1,0 +1,20 @@
+
+dependencies {
+	// https://mvnrepository.com/artifact/net.kieker-monitoring/kieker
+	api group: 'net.kieker-monitoring', name: 'kieker', version: '1.13'
+	
+	// https://mvnrepository.com/artifact/commons-codec/commons-codec
+	implementation group: 'commons-codec', name: 'commons-codec', version: '1.12'
+	
+	// https://mvnrepository.com/artifact/org.hyperic/sigar
+	implementation group: 'org.hyperic', name: 'sigar', version: '1.6.4'
+	
+	api project(":cipm.consistency.base.shared")
+}
+
+task packSources(type: Zip) {
+    archiveFileName = new File(project.rootDir, "/dmodel.designtime.instrumentation/src/main/resources/monitoring-agent.zip").getAbsolutePath()
+    from sourceSets*.allSource
+    exclude '**/LogarithmicScaleTest.java'
+    exclude 'dmodel/designtime/monitoring/util/*'
+}

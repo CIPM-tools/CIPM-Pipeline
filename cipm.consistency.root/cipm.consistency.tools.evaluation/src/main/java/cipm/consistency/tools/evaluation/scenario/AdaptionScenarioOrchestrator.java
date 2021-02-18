@@ -1,0 +1,98 @@
+package cipm.consistency.tools.evaluation.scenario;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
+
+import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenario;
+import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioExecutionConfig;
+import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioList;
+import cipm.consistency.tools.evaluation.scenario.data.pipeline.PipelineUIState;
+import cipm.consistency.tools.evaluation.scenario.helper.DefaultHttpClient;
+import lombok.extern.java.Log;
+
+@Log
+public class AdaptionScenarioOrchestrator {
+	private ScheduledExecutorService scenarioExecutionService;
+	private DefaultHttpClient http;
+	private ObjectMapper objectMapper;
+
+	public AdaptionScenarioOrchestrator() {
+		this.scenarioExecutionService = Executors.newSingleThreadScheduledExecutor();
+		this.http = new DefaultHttpClient(2000);
+		this.objectMapper = new ObjectMapper();
+	}
+
+	public void applyScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		log.info("Initial startup for applying scenario.");
+		scenarioExecutionService.schedule(() -> startScenario(list, config), config.getSecondsTillStart(),
+				TimeUnit.SECONDS);
+	}
+
+	private void startScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		log.info("Starting the scenario after initial waiting interval.");
+		// wait until url available
+		if (http.isReachable(config.getCheckReachableUrl())) {
+			syncWithPipelineExecution(list, config);
+		} else {
+			scenarioExecutionService.schedule(() -> startScenario(list, config), 5000, TimeUnit.MILLISECONDS);
+		}
+	}
+
+	private void syncWithPipelineExecution(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		log.info("Waiting for pipeline execution due to synchronization purposes.");
+		String pipelineStatusUrl = config.getPipelineStatusRestURL();
+		if (http.isReachable(pipelineStatusUrl)) {
+			String pipelineStatus = http.getRequest(pipelineStatusUrl, Maps.newHashMap());
+			try {
+				PipelineUIState pipelineState = objectMapper.readValue(pipelineStatus, PipelineUIState.class);
+				if (pipelineState.isRunning()) {
+					triggerScenario(list, config);
+				} else {
+					scenarioExecutionService.schedule(() -> syncWithPipelineExecution(list, config), 1000,
+							TimeUnit.MILLISECONDS);
+				}
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			scenarioExecutionService.schedule(() -> syncWithPipelineExecution(list, config), 1000,
+					TimeUnit.MILLISECONDS);
+		}
+	}
+
+	private void triggerScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		log.info("URLs are all reachable. Starting with execution of initial scenarios.");
+		// execute initial scenarios
+		list.getInitialScenarios().forEach(initial -> {
+			initial.execute(config);
+		});
+
+		log.info("Scheduling all scenarios and wait for their execution.");
+		// start executing all others
+		scenarioExecutionService.scheduleAtFixedRate(() -> executeSingleScenario(list, config),
+				config.getSecondsBetweenScenarios(), config.getSecondsBetweenScenarios(), TimeUnit.SECONDS);
+	}
+
+	private void executeSingleScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		if (list.getScenarios().size() > 0) {
+			AdaptionScenario scen = list.getScenarios().get(0);
+			log.info("Executing scenario (" + scen.getType() + ").");
+			try {
+				scen.execute(config);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				list.getScenarios().remove(0);
+			}
+		} else {
+			// terminate application
+			System.exit(0);
+		}
+	}
+
+}
