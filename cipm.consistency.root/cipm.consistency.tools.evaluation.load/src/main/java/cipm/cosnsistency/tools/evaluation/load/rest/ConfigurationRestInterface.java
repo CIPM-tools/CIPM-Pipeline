@@ -1,6 +1,8 @@
 package cipm.cosnsistency.tools.evaluation.load.rest;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,13 +26,13 @@ public class ConfigurationRestInterface implements InitializingBean {
 
 	@Value("${loadFile:null}")
 	private String loadFile;
-	
+
 	@Value("${checkUrl:null}")
 	private String checkUrl;
-	
+
 	private DefaultHttpClient http;
 	private ScheduledExecutorService checkReachabilityScheduler;
-	
+
 	public ConfigurationRestInterface() {
 		this.http = new DefaultHttpClient(2000);
 		this.checkReachabilityScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -45,10 +47,19 @@ public class ConfigurationRestInterface implements InitializingBean {
 	@GetMapping("start")
 	public String startLoad(@RequestParam("file") String file) {
 		try {
+			logLoadApplication(file);
 			return String.valueOf(jmeterController.startTest(file));
 		} catch (IOException | JMeterEngineException e) {
 			return "false";
 		}
+	}
+
+	private void logLoadApplication(String file) {
+		try(PrintWriter output = new PrintWriter(new FileWriter("log.txt",true))) 
+		{
+		    output.printf("%s\r\n", "Started load profile '" + file + "'.");
+		} 
+		catch (Exception e) {e.printStackTrace();}
 	}
 
 	@Override
@@ -59,14 +70,16 @@ public class ConfigurationRestInterface implements InitializingBean {
 			checkReachabilityScheduler.schedule(() -> checkReachability(), 20, TimeUnit.SECONDS);
 		}
 	}
-	
+
 	private void checkReachability() {
 		if (this.http.isReachable(checkUrl)) {
-			try {
-				this.jmeterController.startTest(loadFile);
-			} catch (IOException | JMeterEngineException e) {
-				checkReachabilityScheduler.schedule(() -> checkReachability(), 20, TimeUnit.SECONDS);
-			}
+			checkReachabilityScheduler.schedule(() -> {
+				try {
+					this.jmeterController.startTest(loadFile);
+				} catch (IOException | JMeterEngineException e) {
+					e.printStackTrace();
+				}
+			}, 5, TimeUnit.MINUTES);
 		} else {
 			checkReachabilityScheduler.schedule(() -> checkReachability(), 20, TimeUnit.SECONDS);
 		}
