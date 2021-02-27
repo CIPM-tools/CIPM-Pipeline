@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import cipm.consistency.tools.evaluation.load.jmeter.JMeterController;
 import cipm.consistency.tools.evaluation.load.util.DefaultHttpClient;
+import lombok.extern.java.Log;
 
 @RestController("/")
+@Log
 public class ConfigurationRestInterface implements InitializingBean {
 	@Autowired
 	private JMeterController jmeterController;
@@ -47,6 +47,7 @@ public class ConfigurationRestInterface implements InitializingBean {
 
 	@GetMapping("start")
 	public String startLoad(@RequestParam("file") String file) {
+		log.info("Starting load of type '" + file + "'.");
 		try {
 			logLoadApplication(file);
 			return String.valueOf(jmeterController.startTest(file));
@@ -56,11 +57,11 @@ public class ConfigurationRestInterface implements InitializingBean {
 	}
 
 	private void logLoadApplication(String file) {
-		try(PrintWriter output = new PrintWriter(new FileWriter("log.txt",true))) 
-		{
-		    output.printf("%s\r\n", "Started load profile '" + file + "'.");
-		} 
-		catch (Exception e) {e.printStackTrace();}
+		try (PrintWriter output = new PrintWriter(new FileWriter("log.txt", true))) {
+			output.printf("%s\r\n", "Started load profile '" + file + "'.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -73,6 +74,7 @@ public class ConfigurationRestInterface implements InitializingBean {
 	}
 
 	private void checkReachability() {
+		log.info("Wait for target URL to get reachable.");
 		if (this.http.isReachable(checkUrl)) {
 			checkReachabilityScheduler.schedule(() -> {
 				try {
