@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "adaevomodel" })
+@ComponentScan(basePackages = { "cipm" })
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties
