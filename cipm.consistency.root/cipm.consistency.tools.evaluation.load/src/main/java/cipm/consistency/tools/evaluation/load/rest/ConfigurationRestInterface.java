@@ -1,4 +1,4 @@
-package cipm.cosnsistency.tools.evaluation.load.rest;
+package cipm.consistency.tools.evaluation.load.rest;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cipm.cosnsistency.tools.evaluation.load.jmeter.JMeterController;
-import cipm.cosnsistency.tools.evaluation.load.util.DefaultHttpClient;
+
+import cipm.consistency.tools.evaluation.load.jmeter.JMeterController;
+import cipm.consistency.tools.evaluation.load.util.DefaultHttpClient;
 
 @RestController("/")
 public class ConfigurationRestInterface implements InitializingBean {

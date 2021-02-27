@@ -1,4 +1,4 @@
-package cipm.cosnsistency.tools.evaluation.load.jmeter;
+package cipm.consistency.tools.evaluation.load.jmeter;
 
 import java.io.File;
 import java.io.IOException;

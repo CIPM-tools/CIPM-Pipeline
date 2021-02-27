@@ -1,4 +1,4 @@
-package cipm.cosnsistency.tools.evaluation.load;
+package cipm.consistency.tools.evaluation.load;
 
 import org.springframework.boot.SpringApplication;
 

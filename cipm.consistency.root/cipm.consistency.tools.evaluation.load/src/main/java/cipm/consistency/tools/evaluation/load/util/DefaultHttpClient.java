@@ -1,4 +1,4 @@
-package cipm.cosnsistency.tools.evaluation.load.util;
+package cipm.consistency.tools.evaluation.load.util;
 
 import java.io.IOException;
 import java.util.Map;
