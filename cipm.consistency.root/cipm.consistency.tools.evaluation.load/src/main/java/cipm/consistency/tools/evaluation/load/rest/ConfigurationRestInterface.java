@@ -66,6 +66,8 @@ public class ConfigurationRestInterface implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		log.info("Value of load file parameter: '" + String.valueOf(loadFile) + "'.");
+		log.info("Value of check URL parameter: '" + String.valueOf(checkUrl) + "'.");
 		if (loadFile != null && checkUrl == null) {
 			this.jmeterController.startTest(loadFile);
 		} else if (loadFile != null && checkUrl != null) {
