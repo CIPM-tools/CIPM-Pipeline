@@ -87,7 +87,8 @@ public class AdaptionScenarioOrchestrator {
 		log.info("Scheduling all scenarios and wait for their execution.");
 		// start executing all others
 		scenarioExecutionService.scheduleAtFixedRate(() -> executeSingleScenario(list, config),
-				config.getSecondsBetweenScenarios(), config.getSecondsBetweenScenarios(), TimeUnit.SECONDS);
+				Math.round(config.getSecondsBetweenScenarios() * 0.8f), config.getSecondsBetweenScenarios(),
+				TimeUnit.SECONDS);
 	}
 
 	private void executeSingleScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {

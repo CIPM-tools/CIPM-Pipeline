@@ -35,7 +35,7 @@ public class ModelAccuracyEvaluationTeaStore {
 		PCMDeploymentComparator comparator2 = new PCMDeploymentComparator();
 
 		// sync offset
-		int syncOffset = 2;
+		int syncOffset = 3;
 		File[] executionFolders = experimentExecutionFolder.listFiles();
 		File[] scenarioFolders = experimentScenariosFolder.listFiles();
 
@@ -44,7 +44,8 @@ public class ModelAccuracyEvaluationTeaStore {
 				File referenceModelContainer = new File(scenarioFolders[i], referenceModelsPath);
 				File executionModelContainer = new File(executionFolders[i], modelsPath);
 				File[] referenceModelIterations = referenceModelContainer.listFiles();
-				for (int k = 0; k < referenceModelIterations.length; k++) {
+				for (int k = 0; k < Math.min(referenceModelIterations.length,
+						executionModelContainer.listFiles().length / 5 - syncOffset); k++) {
 					File referenceModelSystem = new File(referenceModelIterations[k], "system.system");
 					File referenceModelAllocation = new File(referenceModelIterations[k], "allocation.allocation");
 

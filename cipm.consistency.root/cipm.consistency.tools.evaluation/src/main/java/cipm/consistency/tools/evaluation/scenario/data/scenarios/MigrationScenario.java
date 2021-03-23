@@ -19,6 +19,7 @@ import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioExecution
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioType;
 import cipm.consistency.tools.evaluation.scenario.data.teastore.LoadProfileType;
 import cipm.consistency.tools.evaluation.scenario.data.teastore.MigrationComponentType;
+import cipm.consistency.tools.evaluation.scenario.data.teastore.RecommenderType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.java.Log;
@@ -117,7 +118,8 @@ public class MigrationScenario extends AdaptionScenario {
 
 	@Override
 	public InMemoryPCM generateReferenceModel(InMemoryPCM current) {
-		return current.copyDeep();
+		return new SystemChangeScenario(RecommenderType.SLOPE_ONE).generateReferenceModel(current); // migration reverts
+																									// recommender type
 	}
 
 }

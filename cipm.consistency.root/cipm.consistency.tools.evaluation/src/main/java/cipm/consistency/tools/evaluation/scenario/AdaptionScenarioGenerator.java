@@ -71,6 +71,9 @@ public class AdaptionScenarioGenerator {
 		InMemoryPCM currentModel = initialModel;
 		for (int i = 0; i < config.getScenarioCount(); i++) {
 			int selectedScenarioId = selectScenarioTypeFromStack(probabilityStack);
+			while (selectedScenarioId == 3 && i > 8) {
+				selectedScenarioId = selectScenarioTypeFromStack(probabilityStack);
+			}
 
 			AdaptionScenario scenario = null;
 			if (selectedScenarioId == 0) {
