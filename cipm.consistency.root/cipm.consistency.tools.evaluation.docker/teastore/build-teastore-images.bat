@@ -6,7 +6,7 @@ git clone https://github.com/dmonsch/TeaStore
 cd TeaStore
 git checkout cipm-consistency-evaluation
 git pull
-mvn clean install -Dcheckstyle.skip -Dmaven.test.skip
+call mvn clean install -Dcheckstyle.skip -Dmaven.test.skip
 
 cd "services/tools.descartes.teastore.auth"
 docker build -t "teastore-auth" .
