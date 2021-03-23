@@ -16,7 +16,6 @@ import lombok.extern.java.Log;
 public class StartScenarioOrchestrator {
 
 	public static void main(String[] args) {
-		String scenarioFile = null;
 		String configFile = null;
 		Pattern argumentPattern = Pattern.compile("\\-\\-(.*?)\\=(.*?)\\z");
 
@@ -26,29 +25,28 @@ public class StartScenarioOrchestrator {
 				String key = argumentMatcher.group(1);
 				String value = argumentMatcher.group(2);
 
-				if (key.equals("scenarios")) {
-					scenarioFile = value;
-				} else if (key.equals("config")) {
+				if (key.equals("config")) {
 					configFile = value;
 				}
 			}
 		}
 
-		if (scenarioFile != null && configFile != null) {
-			triggerScenarioExecution(scenarioFile, configFile);
+		if (configFile != null) {
+			triggerScenarioExecution(configFile);
 		}
 	}
 
-	private static void triggerScenarioExecution(String scenarioFile, String configFile) {
+	private static void triggerScenarioExecution(String configFile) {
 		log.info("Starting scenario orchestrator.");
-		log.info("Scenario file: " + scenarioFile);
 		log.info("Configuration file: " + configFile);
 		ObjectMapper mapper = new ObjectMapper();
 
 		try {
-			AdaptionScenarioList wholeScenario = mapper.readValue(new File(scenarioFile), AdaptionScenarioList.class);
 			AdaptionScenarioExecutionConfig configRead = mapper.readValue(new File(configFile),
 					AdaptionScenarioExecutionConfig.class);
+			AdaptionScenarioList wholeScenario = mapper.readValue(
+					new File(new File(configFile).getParentFile(), configRead.getScenariosPath()),
+					AdaptionScenarioList.class);
 
 			AdaptionScenarioOrchestrator orch = new AdaptionScenarioOrchestrator();
 			orch.applyScenario(wholeScenario, configRead);

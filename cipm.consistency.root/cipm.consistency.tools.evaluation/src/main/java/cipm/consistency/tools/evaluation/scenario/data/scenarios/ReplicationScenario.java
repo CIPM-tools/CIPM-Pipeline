@@ -2,6 +2,7 @@ package cipm.consistency.tools.evaluation.scenario.data.scenarios;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class ReplicationScenario extends AdaptionScenario {
 	public void execute(AdaptionScenarioExecutionConfig config) {
 		ProcessBuilder builder = new ProcessBuilder("docker-compose", "scale",
 				component.getName() + "=" + String.valueOf(newAmount));
-		builder.directory(new File(config.getComposePath()));
+		builder.directory(new File(Paths.get(".").toAbsolutePath().normalize().toString()));
 		try {
 			builder.start().waitFor();
 		} catch (InterruptedException | IOException e) {

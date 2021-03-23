@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class AdaptionScenarioExecutionConfig {
 
-	private String composePath;
+	private String scenariosPath;
 	private String loadOrchestratorRestURL;
 	private String teastoreRestURL;
 	private String pipelineStatusRestURL;
