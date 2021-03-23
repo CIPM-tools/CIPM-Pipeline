@@ -35,7 +35,10 @@ public class PCMSystemComparator {
 	// JACCARD COEFFICIENT
 	public double compareSystems(System actual, System expected) {
 		SystemComparatorState result = processComposition(actual, expected);
-		return (double) result.matches / (double) (result.comparisons + result.additionals);
+		double rA = (double) result.matches / (double) (result.comparisons + result.additionals);
+		SystemComparatorState resultB = processComposition(expected, actual);
+		double rB = (double) resultB.matches / (double) (resultB.comparisons + resultB.additionals);
+		return Math.min(rA, rB);
 	}
 
 	private SystemComparatorState processComposition(ComposedProvidingRequiringEntity actual,
@@ -80,7 +83,6 @@ public class PCMSystemComparator {
 			}
 		});
 
-		// 3. set additionals
 		state.additionals = (state.comparisons - state.matches) * 2;
 
 		// 4. log not conforming elements
