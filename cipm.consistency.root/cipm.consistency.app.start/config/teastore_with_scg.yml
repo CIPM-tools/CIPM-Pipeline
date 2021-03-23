@@ -1,0 +1,52 @@
+---
+project:
+  rootPath: "TEASTORE-FOLDER/TeaStore"
+  sourceFolders:
+  - "interfaces/tools.descartes.teastore.entities/src/main/java"
+  - "services/tools.descartes.teastore.auth/src/main/java"
+  - "services/tools.descartes.teastore.image/src/main/java"
+  - "services/tools.descartes.teastore.persistence/src/main"
+  - "services/tools.descartes.teastore.recommender/src/main/java"
+  - "services/tools.descartes.teastore.registry/src/main/java"
+  - "services/tools.descartes.teastore.webui/src/main/java"
+  - "utilities/tools.descartes.teastore.dockermemoryconfigurator/src/main/java"
+  - "utilities/tools.descartes.teastore.kieker.probes/src/main/java"
+  - "utilities/tools.descartes.teastore.kieker.rabbitmq/src/main/java"
+  - "utilities/tools.descartes.teastore.registryclient/src/main/java"
+models:
+  repositoryPath: "models/cocome/cocome.repository"
+  systemPath: "models/cocome/cocome.system"
+  usagePath: "models/cocome/cocome.usagemodel"
+  allocationPath: "models/cocome/cocome.allocation"
+  envPath: "models/teastore/cocome.resourceenvironment"
+  instrumentationModelPath: "models/cocome/cocome.imm"
+  correspondencePath: "models/cocome/cocome.correspondences"
+  runtimeEnvironmentPath: "models/cocome/cocome.rem"
+entry:
+  slidingWindowSize: 1000
+  slidingWindowTrigger: 180
+vfl:
+  url: "127.0.0.1"
+  port: 8080
+  simulationTime: 1000000
+  measurements: 10000
+  validationShare: 0.1
+calibration:
+  powDepth: 2
+  lnFunction: false
+  sqrtFunction: false
+  exponentialFunction: false
+  noiseStrategy: 0
+  outlierPercentile: 1
+  noiseOutlierPercentile: 5
+  parameterSignificanceThreshold: 0.0005
+validationPredicates:
+  condition: "AND"
+  value: 0.0
+  rules:
+  - id: "kstest"
+    operator: "less"
+    value: 0.15
+  - id: "avg_rel"
+    operator: "less"
+    value: 0.2

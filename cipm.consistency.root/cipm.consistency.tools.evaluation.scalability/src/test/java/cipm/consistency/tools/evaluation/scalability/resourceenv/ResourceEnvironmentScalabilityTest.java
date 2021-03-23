@@ -94,9 +94,9 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 			outerMap = combineMapsMovingAverage(outerMap, combinedMap);
 		}
 
-		createPlot(outerMap, "test-results/scalability_resourceenv_fullymeshed.png", "Fully meshed hosts",
+		createPlot(outerMap, "test-results/scalability/scalability_resourceenv_fullymeshed.png", "Fully meshed hosts",
 				"Amount of hosts", "Execution time in seconds", 1);
-		saveRawData(outerMap, "test-results/scalability_resourceenv_fullymeshed_raw.json");
+		saveRawData(outerMap, "test-results/scalability/scalability_resourceenv_fullymeshed_raw.json");
 	}
 
 	@Test
@@ -118,9 +118,9 @@ public class ResourceEnvironmentScalabilityTest extends AbstractScalabilityTestB
 			outerMap = combineMapsMovingAverage(outerMap, combinedMap);
 		}
 
-		createPlot(outerMap, "test-results/scalability_resourceenv_sparse.png",
+		createPlot(outerMap, "test-results/scalability/scalability_resourceenv_sparse.png",
 				"Sparse meshed hosts (1 connection per host)", "Amount of hosts", "Execution time in seconds", 1);
-		saveRawData(outerMap, "test-results/scalability_resourceenv_sparse_raw.json");
+		saveRawData(outerMap, "test-results/scalability/scalability_resourceenv_sparse_raw.json");
 	}
 
 	private Map<Integer, Long> combineMapsMovingAverage(Map<Integer, Long> map1, Map<Integer, Long> map2) {

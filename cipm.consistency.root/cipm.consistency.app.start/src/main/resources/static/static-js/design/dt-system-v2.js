@@ -176,7 +176,7 @@ function showConnectionConflict(conflict) {
 	$("#resolve-conflict").attr("disabled", "true");
 
 	// build target tree
-	var targetSplit = conflict.targetIds[0].split("-");
+	var targetSplit = conflict.targetIds[0].split("###");
 	var assemblyNode = null;
 	var requiredRoleNode = null;
 	for (var i = 0; i < currentSystem.childs.length; i++) {
@@ -190,12 +190,12 @@ function showConnectionConflict(conflict) {
 		assemblyNode = JSON.parse(JSON.stringify(currentSystem));
 	}
 	assemblyNode.childs = [];
-
+	
 	for (var i = 0; i < repository.childs.length; i++) {
 		var innerChilds = repository.childs[i].childs;
 		for (var j = 0; j < innerChilds.length; j++) {
 			if (targetSplit[1] === innerChilds[j].attributes.id) {
-				requiredRoleNode = innerChilds[j];
+				requiredRoleNode = JSON.parse(JSON.stringify(innerChilds[j]));
 			}
 		}
 	}
@@ -242,7 +242,7 @@ function showAssemblyConflict(conflict) {
 	$("#todo-label").html("There is an <b>Assembly Conflict</b> that needs to be resolved. Select the assembly that should be used or select none if a new one should be created.");
 
 	// build target tree
-	var targetSplit = conflict.targetIds[0].split("-");
+	var targetSplit = conflict.targetIds[0].split("###");
 	clearTree("#tree-conflict1");
 	var assemblyNode = null;
 	var requiredRoleNode = null;

@@ -8,7 +8,9 @@ import java.util.Map;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.junit.After;
@@ -59,6 +61,11 @@ public abstract class AbstractScalabilityTestBase extends VsumManagerTestBase {
 	// SCALABILITY RUNNER & HELPER
 	protected void createPlot(Map<Integer, Long> stats, String outputFile, String scenarioName, String xAxis,
 			String yAxis, int xScale) {
+		this.createPlot(stats, outputFile, scenarioName, xAxis, yAxis, xScale, false, false);
+	}
+
+	protected void createPlot(Map<Integer, Long> stats, String outputFile, String scenarioName, String xAxis,
+			String yAxis, int xScale, boolean logarithmicX, boolean logarithmicY) {
 		XYSeries dataset = new XYSeries("Transformation Execution Time");
 		stats.entrySet().forEach(st -> {
 			int reducedKey = (st.getKey() / xScale);
@@ -69,6 +76,16 @@ public abstract class AbstractScalabilityTestBase extends VsumManagerTestBase {
 		XYSeriesCollection data = new XYSeriesCollection(dataset);
 		JFreeChart lineChart = ChartFactory.createXYLineChart(scenarioName, xAxis, yAxis, data,
 				PlotOrientation.VERTICAL, true, true, false);
+
+		if (logarithmicX) {
+			lineChart.getXYPlot().setRangeAxis(new LogarithmicAxis(xAxis));
+		}
+		if (logarithmicY) {
+			lineChart.getXYPlot().setDomainAxis(new LogarithmicAxis(yAxis));
+		}
+		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) lineChart.getXYPlot().getRenderer();
+		renderer.setSeriesShapesVisible(0, true);
+
 		try {
 			ChartUtils.saveChartAsPNG(new File(outputFile), lineChart, 800, 600);
 		} catch (IOException e) {

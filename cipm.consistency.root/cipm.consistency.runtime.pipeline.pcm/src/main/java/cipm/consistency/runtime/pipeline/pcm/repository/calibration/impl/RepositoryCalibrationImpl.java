@@ -50,7 +50,10 @@ public class RepositoryCalibrationImpl implements IRepositoryCalibration, Initia
 
 		log.info("Extract datasets.");
 		List<RegressionDataset> nDatasets = executionTimesExtractor.mergeDatasets(existingRegressionSets, data);
+
 		for (RegressionDataset dataset : nDatasets) {
+			dataset.cutData(config.getCalibration().getRegressionHorizon());
+
 			try {
 				log.info("Filter outliers.");
 				if (config.getCalibration().getOutlierPercentile() > 0) {

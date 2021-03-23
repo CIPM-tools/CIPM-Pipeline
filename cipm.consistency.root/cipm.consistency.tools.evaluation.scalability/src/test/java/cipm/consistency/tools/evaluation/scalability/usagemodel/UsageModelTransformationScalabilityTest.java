@@ -78,9 +78,9 @@ public class UsageModelTransformationScalabilityTest extends AbstractScalability
 			flattedResults = combineMapsMovingAverage(flattedResults, stats);
 		}
 
-		createPlot(flattedResults, "test-results/scalability_1user1action.png", "One user action per session",
+		createPlot(flattedResults, "test-results/scalability/scalability_1user1action.png", "One user action per session",
 				"User count (10^3)", "Execution time in seconds", 1000);
-		saveRawData(flattedResults, "test-results/scalability_1user1action_raw.json");
+		saveRawData(flattedResults, "test-results/scalability/scalability_1user1action_raw.json");
 	}
 
 	@Test
@@ -101,10 +101,10 @@ public class UsageModelTransformationScalabilityTest extends AbstractScalability
 			flattedResults = combineMapsMovingAverage(flattedResults, combinedMap);
 		}
 
-		createPlot(flattedResults, "test-results/scalability_1userNactions.png",
-				"N user actions per session (25000 users)", "Amount of actions per session",
-				"Execution time in seconds", 1);
-		saveRawData(flattedResults, "test-results/scalability_1userNactions_raw.json");
+		createPlot(flattedResults, "test-results/scalability/scalability_1userNactions.png",
+				"N user actions per session (1 user)", "Amount of actions per session",
+				"Execution time in seconds", 1, true, true);
+		saveRawData(flattedResults, "test-results/scalability/scalability_1userNactions_raw.json");
 	}
 
 	private Map<Integer, Long> combineMapsMovingAverage(Map<Integer, Long> map1, Map<Integer, Long> map2) {

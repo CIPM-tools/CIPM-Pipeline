@@ -36,8 +36,6 @@ public class DBScanUsageSessionClusterer implements IUsageSessionClustering {
 			});
 		});
 
-		System.out.println(serviceCallIndexMapping);
-
 		// 2. sessions to points
 		log.info("Build n-dimensional points.");
 		ConcurrentMap<String, ServiceCallSessionClusterable> pointReduction = Maps.newConcurrentMap();
@@ -56,7 +54,6 @@ public class DBScanUsageSessionClusterer implements IUsageSessionClustering {
 				points.add(nClusterable);
 			}
 		});
-		System.out.println(pointReduction);
 
 		// 3. do dbscan clustering
 		log.info("Do clustering.");

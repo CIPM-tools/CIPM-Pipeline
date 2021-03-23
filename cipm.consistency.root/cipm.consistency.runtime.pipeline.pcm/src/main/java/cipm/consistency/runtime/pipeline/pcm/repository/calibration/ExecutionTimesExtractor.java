@@ -2,20 +2,23 @@ package cipm.consistency.runtime.pipeline.pcm.repository.calibration;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.beust.jcommander.internal.Maps;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import cipm.consistency.bridge.monitoring.records.PCMContextRecord;
 import cipm.consistency.bridge.monitoring.records.ResponseTimeRecord;
 import cipm.consistency.bridge.monitoring.records.ServiceCallRecord;
 import cipm.consistency.bridge.monitoring.util.ServiceParametersWrapper;
-import lombok.Data;
+import lombok.Getter;
 
 // TODO code duplication
 public class ExecutionTimesExtractor {
@@ -53,7 +56,7 @@ public class ExecutionTimesExtractor {
 							nMap.put(rtr.getInternalActionId(), new RegressionDataset(rtr.getInternalActionId()));
 						}
 					}
-					if (nMap.get(rtr.getInternalActionId()).addTuple(rtr.getServiceExecutionId(),
+					if (nMap.get(rtr.getInternalActionId()).addTuple(rtr.getStartTime(), rtr.getServiceExecutionId(),
 							serviceExecutionParameterMapping.get(rtr.getServiceExecutionId()),
 							((double) rtr.getStopTime() - rtr.getStartTime()) / NANO_TO_MS)) {
 						changedOnes.add(rtr.getInternalActionId());
@@ -66,25 +69,40 @@ public class ExecutionTimesExtractor {
 				.collect(Collectors.toList());
 	}
 
-	@Data
 	public static class RegressionDataset {
-		private List<Pair<Map<String, Double>, Double>> records;
+		private SortedMap<Long, Pair<Map<String, Double>, Double>> records;
+		@Getter
 		private String actionId;
 		private Set<String> containedExecutionIds;
 
 		private RegressionDataset(String actionId) {
-			this.records = Lists.newArrayList();
+			this.records = new TreeMap<>();
 			this.actionId = actionId;
 			this.containedExecutionIds = Sets.newHashSet();
 		}
 
-		private boolean addTuple(String serviceExecutionId, Map<String, Double> parameters, double executionTime) {
+		private boolean addTuple(long timestamp, String serviceExecutionId, Map<String, Double> parameters,
+				double executionTime) {
 			if (!containedExecutionIds.contains(serviceExecutionId)) {
 				this.containedExecutionIds.add(serviceExecutionId);
-				this.records.add(Pair.of(parameters, executionTime));
+				this.records.put((long) (timestamp / NANO_TO_MS), Pair.of(parameters, executionTime));
 				return true;
 			}
 			return false;
+		}
+
+		public void filterRecords(Predicate<? super Entry<Long, Pair<Map<String, Double>, Double>>> predicate) {
+			this.records.entrySet().stream().filter(predicate) // small change
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, TreeMap::new));
+		}
+
+		public List<Pair<Map<String, Double>, Double>> getRecords() {
+			return this.records.entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
+		}
+
+		public void cutData(long windowSizeSeconds) {
+			long currentTime = System.currentTimeMillis();
+			this.records.headMap(currentTime - windowSizeSeconds * 1000).clear();
 		}
 	}
 

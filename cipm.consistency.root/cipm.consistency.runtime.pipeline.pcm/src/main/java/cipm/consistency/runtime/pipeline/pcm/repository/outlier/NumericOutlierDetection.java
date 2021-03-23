@@ -1,7 +1,6 @@
 package cipm.consistency.runtime.pipeline.pcm.repository.outlier;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 
@@ -32,9 +31,10 @@ public class NumericOutlierDetection implements IRegressionOutlierDetection {
 		double valueUpperPercentile = upperPercentile.evaluate(values);
 		double valueLowerPercentile = lowerPercentile.evaluate(values);
 
-		dataset.setRecords(dataset.getRecords().stream().filter(r -> {
-			return r.getValue() >= valueLowerPercentile && r.getValue() <= valueUpperPercentile;
-		}).collect(Collectors.toList()));
+		dataset.filterRecords(vals -> {
+			double r = vals.getValue().getValue();
+			return r >= valueLowerPercentile && r <= valueUpperPercentile;
+		});
 	}
 
 	@Override

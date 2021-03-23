@@ -1,0 +1,42 @@
+---
+project:
+  rootPath: "./"
+  sourceFolders:
+  - "src/main/java"
+models:
+  repositoryPath: "models/teastore/teastore.repository"
+  systemPath: "models/teastore/teastore.system"
+  usagePath: "models/teastore/teastore.usagemodel"
+  allocationPath: "models/teastore/teastore.allocation"
+  envPath: "models/teastore/teastore.resourceenvironment"
+  instrumentationModelPath: "models/teastore/teastore.imm"
+  correspondencePath: "models/teastore/teastore.correspondences"
+  runtimeEnvironmentPath: "models/teastore/teastore.rem"
+entry:
+  slidingWindowSize: 1000
+  slidingWindowTrigger: 180
+vfl:
+  url: "127.0.0.1"
+  port: 8080
+  simulationTime: 1000000
+  measurements: 10000
+  validationShare: 0.1
+calibration:
+  powDepth: 2
+  lnFunction: false
+  sqrtFunction: false
+  exponentialFunction: false
+  noiseStrategy: 0
+  outlierPercentile: 1
+  noiseOutlierPercentile: 5
+  parameterSignificanceThreshold: 0.0005
+validationPredicates:
+  condition: "AND"
+  value: 0.0
+  rules:
+  - id: "kstest"
+    operator: "less"
+    value: 0.15
+  - id: "avg_rel"
+    operator: "less"
+    value: 0.2

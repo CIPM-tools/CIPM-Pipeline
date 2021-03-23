@@ -1,0 +1,51 @@
+---
+project:
+  rootPath: "COCOME-FOLDER/cocome-cloud-jee-platform-migration/cocome-maven-project"
+  sourceFolders:
+  - "cloud-web-frontend/src/main/java"
+  - "cloud-logic-service/cloud-logic-core-services/src/main/java"
+  - "cloud-logic-service/cloud-logic-core-api/src/main/java"
+  - "cloud-logic-service/cloud-logic-core-impl/src/main/java"
+  - "cloud-logic-service/cloud-registry-service/src/main/java"
+  - "cloud-logic-service/cloud-store-logic/store-logic-ejb/src/main/java"
+  - "cloud-logic-service/cloud-store-logic/store-logic-webservice/src/main/java"
+  - "cloud-logic-service/cloud-registry-client/src/main/java"
+  - "cloud-logic-service/java-old-utils/src"
+  - "cloud-logic-service/cloud-enterprise-logic/enterprise-logic-ejb/src/main/java"
+models:
+  repositoryPath: "models/cocome/cocome.repository"
+  systemPath: "models/cocome/cocome.system"
+  usagePath: "models/cocome/cocome.usagemodel"
+  allocationPath: "models/cocome/cocome.allocation"
+  envPath: "models/teastore/cocome.resourceenvironment"
+  instrumentationModelPath: "models/cocome/cocome.imm"
+  correspondencePath: "models/cocome/cocome.correspondences"
+  runtimeEnvironmentPath: "models/cocome/cocome.rem"
+entry:
+  slidingWindowSize: 1000
+  slidingWindowTrigger: 180
+vfl:
+  url: "127.0.0.1"
+  port: 8080
+  simulationTime: 1000000
+  measurements: 10000
+  validationShare: 0.1
+calibration:
+  powDepth: 2
+  lnFunction: false
+  sqrtFunction: false
+  exponentialFunction: false
+  noiseStrategy: 0
+  outlierPercentile: 1
+  noiseOutlierPercentile: 5
+  parameterSignificanceThreshold: 0.0005
+validationPredicates:
+  condition: "AND"
+  value: 0.0
+  rules:
+  - id: "kstest"
+    operator: "less"
+    value: 0.15
+  - id: "avg_rel"
+    operator: "less"
+    value: 0.2

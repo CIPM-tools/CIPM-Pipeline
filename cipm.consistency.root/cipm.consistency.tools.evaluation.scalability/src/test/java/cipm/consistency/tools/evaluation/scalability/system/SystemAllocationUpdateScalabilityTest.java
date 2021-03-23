@@ -51,8 +51,10 @@ import lombok.extern.java.Log;
 @Log
 @Import(AbstractBaseSystemTransformationTest.SystemTransformationTestConfiguration.class)
 public class SystemAllocationUpdateScalabilityTest extends AbstractScalabilityTestBase {
-	private static final int COMPONENT_CHANGES = 20;
+	private static final int MIN_COMPONENT_CHANGES = 1;
+	private static final int COMPONENT_CHANGES = 80;
 	private static final int RESOURCEENV_SIZE = 50;
+	private static final int COMPONENT_CHANGES_STEP = 5;
 	private static final int REPETITIONS = 10;
 
 	@Autowired
@@ -97,7 +99,7 @@ public class SystemAllocationUpdateScalabilityTest extends AbstractScalabilityTe
 		for (int j = 0; j < REPETITIONS; j++) {
 			Map<Integer, Long> combinedMap = Maps.newHashMap();
 
-			for (int i = 1; i <= COMPONENT_CHANGES; i++) {
+			for (int i = MIN_COMPONENT_CHANGES; i <= COMPONENT_CHANGES; i += COMPONENT_CHANGES_STEP) {
 				System.out.println(i);
 				this.resetSystemAndAllocation();
 

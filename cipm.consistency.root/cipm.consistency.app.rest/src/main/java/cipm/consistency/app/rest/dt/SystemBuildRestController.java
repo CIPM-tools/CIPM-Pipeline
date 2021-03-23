@@ -6,18 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
-import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
-import org.palladiosimulator.pcm.core.composition.ComposedStructure;
-import org.palladiosimulator.pcm.core.composition.Connector;
-import org.palladiosimulator.pcm.core.composition.DelegationConnector;
-import org.palladiosimulator.pcm.core.composition.ProvidedDelegationConnector;
-import org.palladiosimulator.pcm.core.composition.RequiredDelegationConnector;
 import org.palladiosimulator.pcm.core.entity.NamedElement;
 import org.palladiosimulator.pcm.repository.OperationInterface;
-import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.RepositoryComponent;
-import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.system.System;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,12 +27,6 @@ import cipm.consistency.app.rest.dt.data.scg.JsonServiceCallGraph;
 import cipm.consistency.app.rest.dt.data.system.JsonBuildingConflict;
 import cipm.consistency.app.rest.dt.data.system.JsonBuildingStartMessage;
 import cipm.consistency.app.rest.dt.data.system.JsonConflictSolution;
-import cipm.consistency.app.rest.dt.data.system.JsonPCMSystem;
-import cipm.consistency.app.rest.dt.data.system.JsonSystemAssembly;
-import cipm.consistency.app.rest.dt.data.system.JsonSystemComposite;
-import cipm.consistency.app.rest.dt.data.system.JsonSystemConnector;
-import cipm.consistency.app.rest.dt.data.system.JsonSystemProvidedRole;
-import cipm.consistency.app.rest.dt.data.system.JsonSystemRequiredRole;
 import cipm.consistency.base.core.ICallGraphProvider;
 import cipm.consistency.base.core.config.ConfigurationContainer;
 import cipm.consistency.base.core.facade.IPCMQueryFacade;
@@ -214,22 +200,6 @@ public class SystemBuildRestController {
 		}
 	}
 
-	private JsonPCMSystem convertSystem(System system) {
-		JsonPCMSystem output = new JsonPCMSystem();
-
-		JsonSystemComposite root = convertComposite(system);
-
-		// roles for parent
-		system.getProvidedRoles_InterfaceProvidingEntity().stream().map(p -> this.mapProvidedRole(system.getId(), p))
-				.forEach(root.getProvided()::add);
-		system.getRequiredRoles_InterfaceRequiringEntity().stream().map(r -> this.mapRequiredRole(system.getId(), r))
-				.forEach(root.getRequired()::add);
-
-		output.setRoot(root);
-
-		return output;
-	}
-
 	private void flushResultingSystem(System currentSystem) {
 		pcmQuery.getRaw().swapSystem(currentSystem);
 	}
@@ -268,96 +238,11 @@ public class SystemBuildRestController {
 
 	private String[] generateTargetIds(Xor<AssemblyRequiredRole, SystemProvidedRole> target) {
 		if (target.leftPresent()) {
-			return new String[] { target.getLeft().getCtx().getId() + "-" + target.getLeft().getRole().getId() };
+			return new String[] { target.getLeft().getCtx().getId() + "###" + target.getLeft().getRole().getId() };
 		} else if (target.rightPresent()) {
-			return new String[] { target.getRight().getSystem().getId() + "-" + target.getRight().getRole().getId() };
+			return new String[] { target.getRight().getSystem().getId() + "###" + target.getRight().getRole().getId() };
 		}
 		return null;
-	}
-
-	private JsonSystemComposite convertComposite(ComposedStructure comp) {
-		JsonSystemComposite output = new JsonSystemComposite();
-
-		output.setId(comp.getId());
-		output.setName(comp.getEntityName());
-
-		// assemblys
-		for (AssemblyContext ctx : comp.getAssemblyContexts__ComposedStructure()) {
-			JsonSystemAssembly asmbly = new JsonSystemAssembly();
-			asmbly.setComponentId(ctx.getEncapsulatedComponent__AssemblyContext().getId());
-			asmbly.setComponentName(ctx.getEncapsulatedComponent__AssemblyContext().getEntityName());
-			asmbly.setId(ctx.getId());
-			asmbly.setName(ctx.getEntityName());
-
-			// roles
-			ctx.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity().stream()
-					.map(p -> this.mapProvidedRole(ctx.getId(), p)).forEach(asmbly.getProvided()::add);
-			ctx.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity().stream()
-					.map(r -> this.mapRequiredRole(ctx.getId(), r)).forEach(asmbly.getRequired()::add);
-
-			output.getAssemblys().add(asmbly);
-		}
-
-		// connectors
-		for (Connector conn : comp.getConnectors__ComposedStructure()) {
-			JsonSystemConnector jsonConn = new JsonSystemConnector();
-			jsonConn.setId(conn.getId());
-			jsonConn.setName(conn.getEntityName());
-
-			if (conn instanceof AssemblyConnector) {
-				jsonConn.setDelegation(false);
-				AssemblyConnector aconn = (AssemblyConnector) conn;
-				jsonConn.setAssemblyFrom(aconn.getProvidingAssemblyContext_AssemblyConnector().getId());
-				jsonConn.setAssemblyTo(aconn.getRequiringAssemblyContext_AssemblyConnector().getId());
-				jsonConn.setRole1(aconn.getProvidingAssemblyContext_AssemblyConnector().getId() + "-"
-						+ aconn.getProvidedRole_AssemblyConnector().getId());
-				jsonConn.setRole2(aconn.getRequiringAssemblyContext_AssemblyConnector().getId() + "-"
-						+ aconn.getRequiredRole_AssemblyConnector().getId());
-			} else if (conn instanceof DelegationConnector) {
-				jsonConn.setDelegation(true);
-				if (conn instanceof ProvidedDelegationConnector) {
-					ProvidedDelegationConnector dconn = (ProvidedDelegationConnector) conn;
-					jsonConn.setDelegationDirection(true);
-					jsonConn.setAssemblyTo(dconn.getAssemblyContext_ProvidedDelegationConnector().getId());
-					jsonConn.setAssemblyFrom(dconn.getOuterProvidedRole_ProvidedDelegationConnector()
-							.getProvidingEntity_ProvidedRole().getId());
-					jsonConn.setRole1(dconn.getAssemblyContext_ProvidedDelegationConnector().getId() + "-"
-							+ dconn.getInnerProvidedRole_ProvidedDelegationConnector().getId());
-					jsonConn.setRole2(
-							dconn.getOuterProvidedRole_ProvidedDelegationConnector().getProvidingEntity_ProvidedRole()
-									.getId() + "-" + dconn.getOuterProvidedRole_ProvidedDelegationConnector().getId());
-				} else if (conn instanceof RequiredDelegationConnector) {
-					RequiredDelegationConnector dconn = (RequiredDelegationConnector) conn;
-					jsonConn.setDelegationDirection(false);
-					jsonConn.setAssemblyFrom(dconn.getAssemblyContext_RequiredDelegationConnector().getId());
-					jsonConn.setAssemblyTo(dconn.getOuterRequiredRole_RequiredDelegationConnector()
-							.getRequiringEntity_RequiredRole().getId());
-					jsonConn.setRole1(dconn.getAssemblyContext_RequiredDelegationConnector().getId() + "-"
-							+ dconn.getInnerRequiredRole_RequiredDelegationConnector().getId());
-					jsonConn.setRole2(
-							dconn.getOuterRequiredRole_RequiredDelegationConnector().getRequiringEntity_RequiredRole()
-									.getId() + "-" + dconn.getOuterRequiredRole_RequiredDelegationConnector().getId());
-				}
-			}
-
-			output.getConnectors().add(jsonConn);
-		}
-
-		return output;
-	}
-
-	private JsonSystemRequiredRole mapRequiredRole(String prefix, RequiredRole rr) {
-		JsonSystemRequiredRole jrr = new JsonSystemRequiredRole();
-		jrr.setId(prefix + "-" + rr.getId());
-		jrr.setName(rr.getEntityName());
-		return jrr;
-	}
-
-	private JsonSystemProvidedRole mapProvidedRole(String prefix, ProvidedRole pr) {
-		JsonSystemProvidedRole jpr = new JsonSystemProvidedRole();
-		jpr.setId(prefix + "-" + pr.getId());
-		jpr.setName(pr.getEntityName());
-		return jpr;
 	}
 
 }

@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.CacheControl;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
@@ -33,7 +34,16 @@ import cipm.consistency.base.shared.pcm.util.PCMUtils;
 import lombok.extern.java.Log;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "cipm.consistency", "mir.reactions", "mir.routines" })
+@ComponentScan(basePackages = { "cipm.consistency", "mir.reactions", "mir.routines" }, excludeFilters = {
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.base.core.AbstractCoreTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.BasePipelineTestConfiguration.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.validation.ValidationProcessorTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.base.vitruv.VsumManagerTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.designtime.systemextraction.DesignTimeSystemExtractionTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.pcm.usagemodel.AbstractBaseUsageModelDerivationTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.pcm.system.AbstractBaseSystemTransformationTest.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.pcm.resourceenv.AbstractResourceEnvironmentTransformationTestBase.*"),
+		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "cipm.consistency.runtime.pipeline.pcm.repository.AbstractRepositoryTransformationTestBase.*") })
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties

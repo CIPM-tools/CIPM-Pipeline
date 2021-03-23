@@ -1,11 +1,16 @@
 package cipm.consistency.tools.evaluation.scenario;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenario;
@@ -67,6 +72,13 @@ public class AdaptionScenarioOrchestrator {
 
 	private void triggerScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
 		log.info("URLs are all reachable. Starting with execution of initial scenarios.");
+		// save that timestamp
+		try {
+			FileUtils.writeLines(new File("offset.txt"),
+					Lists.newArrayList(String.valueOf(System.currentTimeMillis())));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		// execute initial scenarios
 		list.getInitialScenarios().forEach(initial -> {
 			initial.execute(config);
