@@ -71,7 +71,7 @@ public class AdaptionScenarioGenerator {
 		InMemoryPCM currentModel = initialModel;
 		for (int i = 0; i < config.getScenarioCount(); i++) {
 			int selectedScenarioId = selectScenarioTypeFromStack(probabilityStack);
-			while (selectedScenarioId == 3 && i > 8) {
+			while (selectedScenarioId == 3 && i >= 15) {
 				selectedScenarioId = selectScenarioTypeFromStack(probabilityStack);
 			}
 
@@ -112,7 +112,7 @@ public class AdaptionScenarioGenerator {
 
 	private LoadProfileType generateNewLoadProfileType(LoadProfileType currentLoadProfileType) {
 		LoadProfileType type = currentLoadProfileType;
-		while (type == currentLoadProfileType) {
+		while (type == currentLoadProfileType || type == LoadProfileType.NONE) {
 			int index = RANDOM.nextInt(LoadProfileType.values().length);
 			type = LoadProfileType.values()[index];
 		}

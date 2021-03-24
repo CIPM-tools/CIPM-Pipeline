@@ -3,7 +3,7 @@
 We evaluated the scalability of the transformations within the implemented pipeline comprehensively. First, we identified interesting scenarios in terms of their impact on the execution time (especially worst-case scenarios). Next, we synthetically generated monitoring data and used it as input for the transformations. In most cases we generate unrealistically high amounts to get more to obtain more meaningful results. For the transformations that were taken over from existing approaches (iObserve), we showed that the results are consistent. This is important, because we use different monitoring data structures and it is not obvious that the scalability is preserved.
 
 ## Perform the Evaluation
-1. Setup the project using your favorite IDE and Gradle (read the instructions here [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle))
+1. Setup the project using Eclipse together with Gradle (read the instructions here [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle))
 2. Execute the scalability tests which are stored in the sub packages of *cipm.consistency.tools.evaluation.scalability*:
     - RepositoryUpdateScalabilityTest (T<sub>RepositoryCalibration</sub>)
     - ResourceEnvironmentScalabilityTest (T<sub>ResourceEnvironment</sub>)
