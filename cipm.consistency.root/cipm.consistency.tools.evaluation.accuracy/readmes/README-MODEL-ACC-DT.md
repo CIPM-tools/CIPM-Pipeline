@@ -6,17 +6,42 @@ In the following, we describe how you can execute the System Model extraction pr
 ### 1. Gather Extracted Models
 ***
 **IMPORTANT**
-Requires an error-free setup of our Gradle project (see [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle).
+Requires an error-free setup of our Gradle project (see [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle))
 ***
 
-
-CoCoME: CashDeskConnectorIf -> None select -> Select existing assembly
+* CoCoME
+    1. Use the "Start Application CoCoME" launch configuration for Eclipse to start the web UI (located in the "cipm.consistency.app.start" project).
+    2. When the startup is completed, navigate to the landing page of the web UI at [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
+    3. In the menu bar on the left, navigate to Design-Time > System Extraction.
+    4. Click "Start System Model Building Procedure".
+    5. Now click through the process and resolve the upcoming conflicts.
+    6. The correct resolution requires domain knowledge and is as follows:
+        1. Select "CashDeskConnectorIf" as interface that should be provided by the system as a whole.
+        2. Do not select the proposed Assembly Context as solution, instead directly click on "Resolve Conflict".
+        3. Select the proposed Assembly Context and finish the procedure.
+    7. The extracted System Model is located in the "cipm.consistency.app.start" project under "models > cocome > cocome.system" (the old one gets overwritten).
+* TeaStore
+    1. Use the "Start Application TeaStore" launch configuration for Eclipse to start the web UI (located in the "cipm.consistency.app.start" project).
+    2. When the startup is completed, navigate to the landing page of the web UI at [http://127.0.0.1:8080/](http://127.0.0.1:8080/).
+    3. In the menu bar on the left, navigate to Design-Time > System Extraction.
+    4. Click "Start System Model Building Procedure".
+    5. Now click through the process and resolve the upcoming conflicts.
+    6. The correct resolution requires domain knowledge and is as follows:
+        1. Select "CartActions" and "ProductActions" as interfaces that should be provided by the system as a whole.
+        2. Select the proposed Assembly Context **two** times.
+        3. Select "Persistence" as component type.
+        4. Select "ImageProvider" as component type and finish the procedure.
+    7. The extracted System Model is located in the "cipm.consistency.app.start" project under "models > teastore > teastore.system" (the old one gets overwritten).
+        
 
 ### 2. Calculate Metrics
 ***
 **IMPORTANT**
-Requires an error-free setup of our Gradle project (see [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle).
+Requires an error-free setup of our Gradle project (see [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle))
 ***
+0. If you want to use System Models that you extracted on your own by following the instructions above, please copy them into the folder "cipm.consistency.tools.evaluation.accuracy > test-data > devtime-system-extraction" within the parent Gradle project. Name them "cocome-extracted.system" or "teastore-extracted.system", according to the considered case study. **But** you can also directly continue with step 1, as we already provide the models that we extracted using the procedure described above.
+1. Execute the "SystemExtractionEvaluationCoCoME" class and/or the "SystemExtractionEvaluationTeaStore" class, which are both located in the "cipm.consistency.tools.evaluation.accuracy.models.devtime" package.
+2. After the extracted model and the reference model of the respective case study were compared, the resulting Jaccard coefficient (JC) is printed and should be equal to 1.0 (which means that the reference model and the extracted model are equal).
 
 ### 3. Summarized Results
 
