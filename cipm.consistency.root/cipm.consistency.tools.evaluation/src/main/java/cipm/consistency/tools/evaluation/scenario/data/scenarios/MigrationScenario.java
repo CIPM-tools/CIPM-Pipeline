@@ -118,8 +118,12 @@ public class MigrationScenario extends AdaptionScenario {
 
 	@Override
 	public InMemoryPCM generateReferenceModel(InMemoryPCM current) {
-		return new SystemChangeScenario(RecommenderType.SLOPE_ONE).generateReferenceModel(current); // migration reverts
-																									// recommender type
+		if (this.getComponent() == MigrationComponentType.RECOMMENDER) {
+			return new SystemChangeScenario(RecommenderType.SLOPE_ONE).generateReferenceModel(current);
+			// migration reverts recommender type
+		} else {
+			return current;
+		}
 	}
 
 }

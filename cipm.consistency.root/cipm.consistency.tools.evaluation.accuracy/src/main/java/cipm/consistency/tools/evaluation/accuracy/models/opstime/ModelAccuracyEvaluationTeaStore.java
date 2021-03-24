@@ -1,6 +1,8 @@
 package cipm.consistency.tools.evaluation.accuracy.models.opstime;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.palladiosimulator.pcm.allocation.Allocation;
@@ -16,6 +18,21 @@ import lombok.extern.java.Log;
 
 @Log
 public class ModelAccuracyEvaluationTeaStore {
+
+	private static Comparator<File> fileComparator = new Comparator<File>() {
+		public int compare(File f1, File f2) {
+			try {
+				String no1 = f1.getName().replaceAll("[^0-9]", "");
+				String no2 = f2.getName().replaceAll("[^0-9]", "");
+
+				int i1 = Integer.parseInt(no1);
+				int i2 = Integer.parseInt(no2);
+				return i1 - i2;
+			} catch (NumberFormatException e) {
+				throw new AssertionError(e);
+			}
+		}
+	};
 
 	public static void main(String[] args) {
 		PCMUtils.loadPCMModels();
@@ -39,13 +56,20 @@ public class ModelAccuracyEvaluationTeaStore {
 		File[] executionFolders = experimentExecutionFolder.listFiles();
 		File[] scenarioFolders = experimentScenariosFolder.listFiles();
 
+		Arrays.sort(executionFolders, fileComparator);
+		Arrays.sort(scenarioFolders, fileComparator);
+
 		if (executionFolders.length == scenarioFolders.length) {
 			for (int i = 0; i < executionFolders.length; i++) {
 				File referenceModelContainer = new File(scenarioFolders[i], referenceModelsPath);
 				File executionModelContainer = new File(executionFolders[i], modelsPath);
 				File[] referenceModelIterations = referenceModelContainer.listFiles();
+				Arrays.sort(referenceModelIterations, fileComparator);
+
 				for (int k = 0; k < Math.min(referenceModelIterations.length,
 						executionModelContainer.listFiles().length / 5 - syncOffset); k++) {
+					log.info("Comparing reference model " + k + " to derived model.");
+
 					File referenceModelSystem = new File(referenceModelIterations[k], "system.system");
 					File referenceModelAllocation = new File(referenceModelIterations[k], "allocation.allocation");
 
@@ -53,6 +77,9 @@ public class ModelAccuracyEvaluationTeaStore {
 							"system_" + (syncOffset + k) + ".system");
 					File exeuctionModelAllocation = new File(executionModelContainer,
 							"allocation_" + (syncOffset + k) + ".allocation");
+
+					log.info("Reference model: " + referenceModelSystem.getAbsolutePath());
+					log.info("Derived model: " + executionModelSystem.getAbsolutePath());
 
 					System actual = ModelUtil.readFromFile(executionModelSystem, System.class);
 					System expected = ModelUtil.readFromFile(referenceModelSystem, System.class);
