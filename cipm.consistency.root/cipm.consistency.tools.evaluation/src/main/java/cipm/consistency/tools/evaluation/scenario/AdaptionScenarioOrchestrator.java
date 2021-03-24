@@ -87,11 +87,31 @@ public class AdaptionScenarioOrchestrator {
 		log.info("Scheduling all scenarios and wait for their execution.");
 		// start executing all others
 		scenarioExecutionService.scheduleAtFixedRate(() -> executeSingleScenario(list, config),
-				Math.round(config.getSecondsBetweenScenarios() * 1.1f), config.getSecondsBetweenScenarios(),
+				Math.round(config.getSecondsBetweenScenarios() * 0.9f), config.getSecondsBetweenScenarios(),
 				TimeUnit.SECONDS);
 	}
 
 	private void executeSingleScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
+		// wait until pipeline is running
+		String pipelineStatusUrl = config.getPipelineStatusRestURL();
+		if (http.isReachable(pipelineStatusUrl)) {
+			String pipelineStatus = http.getRequest(pipelineStatusUrl, Maps.newHashMap());
+			try {
+				PipelineUIState pipelineState = objectMapper.readValue(pipelineStatus, PipelineUIState.class);
+				if (pipelineState.isRunning()) {
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 3,
+							TimeUnit.SECONDS);
+				} else {
+					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 1000,
+							TimeUnit.MILLISECONDS);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void executeSingleScenarioNow(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
 		if (list.getScenarios().size() > 0) {
 			AdaptionScenario scen = list.getScenarios().get(0);
 			log.info("Executing scenario (" + scen.getType() + ").");
