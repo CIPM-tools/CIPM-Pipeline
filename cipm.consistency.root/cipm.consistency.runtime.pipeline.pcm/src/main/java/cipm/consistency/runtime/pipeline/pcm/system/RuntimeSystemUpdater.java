@@ -92,9 +92,9 @@ public class RuntimeSystemUpdater {
 	private void removeUnusedConnectors(ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
 		List<Connector> connectorsToRemove = Lists.newArrayList();
 		for (AssemblyConnector conn : systemQuery.getAssemblyConnectors()) {
+
 			boolean hasBelongingEdge = scg.getEdges().stream().anyMatch(e -> {
 				OperationRequiredRole requiredRole = e.getExternalCall().getRole_ExternalService();
-				log.info(requiredRole.getEntityName());
 				AssemblyContext correspondingACtxTarget = resolveCtx(
 						e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getTo().getHost());
 
@@ -117,7 +117,7 @@ public class RuntimeSystemUpdater {
 
 			if (!hasBelongingEdge) {
 				log.info("Found a deprecated connector.");
-				if (deprecationProcessorConnectors.isCurrentlyDeprecated(conn)) {
+				if (deprecationProcessorConnectors.shouldDelete(conn)) {
 					connectorsToRemove.add(conn);
 				}
 			}
