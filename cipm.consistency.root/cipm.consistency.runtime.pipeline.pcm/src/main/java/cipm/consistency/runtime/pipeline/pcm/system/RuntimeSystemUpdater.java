@@ -90,13 +90,17 @@ public class RuntimeSystemUpdater {
 		for (AssemblyConnector conn : systemQuery.getAssemblyConnectors()) {
 			boolean hasBelongingEdge = scg.getEdges().stream().filter(e -> {
 				OperationRequiredRole requiredRole = e.getExternalCall().getRole_ExternalService();
-				AssemblyContext correspondingACtxTarget = resolveOrCreateCtx(
+				AssemblyContext correspondingACtxTarget = resolveCtx(
 						e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getTo().getHost());
 
 				OperationProvidedRole correspondingProvidedRole = getCorrespondingProvidedRole(requiredRole, e.getTo(),
 						requiredRole.getRequiredInterface__OperationRequiredRole(), metadata);
-				AssemblyContext correspondingACtxSource = resolveOrCreateCtx(
+				AssemblyContext correspondingACtxSource = resolveCtx(
 						e.getFrom().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getFrom().getHost());
+
+				if (correspondingACtxTarget == null || correspondingACtxSource == null) {
+					return false;
+				}
 
 				return conn.getProvidedRole_AssemblyConnector().getId().equals(correspondingProvidedRole.getId())
 						&& conn.getProvidingAssemblyContext_AssemblyConnector().getId()
@@ -113,6 +117,7 @@ public class RuntimeSystemUpdater {
 			}
 		}
 
+		log.info("Unused connectors that will be removed: " + connectorsToRemove.size());
 		systemQuery.removeConnectors(connectorsToRemove);
 	}
 
@@ -256,6 +261,15 @@ public class RuntimeSystemUpdater {
 			return i instanceof OperationProvidedRole
 					&& ((OperationProvidedRole) i).getProvidedInterface__OperationProvidedRole().equals(iface);
 		}).map(OperationProvidedRole.class::cast).collect(Collectors.toList());
+	}
+
+	private AssemblyContext resolveCtx(BasicComponent basicComponent, ResourceContainer host) {
+		List<AssemblyContext> existingContexts = allocationQuery.getDeployedAssembly(basicComponent, host);
+		if (existingContexts.size() == 0) {
+			return null;
+		} else {
+			return existingContexts.get(0);
+		}
 	}
 
 	private AssemblyContext resolveOrCreateCtx(BasicComponent basicComponent, ResourceContainer host) {
