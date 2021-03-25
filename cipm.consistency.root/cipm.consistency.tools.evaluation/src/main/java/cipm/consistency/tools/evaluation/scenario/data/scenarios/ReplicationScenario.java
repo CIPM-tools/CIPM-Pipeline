@@ -140,6 +140,28 @@ public class ReplicationScenario extends AdaptionScenario {
 				nConnector.setProvidedRole_AssemblyConnector(
 						(OperationProvidedRole) comp.getProvidedRoles_InterfaceProvidingEntity().get(0));
 
+				// 4.4.1. connect assembly on the other side
+				OperationRequiredRole registryReqRole = comp.getRequiredRoles_InterfaceRequiringEntity().stream()
+						.filter(f -> f instanceof OperationRequiredRole).map(OperationRequiredRole.class::cast)
+						.filter(opr -> opr.getRequiredInterface__OperationRequiredRole().getId()
+								.equals("_gGczsDVZEeqPG_FgW3bi6Q"))
+						.findFirst().orElse(null);
+				if (registryReqRole != null) {
+					java.lang.System.out.println("Testinger");
+					OperationProvidedRole loadBalancerProvidingRole = (OperationProvidedRole) registryCtx
+							.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity()
+							.get(0);
+
+					AssemblyConnector nConnectorInner = CompositionFactory.eINSTANCE.createAssemblyConnector();
+					nConnector.setProvidingAssemblyContext_AssemblyConnector(registryCtx);
+					nConnector.setRequiringAssemblyContext_AssemblyConnector(nCtx);
+					nConnector.setRequiredRole_AssemblyConnector(registryReqRole);
+					// in our case possible
+					nConnector.setProvidedRole_AssemblyConnector(loadBalancerProvidingRole);
+
+					copy.getSystem().getConnectors__ComposedStructure().add(nConnectorInner);
+				}
+
 				// 4.5. add it
 				copy.getSystem().getConnectors__ComposedStructure().add(nConnector);
 
@@ -154,6 +176,9 @@ public class ReplicationScenario extends AdaptionScenario {
 				linkRes.getConnectedResourceContainers_LinkingResource()
 						.add(registryACtx.getResourceContainer_AllocationContext());
 			}
+		} else {
+			// remove last assembly that is connected to registry
+			// TODO
 		}
 
 		return copy;

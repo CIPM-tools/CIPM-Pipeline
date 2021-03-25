@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.EqualsExclude;
 import org.apache.commons.lang3.tuple.Pair;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
+import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationInterface;
 import org.palladiosimulator.pcm.repository.OperationProvidedRole;
@@ -21,6 +22,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import cipm.consistency.base.core.facade.pcm.IAllocationQueryFacade;
@@ -45,13 +47,15 @@ public class RuntimeSystemUpdater {
 	@Autowired
 	private IAllocationQueryFacade allocationQuery;
 
-	private IDeprecationProcessor deprecationProcessor;
+	private IDeprecationProcessor deprecationProcessorAssembly;
+	private IDeprecationProcessor deprecationProcessorConnectors;
 
 	public RuntimeSystemUpdater() {
 		// => deprecation time of 1 is currently necessary
 		// this could be adapted by putting more logic into the delegation of required
 		// roles
-		this.deprecationProcessor = new SimpleDeprecationProcessor(1);
+		this.deprecationProcessorAssembly = new SimpleDeprecationProcessor(1);
+		this.deprecationProcessorConnectors = new SimpleDeprecationProcessor(1);
 	}
 
 	public void applyCallGraph(Pair<ServiceCallGraph, CallGraphMergeMetadata> mergeResult) {
@@ -74,10 +78,42 @@ public class RuntimeSystemUpdater {
 		updateSystemProvidedRoles(entryPoints, metadata);
 
 		// deprecation processing
-		systemQuery.processUnreachableAssemblys(deprecationProcessor);
+		removeUnusedConnectors(scg, metadata);
+		systemQuery.processUnreachableAssemblys(deprecationProcessorAssembly);
 
 		// get open required roles and delegate them
 		updateSystemRequiredRoles();
+	}
+
+	private void removeUnusedConnectors(ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
+		List<Connector> connectorsToRemove = Lists.newArrayList();
+		for (AssemblyConnector conn : systemQuery.getAssemblyConnectors()) {
+			boolean hasBelongingEdge = scg.getEdges().stream().filter(e -> {
+				OperationRequiredRole requiredRole = e.getExternalCall().getRole_ExternalService();
+				AssemblyContext correspondingACtxTarget = resolveOrCreateCtx(
+						e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getTo().getHost());
+
+				OperationProvidedRole correspondingProvidedRole = getCorrespondingProvidedRole(requiredRole, e.getTo(),
+						requiredRole.getRequiredInterface__OperationRequiredRole(), metadata);
+				AssemblyContext correspondingACtxSource = resolveOrCreateCtx(
+						e.getFrom().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getFrom().getHost());
+
+				return conn.getProvidedRole_AssemblyConnector().getId().equals(correspondingProvidedRole.getId())
+						&& conn.getProvidingAssemblyContext_AssemblyConnector().getId()
+								.equals(correspondingACtxTarget.getId())
+						&& conn.getRequiringAssemblyContext_AssemblyConnector().getId()
+								.equals(correspondingACtxSource.getId())
+						&& conn.getRequiredRole_AssemblyConnector().getId().equals(requiredRole.getId());
+			}).findAny().isPresent();
+
+			if (!hasBelongingEdge) {
+				if (deprecationProcessorConnectors.isCurrentlyDeprecated(conn)) {
+					connectorsToRemove.add(conn);
+				}
+			}
+		}
+
+		systemQuery.removeConnectors(connectorsToRemove);
 	}
 
 	private void updateSystemRequiredRoles() {
