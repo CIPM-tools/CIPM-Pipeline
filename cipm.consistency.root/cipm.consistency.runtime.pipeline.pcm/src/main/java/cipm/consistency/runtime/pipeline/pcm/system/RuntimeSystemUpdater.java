@@ -83,13 +83,18 @@ public class RuntimeSystemUpdater {
 
 		// get open required roles and delegate them
 		updateSystemRequiredRoles();
+
+		// finish iterations
+		this.deprecationProcessorAssembly.iterationFinished();
+		this.deprecationProcessorConnectors.iterationFinished();
 	}
 
 	private void removeUnusedConnectors(ServiceCallGraph scg, CallGraphMergeMetadata metadata) {
 		List<Connector> connectorsToRemove = Lists.newArrayList();
 		for (AssemblyConnector conn : systemQuery.getAssemblyConnectors()) {
-			boolean hasBelongingEdge = scg.getEdges().stream().filter(e -> {
+			boolean hasBelongingEdge = scg.getEdges().stream().anyMatch(e -> {
 				OperationRequiredRole requiredRole = e.getExternalCall().getRole_ExternalService();
+				log.info(requiredRole.getEntityName());
 				AssemblyContext correspondingACtxTarget = resolveCtx(
 						e.getTo().getSeff().getBasicComponent_ServiceEffectSpecification(), e.getTo().getHost());
 
@@ -108,9 +113,10 @@ public class RuntimeSystemUpdater {
 						&& conn.getRequiringAssemblyContext_AssemblyConnector().getId()
 								.equals(correspondingACtxSource.getId())
 						&& conn.getRequiredRole_AssemblyConnector().getId().equals(requiredRole.getId());
-			}).findAny().isPresent();
+			});
 
 			if (!hasBelongingEdge) {
+				log.info("Found a deprecated connector.");
 				if (deprecationProcessorConnectors.isCurrentlyDeprecated(conn)) {
 					connectorsToRemove.add(conn);
 				}
