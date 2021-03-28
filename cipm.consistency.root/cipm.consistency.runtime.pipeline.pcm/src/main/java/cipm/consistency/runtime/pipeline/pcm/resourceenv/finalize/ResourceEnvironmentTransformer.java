@@ -25,7 +25,7 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 	private SimpleDeprecationProcessor deprecationProcessor;
 
 	public ResourceEnvironmentTransformer() {
-		this.deprecationProcessor = new SimpleDeprecationProcessor(3);
+		this.deprecationProcessor = new SimpleDeprecationProcessor(1);
 	}
 
 	@Override
@@ -95,8 +95,10 @@ public class ResourceEnvironmentTransformer implements IResourceEnvironmentDeduc
 
 		// remove containers
 		for (ResourceContainer depContainer : toRemove) {
-			pcm.getResourceEnvironment().removeContainer(depContainer);
-			removeCorrespondingLinks(pcm, depContainer);
+			if (this.deprecationProcessor.shouldDelete(depContainer)) {
+				pcm.getResourceEnvironment().removeContainer(depContainer);
+				removeCorrespondingLinks(pcm, depContainer);
+			}
 		}
 		if (toRemove.size() > 0) {
 			log.info("Removed " + toRemove.size() + " containers from the resource environment model.");

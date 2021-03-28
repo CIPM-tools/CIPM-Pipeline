@@ -20,17 +20,25 @@ reaction DeleteLinkingResourceCorrespondence {
 routine deleteCorrespondenceContainer(ResourceEnvironment::ResourceContainer container) {
 	match {
 		val corr = retrieve REM::RuntimeResourceContainer corresponding to container
+		val parent = retrieve REM::RuntimeEnvironmentModel corresponding to container.eContainer
 	}
 	action {
 		remove correspondence between container and corr
+		call {
+			parent.containers -= corr
+		}
 	}
 }
 
 routine deleteCorrespondenceLink(ResourceEnvironment::LinkingResource link) {
 	match {
 		val corr = retrieve REM::RuntimeResourceContainerConnection corresponding to link
+		val parent = retrieve REM::RuntimeEnvironmentModel corresponding to link.eContainer
 	}
 	action {
 		remove correspondence between link and corr
+		call {
+			parent.connections -= corr
+		}
 	}
 }
