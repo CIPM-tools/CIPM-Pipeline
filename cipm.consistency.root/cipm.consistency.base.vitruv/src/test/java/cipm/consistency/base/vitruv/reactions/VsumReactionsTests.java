@@ -156,7 +156,7 @@ public class VsumReactionsTests extends VsumManagerTestBase {
 
 		assertEquals(3, vsum.getCorrespondenceModel().getAllCorrespondences().size());
 		assertEquals(0, env.getLinkingResources__ResourceEnvironment().size());
-		assertEquals(1, rem.getConnections().size());
+		assertEquals(0, rem.getConnections().size());
 
 		// second delete the container
 		DeleteEObject<ResourceContainer> change5 = atomicFactory
@@ -166,7 +166,8 @@ public class VsumReactionsTests extends VsumManagerTestBase {
 		vsum.propagateChange(VitruviusChangeFactory.getInstance().createConcreteChange(change5));
 
 		assertEquals(2, vsum.getCorrespondenceModel().getAllCorrespondences().size());
-		assertEquals(1, rem.getConnections().size());
+		assertEquals(0, rem.getConnections().size());
+		assertEquals(1, rem.getContainers().size());
 	}
 
 	private void createLinkMatching(ResourceEnvironment env, RuntimeEnvironmentModel rem) {
@@ -311,7 +312,7 @@ public class VsumReactionsTests extends VsumManagerTestBase {
 		CorrespondenceModel cpm = vsum.getCorrespondenceModel();
 
 		vsum.executeCommand(() -> {
-			ReactionsCorrespondenceHelper.addCorrespondence(cpm, rem, resEnv, null);
+			ReactionsCorrespondenceHelper.addCorrespondence(cpm, resEnv, rem, null);
 			return null;
 		});
 

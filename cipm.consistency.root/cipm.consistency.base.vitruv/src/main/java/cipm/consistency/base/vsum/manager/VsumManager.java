@@ -301,6 +301,9 @@ public class VsumManager extends AbstractHealthStateComponent {
 			ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
 					pcmModelContainer.getResourceEnvironment(), specificModelContainer.getRuntimeEnvironment(), null);
 
+			ReactionsCorrespondenceHelper.addCorrespondence(vsum.getCorrespondenceModel(),
+					specificModelContainer.getRuntimeEnvironment(), pcmModelContainer.getResourceEnvironment(), null);
+
 			return null;
 		});
 

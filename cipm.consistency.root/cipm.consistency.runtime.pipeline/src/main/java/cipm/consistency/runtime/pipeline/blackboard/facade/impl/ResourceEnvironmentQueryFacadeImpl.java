@@ -40,8 +40,8 @@ public class ResourceEnvironmentQueryFacadeImpl implements IResourceEnvironmentQ
 	@Override
 	public void removeContainer(ResourceContainer depContainer) {
 		vsumManager.executeTransaction(() -> {
-			pcmModelProvider.getResourceEnvironment().getResourceContainer_ResourceEnvironment().remove(depContainer);
 			vsum.deletedObject(depContainer, VsumChangeSource.RESURCE_ENVIRONMENT);
+			pcmModelProvider.getResourceEnvironment().getResourceContainer_ResourceEnvironment().remove(depContainer);
 			return null;
 		});
 	}
@@ -49,8 +49,8 @@ public class ResourceEnvironmentQueryFacadeImpl implements IResourceEnvironmentQ
 	@Override
 	public void removeLink(LinkingResource link) {
 		vsumManager.executeTransaction(() -> {
-			pcmModelProvider.getResourceEnvironment().getLinkingResources__ResourceEnvironment().remove(link);
 			vsum.deletedObject(link, VsumChangeSource.RESURCE_ENVIRONMENT);
+			pcmModelProvider.getResourceEnvironment().getLinkingResources__ResourceEnvironment().remove(link);
 			return null;
 		});
 	}

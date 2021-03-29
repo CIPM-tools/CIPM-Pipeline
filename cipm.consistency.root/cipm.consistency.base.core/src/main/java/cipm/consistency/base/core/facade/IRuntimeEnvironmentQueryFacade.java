@@ -1,5 +1,7 @@
 package cipm.consistency.base.core.facade;
 
+import java.util.List;
+
 import cipm.consistency.base.models.runtimeenvironment.REModel.RuntimeEnvironmentModel;
 import cipm.consistency.base.models.runtimeenvironment.REModel.RuntimeResourceContainer;
 import cipm.consistency.base.models.runtimeenvironment.REModel.RuntimeResourceContainerConnection;
@@ -22,6 +24,10 @@ public interface IRuntimeEnvironmentQueryFacade extends IResettableQueryFacade {
 	 *         does not exist
 	 */
 	public RuntimeResourceContainer getContainerById(String hostId);
+
+	public List<RuntimeResourceContainer> getContainers();
+
+	public List<RuntimeResourceContainerConnection> getConnections();
 
 	/**
 	 * Gets a link between runtime containers by their IDs.

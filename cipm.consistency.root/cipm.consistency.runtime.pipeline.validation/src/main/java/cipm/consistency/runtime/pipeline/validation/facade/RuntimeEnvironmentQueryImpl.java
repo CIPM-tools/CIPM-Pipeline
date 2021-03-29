@@ -1,5 +1,6 @@
 package cipm.consistency.runtime.pipeline.validation.facade;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -102,6 +103,16 @@ public class RuntimeEnvironmentQueryImpl implements IRuntimeEnvironmentQueryFaca
 			linkCache.put(pairA, l);
 			linkCache.put(pairB, l);
 		});
+	}
+
+	@Override
+	public List<RuntimeResourceContainer> getContainers() {
+		return remProvider.getRuntimeEnvironment().getContainers();
+	}
+
+	@Override
+	public List<RuntimeResourceContainerConnection> getConnections() {
+		return remProvider.getRuntimeEnvironment().getConnections();
 	}
 
 }
