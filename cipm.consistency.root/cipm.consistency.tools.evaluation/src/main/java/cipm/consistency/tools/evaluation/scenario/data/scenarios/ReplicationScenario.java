@@ -22,6 +22,7 @@ import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceenvironmentFactory;
 import org.palladiosimulator.pcm.resourcetype.ProcessingResourceType;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import cipm.consistency.base.shared.pcm.InMemoryPCM;
@@ -83,6 +84,27 @@ public class ReplicationScenario extends AdaptionScenario {
 		// corresponding component
 		BasicComponent comp = PCMUtils.getElementById(copy.getRepository(), BasicComponent.class, component.getId());
 
+		// prepare
+		// 4.1. search belonging registry that is connected
+		String representCtxId = representCtx.getId();
+		AssemblyConnector registryConnector = copy.getSystem().getConnectors__ComposedStructure().stream()
+				.filter(c -> c instanceof AssemblyConnector).map(AssemblyConnector.class::cast)
+				.filter(c -> c.getProvidingAssemblyContext_AssemblyConnector().getId().equals(representCtxId))
+				.findFirst().orElse(null);
+		AssemblyContext registryCtx = registryConnector.getRequiringAssemblyContext_AssemblyConnector();
+
+		// 4.2. get required roles of registry matching
+		Set<String> providedInterfaceIds = Sets.newHashSet();
+		comp.getProvidedRoles_InterfaceProvidingEntity().stream().filter(r -> r instanceof OperationProvidedRole)
+				.map(OperationProvidedRole.class::cast)
+				.forEach(r -> providedInterfaceIds.add(r.getProvidedInterface__OperationProvidedRole().getId()));
+
+		List<OperationRequiredRole> registryRequiredRoles = registryCtx.getEncapsulatedComponent__AssemblyContext()
+				.getRequiredRoles_InterfaceRequiringEntity().stream().filter(r -> r instanceof OperationRequiredRole)
+				.map(OperationRequiredRole.class::cast)
+				.filter(r -> providedInterfaceIds.contains(r.getRequiredInterface__OperationRequiredRole().getId()))
+				.collect(Collectors.toList());
+
 		// then we need to create new ones
 		if (count < newAmount) {
 			for (int i = 0; i < newAmount - count; i++) {
@@ -102,26 +124,6 @@ public class ReplicationScenario extends AdaptionScenario {
 				copy.getAllocationModel().getAllocationContexts_Allocation().add(ACtx);
 
 				// 4. connect the assembly and the containers
-				// 4.1. search belonging registry that is connected
-				String representCtxId = representCtx.getId();
-				AssemblyConnector registryConnector = copy.getSystem().getConnectors__ComposedStructure().stream()
-						.filter(c -> c instanceof AssemblyConnector).map(AssemblyConnector.class::cast)
-						.filter(c -> c.getProvidingAssemblyContext_AssemblyConnector().getId().equals(representCtxId))
-						.findFirst().orElse(null);
-				AssemblyContext registryCtx = registryConnector.getRequiringAssemblyContext_AssemblyConnector();
-
-				// 4.2. get required roles of registry matching
-				Set<String> providedInterfaceIds = Sets.newHashSet();
-				comp.getProvidedRoles_InterfaceProvidingEntity().stream()
-						.filter(r -> r instanceof OperationProvidedRole).map(OperationProvidedRole.class::cast).forEach(
-								r -> providedInterfaceIds.add(r.getProvidedInterface__OperationProvidedRole().getId()));
-
-				List<OperationRequiredRole> registryRequiredRoles = registryCtx
-						.getEncapsulatedComponent__AssemblyContext().getRequiredRoles_InterfaceRequiringEntity()
-						.stream().filter(r -> r instanceof OperationRequiredRole).map(OperationRequiredRole.class::cast)
-						.filter(r -> providedInterfaceIds
-								.contains(r.getRequiredInterface__OperationRequiredRole().getId()))
-						.collect(Collectors.toList());
 
 				// 4.3. filter for open required roles of registry
 				copy.getSystem().getConnectors__ComposedStructure().stream().filter(c -> c instanceof AssemblyConnector)
@@ -147,17 +149,16 @@ public class ReplicationScenario extends AdaptionScenario {
 								.equals("_gGczsDVZEeqPG_FgW3bi6Q"))
 						.findFirst().orElse(null);
 				if (registryReqRole != null) {
-					java.lang.System.out.println("Testinger");
 					OperationProvidedRole loadBalancerProvidingRole = (OperationProvidedRole) registryCtx
 							.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity()
 							.get(0);
 
 					AssemblyConnector nConnectorInner = CompositionFactory.eINSTANCE.createAssemblyConnector();
-					nConnector.setProvidingAssemblyContext_AssemblyConnector(registryCtx);
-					nConnector.setRequiringAssemblyContext_AssemblyConnector(nCtx);
-					nConnector.setRequiredRole_AssemblyConnector(registryReqRole);
+					nConnectorInner.setProvidingAssemblyContext_AssemblyConnector(registryCtx);
+					nConnectorInner.setRequiringAssemblyContext_AssemblyConnector(nCtx);
+					nConnectorInner.setRequiredRole_AssemblyConnector(registryReqRole);
 					// in our case possible
-					nConnector.setProvidedRole_AssemblyConnector(loadBalancerProvidingRole);
+					nConnectorInner.setProvidedRole_AssemblyConnector(loadBalancerProvidingRole);
 
 					copy.getSystem().getConnectors__ComposedStructure().add(nConnectorInner);
 				}
@@ -176,9 +177,45 @@ public class ReplicationScenario extends AdaptionScenario {
 				linkRes.getConnectedResourceContainers_LinkingResource()
 						.add(registryACtx.getResourceContainer_AllocationContext());
 			}
-		} else {
+		} else if (count > newAmount) {
 			// remove last assembly that is connected to registry
-			// TODO
+			// 4.3. filter for closed required roles of registry
+			List<AssemblyConnector> connectorsToRemove = Lists.newArrayList();
+			Set<String> assemblyIdsToRemove = Sets.newHashSet();
+
+			for (int i = count - 1; i >= newAmount; i--) {
+				OperationRequiredRole roleToFree = registryRequiredRoles.get(i);
+				for (AssemblyConnector connector : copy.getSystem().getConnectors__ComposedStructure().stream()
+						.filter(conn -> conn instanceof AssemblyConnector).map(AssemblyConnector.class::cast)
+						.collect(Collectors.toList())) {
+					if (connector.getRequiredRole_AssemblyConnector().getId().equals(roleToFree.getId())) {
+						connectorsToRemove.add(connector);
+						assemblyIdsToRemove.add(connector.getProvidingAssemblyContext_AssemblyConnector().getId());
+					}
+				}
+			}
+
+			for (AssemblyConnector toRemove : connectorsToRemove) {
+				copy.getSystem().getConnectors__ComposedStructure().remove(toRemove);
+				copy.getSystem().getAssemblyContexts__ComposedStructure()
+						.remove(toRemove.getProvidingAssemblyContext_AssemblyConnector());
+			}
+			connectorsToRemove.clear();
+
+			for (AssemblyConnector connector : copy.getSystem().getConnectors__ComposedStructure().stream()
+					.filter(conn -> conn instanceof AssemblyConnector).map(AssemblyConnector.class::cast)
+					.collect(Collectors.toList())) {
+				if (assemblyIdsToRemove.contains(connector.getProvidingAssemblyContext_AssemblyConnector().getId())
+						|| assemblyIdsToRemove
+								.contains(connector.getRequiringAssemblyContext_AssemblyConnector().getId())) {
+					connectorsToRemove.add(connector);
+				}
+			}
+
+			for (AssemblyConnector toRemove : connectorsToRemove) {
+				copy.getSystem().getConnectors__ComposedStructure().remove(toRemove);
+			}
+
 		}
 
 		return copy;
