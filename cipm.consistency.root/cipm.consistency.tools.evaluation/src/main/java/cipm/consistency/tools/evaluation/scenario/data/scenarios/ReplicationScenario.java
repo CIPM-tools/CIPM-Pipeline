@@ -199,6 +199,14 @@ public class ReplicationScenario extends AdaptionScenario {
 				copy.getSystem().getConnectors__ComposedStructure().remove(toRemove);
 				copy.getSystem().getAssemblyContexts__ComposedStructure()
 						.remove(toRemove.getProvidingAssemblyContext_AssemblyConnector());
+
+				AllocationContext ctxToRemove = copy.getAllocationModel().getAllocationContexts_Allocation().stream()
+						.filter(actx -> actx.getAssemblyContext_AllocationContext().getId()
+								.equals(toRemove.getProvidingAssemblyContext_AssemblyConnector().getId()))
+						.findFirst().orElse(null);
+				if (ctxToRemove != null) {
+					copy.getAllocationModel().getAllocationContexts_Allocation().remove(ctxToRemove);
+				}
 			}
 			connectorsToRemove.clear();
 
