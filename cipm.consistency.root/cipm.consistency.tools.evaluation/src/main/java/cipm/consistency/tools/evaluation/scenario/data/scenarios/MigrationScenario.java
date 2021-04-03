@@ -29,6 +29,7 @@ import lombok.extern.java.Log;
 @Log
 public class MigrationScenario extends AdaptionScenario {
 	private static final long WAIT_FOR_END_TRAINING = 1500;
+	private static final long WAIT_UNTIL_CONTAINER_STOPPED = 5000;
 
 	private static DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
 			.withDockerHost("tcp://localhost:2375").build();
@@ -91,6 +92,14 @@ public class MigrationScenario extends AdaptionScenario {
 
 			// 2. commit
 			dockerClient.commitCmd(migrateContainer.getId()).withRepository(migrateImageOutput).exec();
+
+			// 2.1. wait until commited and stopped
+			try {
+				Thread.sleep(WAIT_UNTIL_CONTAINER_STOPPED);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
 			String networkToUse = migrateContainer.getNetworkSettings().getNetworks().keySet().stream().findFirst()
 					.orElse("compose_default");
 
