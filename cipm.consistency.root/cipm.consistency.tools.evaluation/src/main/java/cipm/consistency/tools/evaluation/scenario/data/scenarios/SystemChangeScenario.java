@@ -13,7 +13,6 @@ import cipm.consistency.base.shared.pcm.InMemoryPCM;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenario;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioExecutionConfig;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioType;
-import cipm.consistency.tools.evaluation.scenario.data.teastore.LoadProfileType;
 import cipm.consistency.tools.evaluation.scenario.data.teastore.RecommenderType;
 import cipm.consistency.tools.evaluation.scenario.helper.DefaultHttpClient;
 import lombok.Data;
@@ -42,8 +41,6 @@ public class SystemChangeScenario extends AdaptionScenario {
 
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
-		// stop load
-		new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
 		try {
 			Thread.sleep(WAIT_FOR_END_TRAINING);
 		} catch (InterruptedException e) {
@@ -58,8 +55,11 @@ public class SystemChangeScenario extends AdaptionScenario {
 			http.getRequest(finalUrl, Maps.newHashMap());
 		}
 
-		// start load
-		new UserBehaviorChangeScenario(LoadProfileType.DEFAULT_20USER).execute(config);
+		try {
+			Thread.sleep(WAIT_FOR_END_TRAINING);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

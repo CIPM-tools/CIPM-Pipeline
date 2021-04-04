@@ -17,6 +17,8 @@ import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenario;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioExecutionConfig;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioList;
 import cipm.consistency.tools.evaluation.scenario.data.pipeline.PipelineUIState;
+import cipm.consistency.tools.evaluation.scenario.data.scenarios.UserBehaviorChangeScenario;
+import cipm.consistency.tools.evaluation.scenario.data.teastore.LoadProfileType;
 import cipm.consistency.tools.evaluation.scenario.helper.DefaultHttpClient;
 import lombok.extern.java.Log;
 
@@ -25,6 +27,7 @@ public class AdaptionScenarioOrchestrator {
 	private ScheduledExecutorService scenarioExecutionService;
 	private DefaultHttpClient http;
 	private ObjectMapper objectMapper;
+	private LoadProfileType currentLoadProfile;
 
 	public AdaptionScenarioOrchestrator() {
 		this.scenarioExecutionService = Executors.newSingleThreadScheduledExecutor();
@@ -81,6 +84,10 @@ public class AdaptionScenarioOrchestrator {
 		}
 		// execute initial scenarios
 		list.getInitialScenarios().forEach(initial -> {
+			if (initial instanceof UserBehaviorChangeScenario) {
+				this.currentLoadProfile = ((UserBehaviorChangeScenario) initial).getLoadType();
+			}
+
 			initial.execute(config);
 		});
 
@@ -115,12 +122,21 @@ public class AdaptionScenarioOrchestrator {
 		if (list.getScenarios().size() > 0) {
 			AdaptionScenario scen = list.getScenarios().get(0);
 			log.info("Executing scenario (" + scen.getType() + ").");
+
+			if (scen instanceof UserBehaviorChangeScenario) {
+				this.currentLoadProfile = ((UserBehaviorChangeScenario) scen).getLoadType();
+			}
+
+			// stop load before
+			new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
 			try {
 				scen.execute(config);
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
 				list.getScenarios().remove(0);
+				// restore load
+				new UserBehaviorChangeScenario(currentLoadProfile).execute(config);
 			}
 		} else {
 			// terminate application

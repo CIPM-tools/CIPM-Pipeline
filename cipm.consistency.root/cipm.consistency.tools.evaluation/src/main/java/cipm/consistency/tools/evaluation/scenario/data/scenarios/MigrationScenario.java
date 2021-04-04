@@ -17,7 +17,6 @@ import cipm.consistency.base.shared.pcm.InMemoryPCM;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenario;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioExecutionConfig;
 import cipm.consistency.tools.evaluation.scenario.data.AdaptionScenarioType;
-import cipm.consistency.tools.evaluation.scenario.data.teastore.LoadProfileType;
 import cipm.consistency.tools.evaluation.scenario.data.teastore.MigrationComponentType;
 import cipm.consistency.tools.evaluation.scenario.data.teastore.RecommenderType;
 import lombok.Data;
@@ -30,6 +29,7 @@ import lombok.extern.java.Log;
 public class MigrationScenario extends AdaptionScenario {
 	private static final long WAIT_FOR_END_TRAINING = 1500;
 	private static final long WAIT_UNTIL_CONTAINER_STOPPED = 5000;
+	private static final long WAIT_UNTIL_CONTAINER_UP = 10000;
 
 	private static DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
 			.withDockerHost("tcp://localhost:2375").build();
@@ -51,7 +51,6 @@ public class MigrationScenario extends AdaptionScenario {
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
 		// stop load
-		new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
 		try {
 			Thread.sleep(WAIT_FOR_END_TRAINING);
 		} catch (InterruptedException e) {
@@ -80,7 +79,11 @@ public class MigrationScenario extends AdaptionScenario {
 		}
 
 		// start load
-		new UserBehaviorChangeScenario(LoadProfileType.DEFAULT_20USER).execute(config);
+		try {
+			Thread.sleep(WAIT_UNTIL_CONTAINER_UP);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void performMigration(Container migrateContainer) {

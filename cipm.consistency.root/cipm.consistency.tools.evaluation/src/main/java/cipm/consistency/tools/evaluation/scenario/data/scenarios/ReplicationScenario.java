@@ -38,6 +38,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ReplicationScenario extends AdaptionScenario {
+	private static final long WAIT_UNTIL_REPLICATED = 10000;
 
 	private ReplicationComponentType component;
 	private int newAmount;
@@ -60,6 +61,12 @@ public class ReplicationScenario extends AdaptionScenario {
 		try {
 			builder.start().waitFor();
 		} catch (InterruptedException | IOException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Thread.sleep(WAIT_UNTIL_REPLICATED);
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
