@@ -12,9 +12,11 @@ import cipm.consistency.tools.evaluation.scenario.data.teastore.LoadProfileType;
 import cipm.consistency.tools.evaluation.scenario.helper.DefaultHttpClient;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.java.Log;
 
 // covers both user load change and user behavior change
 @Data
+@Log
 @EqualsAndHashCode(callSuper = true)
 public class UserBehaviorChangeScenario extends AdaptionScenario {
 	private static DefaultHttpClient http = new DefaultHttpClient(5000L);
@@ -32,17 +34,21 @@ public class UserBehaviorChangeScenario extends AdaptionScenario {
 
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
-		String baseUrl = config.getLoadOrchestratorRestURL().endsWith("/") ? config.getLoadOrchestratorRestURL()
-				: config.getLoadOrchestratorRestURL() + "/";
-		if (loadType == LoadProfileType.NONE) {
-			// stop it
-			String finalUrl = baseUrl + "stop";
-			http.getRequest(finalUrl, Maps.newHashMap());
-		} else {
-			String finalUrl = baseUrl + "start";
-			Map<String, String> attributes = Maps.newHashMap();
-			attributes.put("file", loadType.getName());
-			http.getRequest(finalUrl, attributes);
+		try {
+			String baseUrl = config.getLoadOrchestratorRestURL().endsWith("/") ? config.getLoadOrchestratorRestURL()
+					: config.getLoadOrchestratorRestURL() + "/";
+			if (loadType == LoadProfileType.NONE) {
+				// stop it
+				String finalUrl = baseUrl + "stop";
+				http.getRequest(finalUrl, Maps.newHashMap());
+			} else {
+				String finalUrl = baseUrl + "start";
+				Map<String, String> attributes = Maps.newHashMap();
+				attributes.put("file", loadType.getName());
+				http.getRequest(finalUrl, attributes);
+			}
+		} catch (Exception e) {
+			log.warning("Failed to apply load (" + e.getClass().getName() + ").");
 		}
 	}
 
