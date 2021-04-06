@@ -27,9 +27,9 @@ import lombok.extern.java.Log;
 @EqualsAndHashCode(callSuper = true)
 @Log
 public class MigrationScenario extends AdaptionScenario {
-	private static final long WAIT_FOR_END_TRAINING = 1500;
-	private static final long WAIT_UNTIL_CONTAINER_STOPPED = 5000;
-	private static final long WAIT_UNTIL_CONTAINER_UP = 10000;
+	private static final long WAIT_FOR_END_TRAINING = 5000;
+	private static final long WAIT_UNTIL_CONTAINER_STOPPED = 7000;
+	private static final long WAIT_UNTIL_CONTAINER_UP = 15000;
 
 	private static DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
 			.withDockerHost("tcp://localhost:2375").build();
