@@ -27,7 +27,9 @@ public class AdaptionScenarioOrchestrator {
 	private ScheduledExecutorService scenarioExecutionService;
 	private DefaultHttpClient http;
 	private ObjectMapper objectMapper;
+
 	private LoadProfileType currentLoadProfile;
+	private LoadProfileType initialLoadProfile;
 
 	public AdaptionScenarioOrchestrator() {
 		this.scenarioExecutionService = Executors.newSingleThreadScheduledExecutor();
@@ -86,6 +88,7 @@ public class AdaptionScenarioOrchestrator {
 		list.getInitialScenarios().forEach(initial -> {
 			if (initial instanceof UserBehaviorChangeScenario) {
 				this.currentLoadProfile = ((UserBehaviorChangeScenario) initial).getLoadType();
+				this.initialLoadProfile = ((UserBehaviorChangeScenario) initial).getLoadType();
 			}
 
 			initial.execute(config);
@@ -124,6 +127,8 @@ public class AdaptionScenarioOrchestrator {
 
 			if (scen instanceof UserBehaviorChangeScenario) {
 				this.currentLoadProfile = ((UserBehaviorChangeScenario) scen).getLoadType();
+			} else {
+				this.currentLoadProfile = this.initialLoadProfile;
 			}
 
 			// stop load before
