@@ -51,6 +51,7 @@ public class MigrationScenario extends AdaptionScenario {
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
 		// stop load
+		long start = System.currentTimeMillis();
 		try {
 			Thread.sleep(WAIT_FOR_END_TRAINING);
 		} catch (InterruptedException e) {
@@ -84,6 +85,8 @@ public class MigrationScenario extends AdaptionScenario {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		log.info("Migration needed " + String.valueOf((System.currentTimeMillis() - start) / 1000) + "s.");
 	}
 
 	private void performMigration(Container migrateContainer) {

@@ -109,9 +109,10 @@ public class AdaptionScenarioOrchestrator {
 			try {
 				PipelineUIState pipelineState = objectMapper.readValue(pipelineStatus, PipelineUIState.class);
 				if (pipelineState.isRunning()) {
-					executeSingleScenarioNow(list, config);
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 1000,
+							TimeUnit.MILLISECONDS);
 				} else {
-					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 500,
+					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 250,
 							TimeUnit.MILLISECONDS);
 				}
 			} catch (IOException e) {
