@@ -111,7 +111,7 @@ public class AdaptionScenarioOrchestrator {
 				if (pipelineState.isRunning()) {
 					// stop load instant
 					new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
-					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 5000,
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 10000,
 							TimeUnit.MILLISECONDS); // decouple to increase reprod
 				} else {
 					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 250,
