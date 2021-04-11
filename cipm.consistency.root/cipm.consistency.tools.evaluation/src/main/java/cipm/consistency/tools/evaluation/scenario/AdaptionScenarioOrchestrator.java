@@ -109,8 +109,10 @@ public class AdaptionScenarioOrchestrator {
 			try {
 				PipelineUIState pipelineState = objectMapper.readValue(pipelineStatus, PipelineUIState.class);
 				if (pipelineState.isRunning()) {
-					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 2500,
-							TimeUnit.MILLISECONDS);
+					// stop load instant
+					new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 5000,
+							TimeUnit.MILLISECONDS); // decouple to increase reprod
 				} else {
 					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 250,
 							TimeUnit.MILLISECONDS);
@@ -132,8 +134,6 @@ public class AdaptionScenarioOrchestrator {
 				this.currentLoadProfile = this.initialLoadProfile;
 			}
 
-			// stop load before
-			new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
 			try {
 				scen.execute(config);
 			} catch (Exception e) {
