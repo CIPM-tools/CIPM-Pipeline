@@ -96,9 +96,8 @@ public class AdaptionScenarioOrchestrator {
 
 		log.info("Scheduling all scenarios and wait for their execution.");
 		// start executing all others
-		scenarioExecutionService.scheduleAtFixedRate(() -> executeSingleScenario(list, config),
-				Math.round(config.getSecondsBetweenScenarios() * 0.9f), config.getSecondsBetweenScenarios(),
-				TimeUnit.SECONDS);
+		scenarioExecutionService.schedule(() -> executeSingleScenario(list, config),
+				Math.round(config.getSecondsBetweenScenarios() * 0.9f), TimeUnit.SECONDS);
 	}
 
 	private void executeSingleScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
@@ -111,8 +110,12 @@ public class AdaptionScenarioOrchestrator {
 				if (pipelineState.isRunning()) {
 					// stop load instant
 					new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
-					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 10000,
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 2000,
 							TimeUnit.MILLISECONDS); // decouple to increase reprod
+
+					// schedule next execution of scenario (syncs automatically with pipeline)
+					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config),
+							Math.round(config.getSecondsBetweenScenarios() * 0.9f), TimeUnit.SECONDS);
 				} else {
 					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 250,
 							TimeUnit.MILLISECONDS);
