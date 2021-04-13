@@ -38,7 +38,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ReplicationScenario extends AdaptionScenario {
-	private static final long WAIT_UNTIL_REPLICATED = 20000;
+	private static final long WAIT_UNTIL_REPLICATED = 30000;
 
 	private ReplicationComponentType component;
 	private int newAmount;
