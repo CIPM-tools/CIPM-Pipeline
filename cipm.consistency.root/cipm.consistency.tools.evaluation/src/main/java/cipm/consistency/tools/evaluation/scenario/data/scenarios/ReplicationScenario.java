@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
 import org.palladiosimulator.pcm.allocation.AllocationFactory;
 import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
@@ -19,6 +20,7 @@ import org.palladiosimulator.pcm.resourceenvironment.CommunicationLinkResourceSp
 import org.palladiosimulator.pcm.resourceenvironment.LinkingResource;
 import org.palladiosimulator.pcm.resourceenvironment.ProcessingResourceSpecification;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
+import org.palladiosimulator.pcm.resourceenvironment.ResourceEnvironment;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceenvironmentFactory;
 import org.palladiosimulator.pcm.resourcetype.ProcessingResourceType;
 
@@ -183,6 +185,7 @@ public class ReplicationScenario extends AdaptionScenario {
 				linkRes.getConnectedResourceContainers_LinkingResource().add(emptyContainer);
 				linkRes.getConnectedResourceContainers_LinkingResource()
 						.add(registryACtx.getResourceContainer_AllocationContext());
+				copy.getResourceEnvironmentModel().getLinkingResources__ResourceEnvironment().add(linkRes);
 			}
 		} else if (count > newAmount) {
 			// remove last assembly that is connected to registry
@@ -233,7 +236,33 @@ public class ReplicationScenario extends AdaptionScenario {
 
 		}
 
+		refreshResourceEnvironment(copy.getResourceEnvironmentModel(), copy.getAllocationModel());
+
 		return copy;
+	}
+
+	private void refreshResourceEnvironment(ResourceEnvironment resourceEnvironmentModel, Allocation allocationModel) {
+		Set<String> allocatedContainerIds = allocationModel.getAllocationContexts_Allocation().stream()
+				.map(ac -> ac.getResourceContainer_AllocationContext().getId()).collect(Collectors.toSet());
+		List<ResourceContainer> containersToRemove = resourceEnvironmentModel.getResourceContainer_ResourceEnvironment()
+				.stream().filter(rc -> !allocatedContainerIds.contains(rc.getId())).collect(Collectors.toList());
+
+		List<LinkingResource> linksToRemove = Lists.newArrayList();
+		for (ResourceContainer rcToRemove : containersToRemove) {
+			resourceEnvironmentModel.getResourceContainer_ResourceEnvironment().remove(rcToRemove);
+			for (LinkingResource link : resourceEnvironmentModel.getLinkingResources__ResourceEnvironment()) {
+				if (link.getConnectedResourceContainers_LinkingResource().contains(rcToRemove)) {
+					link.getConnectedResourceContainers_LinkingResource().remove(rcToRemove);
+				}
+				if (link.getConnectedResourceContainers_LinkingResource().size() < 2) {
+					linksToRemove.add(link);
+				}
+			}
+		}
+
+		for (LinkingResource lc : linksToRemove) {
+			resourceEnvironmentModel.getLinkingResources__ResourceEnvironment().remove(lc);
+		}
 	}
 
 	private LinkingResource buildNewDefaultLink() {

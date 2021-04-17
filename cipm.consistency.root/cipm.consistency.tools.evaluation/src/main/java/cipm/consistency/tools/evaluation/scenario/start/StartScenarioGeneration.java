@@ -18,7 +18,7 @@ public class StartScenarioGeneration {
 		PCMUtils.loadPCMModels();
 
 		AdaptionScenarioGenerationConfig config = AdaptionScenarioGenerationConfig.builder()
-				.referenceModelFolder("scenarios/demo_scenario1/ref_models").build();
+				.referenceModelFolder("scenarios/demo_scenario_new/ref_models").build();
 
 		LocalFilesystemPCM teastoreInitialPCM = new LocalFilesystemPCM();
 		teastoreInitialPCM.setRepositoryFile(new File("teastore_models/teastore.repository"));
@@ -32,7 +32,7 @@ public class StartScenarioGeneration {
 
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			mapper.writeValue(new File("scenarios/demo_scenario1/scenario.json"), output);
+			mapper.writeValue(new File("scenarios/demo_scenario_new/scenario.json"), output);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
