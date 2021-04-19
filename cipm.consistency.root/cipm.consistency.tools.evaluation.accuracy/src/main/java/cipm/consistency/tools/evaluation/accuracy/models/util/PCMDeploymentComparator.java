@@ -2,6 +2,8 @@ package cipm.consistency.tools.evaluation.accuracy.models.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
@@ -39,18 +41,25 @@ public class PCMDeploymentComparator {
 				+ actual.getAllocationContexts_Allocation().size() - matches;
 
 		// check links
+		Set<String> usedContainerIds = actual.getAllocationContexts_Allocation().stream()
+				.map(ac -> ac.getResourceContainer_AllocationContext().getId()).collect(Collectors.toSet());
 		int linkmatches = 0;
 		int linkcomparisons = 0;
 		for (LinkingResource lr1 : actual.getTargetResourceEnvironment_Allocation()
 				.getLinkingResources__ResourceEnvironment()) {
-			boolean any = expected.getTargetResourceEnvironment_Allocation().getLinkingResources__ResourceEnvironment()
-					.stream().anyMatch(lr2 -> linkEqual(actualToExpectedMapping, lr1, lr2));
-			if (any) {
-				linkmatches++;
-			} else {
-				log.info("Could not find corresponding link for link for ID '" + lr1.getId() + "'.");
+			boolean isConsidered = lr1.getConnectedResourceContainers_LinkingResource().stream()
+					.allMatch(rc -> usedContainerIds.contains(rc.getId()));
+			if (isConsidered) {
+				boolean any = expected.getTargetResourceEnvironment_Allocation()
+						.getLinkingResources__ResourceEnvironment().stream()
+						.anyMatch(lr2 -> linkEqual(actualToExpectedMapping, lr1, lr2));
+				if (any) {
+					linkmatches++;
+				} else {
+					log.info("Could not find corresponding link for link for ID '" + lr1.getId() + "'.");
+				}
+				linkcomparisons++;
 			}
-			linkcomparisons++;
 		}
 
 		return (double) (linkmatches + matches) / (double) (linkcomparisons + comparisons);
