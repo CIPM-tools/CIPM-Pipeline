@@ -47,16 +47,14 @@ public class UserBehaviorChangeScenario extends AdaptionScenario {
 				if (loadType == LoadProfileType.NONE) {
 					// stop it
 					String finalUrl = baseUrl + "stop";
-					if (http.isReachable(finalUrl)) {
-						http.getRequest(finalUrl, Maps.newHashMap());
+					if (http.getRequest(finalUrl, Maps.newHashMap()) != null) {
 						success = true;
 					}
 				} else {
 					String finalUrl = baseUrl + "start";
 					Map<String, String> attributes = Maps.newHashMap();
 					attributes.put("file", loadType.getName());
-					if (http.isReachable(finalUrl)) {
-						http.getRequest(finalUrl, attributes);
+					if (http.getRequest(finalUrl, attributes) != null) {
 						success = true;
 					}
 				}
