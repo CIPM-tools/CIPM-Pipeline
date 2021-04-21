@@ -49,7 +49,7 @@ public class UserBehaviorChangeScenario extends AdaptionScenario {
 					String finalUrl = baseUrl + "stop";
 					if (http.isReachable(finalUrl)) {
 						http.getRequest(finalUrl, Maps.newHashMap());
-						http.getRequest(finalUrl, Maps.newHashMap());
+						success = true;
 					}
 				} else {
 					String finalUrl = baseUrl + "start";
@@ -57,7 +57,7 @@ public class UserBehaviorChangeScenario extends AdaptionScenario {
 					attributes.put("file", loadType.getName());
 					if (http.isReachable(finalUrl)) {
 						http.getRequest(finalUrl, attributes);
-						http.getRequest(finalUrl, attributes);
+						success = true;
 					}
 				}
 			} catch (Exception e) {
