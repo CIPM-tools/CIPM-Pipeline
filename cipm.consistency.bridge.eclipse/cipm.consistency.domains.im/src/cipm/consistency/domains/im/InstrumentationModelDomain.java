@@ -1,4 +1,4 @@
-package cipm.consistency.base.vsum.domains;
+package cipm.consistency.domains.im;
 
 import java.util.HashMap;
 import java.util.Map;

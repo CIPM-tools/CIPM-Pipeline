@@ -1,4 +1,4 @@
-package cipm.consistency.base.models.inmodel;
+package cipm.consistency.models.instrumentation;
 
 import java.util.ArrayList;
 import java.util.List;
