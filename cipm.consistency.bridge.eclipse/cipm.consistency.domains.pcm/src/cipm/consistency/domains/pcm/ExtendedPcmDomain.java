@@ -17,6 +17,8 @@ public class ExtendedPcmDomain extends AbstractVitruvDomain {
 	private static final String RESOURCEENVIRONMENT_FILE_EXTENSION = "resourceenvironment";
 	private static final String ALLOCATION_FILE_EXTENSION = "allocation";
 	private static final String USAGEMODEL_FILE_EXTENSION = "usagemodel";
+	
+	private boolean shouldTransitivelyPropagateChanges = false;
 
 	public ExtendedPcmDomain() {
 		super(METAMODEL_NAME, PcmNamespace.ROOT_PACKAGE, generateExtensionList());
@@ -36,5 +38,17 @@ public class ExtendedPcmDomain extends AbstractVitruvDomain {
 		loadOptions.put(XMLResource.OPTION_USE_PARSER_POOL, new XMLParserPoolImpl());
 		loadOptions.put(XMLResource.OPTION_USE_XML_NAME_TO_FEATURE_MAP, new HashMap<>());
 		return loadOptions;
+	}
+	
+	@Override
+	public boolean shouldTransitivelyPropagateChanges() {
+		return this.shouldTransitivelyPropagateChanges;
+	}
+	
+	/**
+	 * Enables the transitive change propagation.
+	 */
+	public void enableTransitiveChangePropagation() {
+		this.shouldTransitivelyPropagateChanges = true;
 	}
 }
