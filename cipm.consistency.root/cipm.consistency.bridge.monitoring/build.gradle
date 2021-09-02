@@ -12,6 +12,11 @@ dependencies {
 	api project(":cipm.consistency.base.shared")
 }
 
+task copyDependencies(type: Copy) {
+	from configurations.compileClasspath
+	into 'dependencies'
+}
+
 task packSources(type: Zip) {
     archiveFileName = new File(project.rootDir, "/dmodel.designtime.instrumentation/src/main/resources/monitoring-agent.zip").getAbsolutePath()
     from sourceSets*.allSource
