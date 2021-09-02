@@ -124,7 +124,7 @@ public class MonitoringAnalysisData {
 			writer.append(";");
 			writer.append(String.valueOf(avgLoops));
 			writer.append(";");
-			writer.append(String.valueOf(avgServiceCall));
+			writer.append(String.valueOf(avgInternals));
 			writer.append(System.lineSeparator());
 			writer.flush();
 			writer.close();
