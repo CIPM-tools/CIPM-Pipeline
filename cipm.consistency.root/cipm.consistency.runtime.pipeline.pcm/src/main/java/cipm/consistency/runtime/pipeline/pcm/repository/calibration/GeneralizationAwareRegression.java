@@ -1,19 +1,22 @@
 package cipm.consistency.runtime.pipeline.pcm.repository.calibration;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.palladiosimulator.pcm.core.CoreFactory;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import cipm.consistency.base.core.config.ModelCalibrationConfiguration;
 import cipm.consistency.base.shared.pcm.util.PCMUtils;
@@ -25,11 +28,12 @@ import cipm.consistency.runtime.pipeline.pcm.repository.noise.NormalDistribution
 import lombok.AllArgsConstructor;
 import smile.data.DataFrame;
 import smile.data.formula.Formula;
-import smile.regression.ElasticNet;
 import smile.regression.LinearModel;
+import smile.regression.OLS;
 
 public class GeneralizationAwareRegression implements IParametricRegression {
 	private static final double EPS = 1E-6;
+	private static final double NANO_TO_MS = 1000000;
 
 	private List<PCMSupportedMathFunction> supportedFunctions;
 
@@ -50,18 +54,16 @@ public class GeneralizationAwareRegression implements IParametricRegression {
 		this.prepareSupportedFunctions(config);
 
 		// parameter mapping
-		int numAttributes = 0;
-		Map<String, Integer> numAttributeMapping = Maps.newHashMap();
-		for (Pair<Map<String, Double>, Double> row : dataset.getRecords()) {
-			for (Entry<String, Double> e : row.getLeft().entrySet()) {
-				if (!numAttributeMapping.containsKey(e.getKey())) {
-					numAttributeMapping.put(e.getKey(), numAttributes++);
-				}
-			}
-		}
+		Map<String, Integer> numAttributeMapping = buildNumAttributeMapping(dataset);
+
+		// create filtered dataset
+		RegressionDataset filteredDataset = filterCorrelatingParameters(dataset, numAttributeMapping, config);
+
+		// update attributes
+		numAttributeMapping = buildNumAttributeMapping(filteredDataset);
 
 		// generate data (generate dataset)
-		double[][] data = generateDataset(dataset, numAttributeMapping);
+		double[][] data = generateDataset(filteredDataset, numAttributeMapping);
 		String[] labels = generateLabels(numAttributeMapping);
 
 		// filter constant columns
@@ -77,18 +79,21 @@ public class GeneralizationAwareRegression implements IParametricRegression {
 		DataFrame df = DataFrame.of(data, labels);
 		Formula formula = Formula.lhs("y");
 		// LinearModel model = ElasticNet.fit(formula, df, 0.9, 0.0053);
-		LinearModel model = ElasticNet.fit(formula, df, 0.1, 0.001);
+		// LinearModel model = ElasticNet.fit(formula, df, 0.1, 0.001);
 		// LinearModel model = LASSO.fit(formula, df);
+		LinearModel model = smile.regression.OLS.fit(formula, df);
 
 		// refit model
 		boolean filterable = true;
 
 		while (filterable) {
 			// cut data
-			double[] weights = model.coefficients();
-			List<Integer> filterColumns = IntStream.range(0, weights.length).filter(i -> {
-				return Math.abs(weights[i]) < config.getParameterSignificanceThreshold();
-			}).boxed().collect(Collectors.toList());
+			double[][] ttests = model.ttest();
+
+			List<Integer> filterColumns = IntStream.range(1, ttests.length).filter(i -> {
+				return Math.abs(ttests[i][3]) > config.getParameterSignificanceThreshold();
+			}).map(i -> i - 1).boxed().collect(Collectors.toList());
+
 			data = cutColumns(data, filterColumns);
 			labels = cutColumns(labels, filterColumns);
 
@@ -99,20 +104,24 @@ public class GeneralizationAwareRegression implements IParametricRegression {
 			}
 			df = DataFrame.of(data, labels);
 			formula = Formula.lhs("y");
-			model = ElasticNet.fit(formula, df, 0.1, 0.001);
+			model = OLS.fit(formula, df);
 			// model = LASSO.fit(formula, df);
 
 			// new ttests
-			filterable = Arrays.stream(model.coefficients())
-					.anyMatch(t -> Math.abs(t) < config.getParameterSignificanceThreshold());
+			double[][] ttestsf = model.ttest();
+			filterable = IntStream.range(1, ttestsf.length).anyMatch(i -> {
+				return Math.abs(ttestsf[i][3]) > config.getParameterSignificanceThreshold();
+			});
 		}
 
 		// noise step
 		double[] deviations = new double[data.length];
-		for (int i = 0; i < data.length; i++) {
-			double[] xValueCopy = new double[data[i].length - 1];
-			System.arraycopy(data[i], 0, xValueCopy, 0, data[i].length - 1);
+		double intercept = model.coefficients()[0];
 
+		for (int i = 0; i < data.length; i++) {
+			double[] xValueCopy = new double[data[i].length];
+			System.arraycopy(data[i], 0, xValueCopy, 1, data[i].length - 1);
+			xValueCopy[0] = 1;
 			deviations[i] = data[i][data[i].length - 1] - model.predict(xValueCopy);
 		}
 
@@ -123,23 +132,103 @@ public class GeneralizationAwareRegression implements IParametricRegression {
 		PCMRandomVariable linearModelStoex = generateLinearModelStoex(model, labels);
 		// combine stoexs
 		PCMRandomVariable linearModelAndNoiseStoex = CoreFactory.eINSTANCE.createPCMRandomVariable();
-		linearModelAndNoiseStoex.setSpecification("(" + linearModelStoex.getSpecification() + " + " + model.intercept()
-				+ ") + " + var.getSpecification());
+		linearModelAndNoiseStoex.setSpecification(
+				"(" + linearModelStoex.getSpecification() + " + " + intercept + ") + " + var.getSpecification());
 		linearModelAndNoiseStoex.setSpecification("Max(0.0," + linearModelAndNoiseStoex.getSpecification() + ")");
+
+		System.out.println(linearModelAndNoiseStoex.getSpecification());
 
 		return linearModelAndNoiseStoex;
 	}
 
+	private Map<String, Integer> buildNumAttributeMapping(RegressionDataset dataset) {
+		int numAttributes = 0;
+		Map<String, Integer> numAttributeMapping = Maps.newHashMap();
+		for (Pair<Map<String, Double>, Double> row : dataset.getRecords()) {
+			for (Entry<String, Double> e : row.getLeft().entrySet()) {
+				if (!numAttributeMapping.containsKey(e.getKey())) {
+					numAttributeMapping.put(e.getKey(), numAttributes++);
+				}
+			}
+		}
+		return numAttributeMapping;
+	}
+
+	private RegressionDataset filterCorrelatingParameters(RegressionDataset dataset,
+			Map<String, Integer> parameterMapping, ModelCalibrationConfiguration config) {
+		if (parameterMapping.size() < 2) {
+			return dataset;
+		}
+
+		double[][] matrix = new double[dataset.getRecords().size()][parameterMapping.size()];
+		int c = 0;
+		for (Pair<Map<String, Double>, Double> row : dataset.getRecords()) {
+			int cc = c;
+			for (Entry<String, Double> e : row.getLeft().entrySet()) {
+				int id = parameterMapping.get(e.getKey());
+				matrix[cc][id] = e.getValue();
+			}
+			c++;
+		}
+		if (matrix.length < 2 || matrix[0].length < 2) {
+			return dataset;
+		}
+
+		RealMatrix corrMatrix = new PearsonsCorrelation().computeCorrelationMatrix(matrix);
+
+		// investigate all above diagonal
+		Set<String> parametersToRemove = Sets.newHashSet();
+		String[] labels = generateRawLabels(parameterMapping);
+
+		for (int i = 1; i < corrMatrix.getColumnDimension(); i++) {
+			for (int j = 0; j < i; j++) {
+				double correlationValue = corrMatrix.getEntry(j, i);
+				if (correlationValue > config.getMaxParameterCorrelation()) {
+					// remove one of the two parameters
+					String parameter1 = labels[i];
+					String parameter2 = labels[j];
+
+					if (!parametersToRemove.contains(parameter1) && !parametersToRemove.contains(parameter2)) {
+						// we can remove one
+						parametersToRemove.add(parameter1);
+					}
+				}
+			}
+		}
+
+		// return if no changes
+		if (parametersToRemove.size() == 0) {
+			return dataset;
+		}
+
+		// build output dataset
+		RegressionDataset outDataset = new RegressionDataset(dataset.getActionId());
+		int k = 0;
+		for (Entry<Long, Pair<Map<String, Double>, Double>> row : dataset.getUnderlyingRecords().entrySet()) {
+			Map<String, Double> reducedMap = Maps.newHashMap();
+			row.getValue().getLeft().entrySet().forEach(e -> {
+				if (!parametersToRemove.contains(e.getKey())) {
+					reducedMap.put(e.getKey(), e.getValue());
+				}
+			});
+			outDataset.addTuple((long) (row.getKey() * NANO_TO_MS), String.valueOf(k++), reducedMap,
+					row.getValue().getRight());
+		}
+		outDataset.setContainedExecutionIds(dataset.getContainedExecutionIds());
+
+		return outDataset;
+	}
+
 	private PCMRandomVariable generateLinearModelStoex(LinearModel model, String[] labels) {
 		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < model.coefficients().length; i++) {
-			if (i > 0) {
+		for (int i = 1; i < model.coefficients().length; i++) {
+			if (i > 1) {
 				builder.append(" + ");
 			}
 			builder.append("(");
-			builder.append(String.valueOf(model.coefficients()[i]) + " * " + labels[i]);
+			builder.append(String.valueOf(model.coefficients()[i]) + " * " + labels[i - 1]);
 		}
-		for (int i = 0; i < model.coefficients().length; i++) {
+		for (int i = 1; i < model.coefficients().length; i++) {
 			builder.append(")");
 		}
 		PCMRandomVariable var = CoreFactory.eINSTANCE.createPCMRandomVariable();
@@ -184,6 +273,16 @@ public class GeneralizationAwareRegression implements IParametricRegression {
 		}
 
 		return result;
+	}
+
+	private String[] generateRawLabels(Map<String, Integer> parameterMapping) {
+		String[] labels = new String[parameterMapping.size()];
+		int id = 0;
+		for (Entry<String, Integer> e : parameterMapping.entrySet()) {
+			labels[id] = e.getKey();
+			id++;
+		}
+		return labels;
 	}
 
 	private String[] generateLabels(Map<String, Integer> parameterMapping) {

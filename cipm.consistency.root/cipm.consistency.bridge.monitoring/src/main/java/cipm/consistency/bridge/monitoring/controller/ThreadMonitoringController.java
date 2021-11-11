@@ -34,6 +34,7 @@ import kieker.common.configuration.Configuration;
 import kieker.monitoring.core.configuration.ConfigurationFactory;
 import kieker.monitoring.core.controller.IMonitoringController;
 import kieker.monitoring.core.controller.MonitoringController;
+import kieker.monitoring.core.controller.WriterController;
 import kieker.monitoring.core.sampler.ScheduledSamplerJob;
 import kieker.monitoring.timer.ITimeSource;
 import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
@@ -41,7 +42,8 @@ import kieker.monitoring.writer.tcp.SingleSocketTcpWriter;
 // this should be java 7 compatible to be usable with all kinds of applications
 public class ThreadMonitoringController {
 	private static IMonitoringController MONITORING_CONTROLLER;
-	private static final ThreadMonitoringController instance;
+	private static ThreadMonitoringController instance;
+	private static ITimeSource TIME_SOURCE;
 
 	static {
 		createMonitoringController();
@@ -51,7 +53,24 @@ public class ThreadMonitoringController {
 		instance.registerCpuSampler();
 	}
 
-	private static final ITimeSource TIME_SOURCE = MONITORING_CONTROLLER.getTimeSource();
+	public static void shutdown() {
+		if (instance != null) {
+			instance.unregisterCpuSampler();
+			instance.unregisterInstrumentationModelPoll();
+			MONITORING_CONTROLLER.terminateMonitoring();
+		}
+	}
+
+	public static void mockingMode() {
+		createMonitoringController();
+		instance = new ThreadMonitoringController();
+		instance.registerCpuSampler();
+	}
+
+	public static void mockingIds(Set<String> monitoredIds) {
+		instance.monitoredIds = monitoredIds;
+		instance.monitoredIdsInited = true;
+	}
 
 	private final IDFactory idFactory;
 	private final IScaleController scaleController;
@@ -123,13 +142,14 @@ public class ThreadMonitoringController {
 		configuration.setProperty(ConfigurationFactory.METADATA, "true");
 		configuration.setProperty(ConfigurationFactory.AUTO_SET_LOGGINGTSTAMP, "true");
 		configuration.setProperty(ConfigurationFactory.WRITER_CLASSNAME, SingleSocketTcpWriter.class.getName());
-		// configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "5");
+		configuration.setProperty(WriterController.RECORD_QUEUE_SIZE, "1");
 		configuration.setProperty(SingleSocketTcpWriter.CONFIG_FLUSH, "true");
 		configuration.setProperty(ConfigurationFactory.TIMER_CLASSNAME, "kieker.monitoring.timer.SystemMilliTimer");
 		configuration.setProperty(SingleSocketTcpWriter.CONFIG_HOSTNAME, MonitoringConfiguration.SERVER_HOSTNAME);
 		// configuration.setProperty(AsciiFileWriter.CONFIG_PATH, OUTPATH);
 
 		MONITORING_CONTROLLER = MonitoringController.createInstance(configuration);
+		TIME_SOURCE = MONITORING_CONTROLLER.getTimeSource();
 	}
 
 	public MonitoringAnalysisData getAnalysisData() {
@@ -165,6 +185,10 @@ public class ThreadMonitoringController {
 				}
 			}
 		}, 15, 15, TimeUnit.SECONDS);
+	}
+
+	public void unregisterInstrumentationModelPoll() {
+		execService.shutdown();
 	}
 
 	private void pollInstrumentationModel() {
@@ -205,6 +229,9 @@ public class ThreadMonitoringController {
 	}
 
 	public String getCurrentTraceId() {
+		if (this.serviceCallStack.get().empty()) {
+			return null;
+		}
 		return this.serviceCallStack.get().peek().serviceExecutionId;
 	}
 

@@ -17,5 +17,7 @@ public class ModelCalibrationConfiguration {
 	private float outlierPercentile = 1;
 	private float noiseOutlierPercentile = 5;
 	private int noiseStrategy = 0; // 0 = normal distr, 1 = deviation
+	
+	private double maxParameterCorrelation = 0.8;
 
 }

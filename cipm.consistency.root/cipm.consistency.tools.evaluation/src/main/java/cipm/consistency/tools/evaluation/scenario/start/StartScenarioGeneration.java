@@ -17,24 +17,31 @@ public class StartScenarioGeneration {
 	public static void main(String[] args) {
 		PCMUtils.loadPCMModels();
 
-		AdaptionScenarioGenerationConfig config = AdaptionScenarioGenerationConfig.builder()
-				.referenceModelFolder("scenarios/demo_scenario_new/ref_models").build();
+		int startCount = 0;
+		int scenarioCount = 10;
 
-		LocalFilesystemPCM teastoreInitialPCM = new LocalFilesystemPCM();
-		teastoreInitialPCM.setRepositoryFile(new File("teastore_models/teastore.repository"));
-		teastoreInitialPCM.setAllocationModelFile(new File("teastore_models/teastore.allocation"));
-		teastoreInitialPCM.setResourceEnvironmentFile(new File("teastore_models/teastore.resourceenvironment"));
-		teastoreInitialPCM.setSystemFile(new File("teastore_models/teastore.system"));
-		teastoreInitialPCM.setUsageModelFile(new File("teastore_models/teastore.usagemodel"));
+		for (int i = startCount; i < scenarioCount + startCount; i++) {
+			String k = String.valueOf(i + 1);
 
-		AdaptionScenarioList output = new AdaptionScenarioGenerator().generateScenarioList(config,
-				InMemoryPCM.createFromFilesystem(teastoreInitialPCM));
+			AdaptionScenarioGenerationConfig config = AdaptionScenarioGenerationConfig.builder()
+					.referenceModelFolder("scenarios/demo_scenario" + k + "/ref_models").build();
 
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			mapper.writeValue(new File("scenarios/demo_scenario_new/scenario.json"), output);
-		} catch (IOException e) {
-			e.printStackTrace();
+			LocalFilesystemPCM teastoreInitialPCM = new LocalFilesystemPCM();
+			teastoreInitialPCM.setRepositoryFile(new File("teastore_models/teastore.repository"));
+			teastoreInitialPCM.setAllocationModelFile(new File("teastore_models/teastore.allocation"));
+			teastoreInitialPCM.setResourceEnvironmentFile(new File("teastore_models/teastore.resourceenvironment"));
+			teastoreInitialPCM.setSystemFile(new File("teastore_models/teastore.system"));
+			teastoreInitialPCM.setUsageModelFile(new File("teastore_models/teastore.usagemodel"));
+
+			AdaptionScenarioList output = new AdaptionScenarioGenerator().generateScenarioList(config,
+					InMemoryPCM.createFromFilesystem(teastoreInitialPCM));
+
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				mapper.writeValue(new File("scenarios/demo_scenario" + k + "/scenario.json"), output);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 	}

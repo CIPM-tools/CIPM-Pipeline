@@ -52,6 +52,9 @@ public class ModelAccuracyEvaluationTeaStore {
 		PCMDeploymentComparator comparator2 = new PCMDeploymentComparator();
 
 		// sync offset
+		int itOffset = 0;
+		int itLimit = 10;
+
 		int syncOffset = 3;
 		File[] executionFolders = experimentExecutionFolder.listFiles();
 		File[] scenarioFolders = experimentScenariosFolder.listFiles();
@@ -60,14 +63,14 @@ public class ModelAccuracyEvaluationTeaStore {
 		Arrays.sort(scenarioFolders, fileComparator);
 
 		if (executionFolders.length == scenarioFolders.length) {
-			for (int i = 0; i < executionFolders.length; i++) {
+			for (int i = itOffset; i < Math.min(executionFolders.length, itLimit); i++) {
 				File referenceModelContainer = new File(scenarioFolders[i], referenceModelsPath);
 				File executionModelContainer = new File(executionFolders[i], modelsPath);
 				File[] referenceModelIterations = referenceModelContainer.listFiles();
 				Arrays.sort(referenceModelIterations, fileComparator);
 
 				for (int k = 0; k < Math.min(referenceModelIterations.length,
-						executionModelContainer.listFiles().length / 5 - syncOffset); k++) {
+						executionModelContainer.listFiles().length / 5 - syncOffset + 1); k++) {
 					log.info("Comparing reference model " + k + " to derived model.");
 
 					File referenceModelSystem = new File(referenceModelIterations[k], "system.system");
@@ -95,6 +98,9 @@ public class ModelAccuracyEvaluationTeaStore {
 
 		// print results
 		log.info(jcs.toString());
+
+		// print aggregated results
+		log.info(String.valueOf(jcs.stream().allMatch(d -> d >= 1.0d)));
 
 	}
 

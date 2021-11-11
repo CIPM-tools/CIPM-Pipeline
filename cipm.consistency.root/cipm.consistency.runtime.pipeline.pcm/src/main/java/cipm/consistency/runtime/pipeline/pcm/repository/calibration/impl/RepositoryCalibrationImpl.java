@@ -22,6 +22,7 @@ import cipm.consistency.runtime.pipeline.pcm.repository.calibration.Generalizati
 import cipm.consistency.runtime.pipeline.pcm.repository.calibration.RepositoryStoexChanges;
 import cipm.consistency.runtime.pipeline.pcm.repository.outlier.NumericOutlierDetection;
 import cipm.consistency.runtime.pipeline.validation.data.ValidationData;
+import lombok.Setter;
 import lombok.extern.java.Log;
 
 @Component
@@ -34,6 +35,7 @@ public class RepositoryCalibrationImpl implements IRepositoryCalibration, Initia
 	private Map<String, RegressionDataset> existingRegressionSets;
 
 	@Autowired
+	@Setter
 	private ConfigurationContainer config;
 
 	public RepositoryCalibrationImpl() {
@@ -45,6 +47,11 @@ public class RepositoryCalibrationImpl implements IRepositoryCalibration, Initia
 	@Override
 	public RepositoryStoexChanges calibrateRepository(List<PCMContextRecord> data, IPCMQueryFacade pcm,
 			ValidationData validation, Set<String> fineGraindInstrumentedServiceIds) {
+		return this.calibrateRepository(data, pcm, validation, fineGraindInstrumentedServiceIds, System.currentTimeMillis());
+	}
+	
+	public RepositoryStoexChanges calibrateRepository(List<PCMContextRecord> data, IPCMQueryFacade pcm,
+			ValidationData validation, Set<String> fineGraindInstrumentedServiceIds, long currentTs) {
 		log.info("Start resource demand calibration.");
 		RepositoryStoexChanges derivedChanges = new RepositoryStoexChanges();
 
@@ -52,7 +59,7 @@ public class RepositoryCalibrationImpl implements IRepositoryCalibration, Initia
 		List<RegressionDataset> nDatasets = executionTimesExtractor.mergeDatasets(existingRegressionSets, data);
 
 		for (RegressionDataset dataset : nDatasets) {
-			dataset.cutData(config.getCalibration().getRegressionHorizon());
+			dataset.cutData(config.getCalibration().getRegressionHorizon(), currentTs);
 
 			try {
 				log.info("Filter outliers.");
