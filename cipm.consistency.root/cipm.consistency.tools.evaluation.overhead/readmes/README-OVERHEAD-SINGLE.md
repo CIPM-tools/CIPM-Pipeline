@@ -7,7 +7,7 @@ Here, we describe how the measurements can be performed and introduce the result
 ### 1. Perform overhead measurements
 The execution of the measurements is very easy. Just execute the "EvaluationOverheadSingleMocked" class within the "cipm.consistency.tools.evaluation.overhead" package, which is located in the project named "cipm.consistency.tools.evaluation.overhead".
 
-**IMPORTANT:**Sometimes the measurement throws exceptions and freezes within this state. If you experience this problem, please stop the measurement and execute it again. The exceptions are related to the network transfer of Kieker records and are somehow related to some threading stuff (probably because the server that receives the records runs in the same process).
+**IMPORTANT:** Sometimes the measurement throws exceptions and freezes within this state. If you experience this problem, please stop the measurement and execute it again. The exceptions are related to the network transfer of Kieker records and are somehow related to some threading stuff (probably because the server that receives the records runs in the same process).
 
 ### 2. Summarized results
 The following listing shows the respective overheads in milliseconds (median) and the corresponding standard deviations:
