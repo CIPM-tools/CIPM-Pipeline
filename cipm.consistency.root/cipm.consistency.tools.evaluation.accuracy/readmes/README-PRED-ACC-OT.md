@@ -1,5 +1,5 @@
 ## Prediction Accuracy of the System/Environment/Allocation Model at Operation-Time
-Our approach is capable of updating all parts of the PCM at operation-time by collecting and processing monitoring data. In addition to the evaluation of the model accuracy (described [here](https://github.com/CIPM-tools/CIPM-Pipeline/blob/master/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/README-MODEL-ACC-OT.md), we also analyzed whether the performance predictions that result from the simulation of the updated models, are consistent with what we see in the monitoring data. The experiment setup is the same as [before](https://github.com/CIPM-tools/CIPM-Pipeline/blob/master/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/README-MODEL-ACC-OT.md). We used the TeaStore case study and executed change scenarios at operation-time.
+Our approach is capable of updating all parts of the PCM at operation-time by collecting and processing monitoring data. In addition to the evaluation of the model accuracy (described [here](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/README-MODEL-ACC-OT.md), we also analyzed whether the performance predictions that result from the simulation of the updated models, are consistent with what we see in the monitoring data. The experiment setup is the same as [before](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/README-MODEL-ACC-OT.md). We used the TeaStore case study and executed change scenarios at operation-time.
 
 In the following, we first describe the evaluation data that we want to collect. Second, we introduce how the experiments can be reproduced (application of change scenarios, collection of monitoring data, ...). The second step can be skipped, as it is very time-consuming and we provide the data that arose during the execution of the experiments in our environment. Third, we explain how the metrics can be calculated, and finally, we provide the results that were obtained from the third step in our setup.
 
@@ -19,7 +19,7 @@ In the following, we first describe the evaluation data that we want to collect.
 Requires an error-free setup of our Gradle project (see [Setup using Gradle](https://github.com/CIPM-tools/CIPM-Pipeline/wiki/Setup-using-Gradle))
 ***
 
-Please follow this [link](https://github.com/CIPM-tools/CIPM-Pipeline/blob/master/cipm.consistency.root/cipm.consistency.tools.evaluation.docker/teastore/README.md) to access information on how to perform the experiment.
+Please follow this [link](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.docker/teastore/README.md) to access information on how to perform the experiment.
 
 ### 3. Calculate Metrics
 ***
@@ -58,4 +58,4 @@ Afterwards, you can simply execute the script within your Python environment and
 ### 4. Summarized Results
 Because the simulations of the models are depending on the sample process of stochastic expressions, every execution of the script provides different results, but the shape of the curves always looks similar, as follows:
 
-![Wasserstein distance over time, exemplary](TODO)
+![Wasserstein distance over time, exemplary](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/exemplary/ws_ot.png?raw=true)
