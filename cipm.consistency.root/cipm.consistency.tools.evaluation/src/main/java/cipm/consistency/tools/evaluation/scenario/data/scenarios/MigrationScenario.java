@@ -29,7 +29,7 @@ import lombok.extern.java.Log;
 public class MigrationScenario extends AdaptionScenario {
 	private static final long WAIT_FOR_END_TRAINING = 5000;
 	private static final long WAIT_UNTIL_CONTAINER_STOPPED = 7000;
-	private static final long WAIT_UNTIL_CONTAINER_UP = 15000;
+	private static final long WAIT_UNTIL_CONTAINER_UP = 30000;
 
 	private static DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
 			.withDockerHost("tcp://localhost:2375").build();
@@ -51,6 +51,7 @@ public class MigrationScenario extends AdaptionScenario {
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
 		// stop load
+		long start = System.currentTimeMillis();
 		try {
 			Thread.sleep(WAIT_FOR_END_TRAINING);
 		} catch (InterruptedException e) {
@@ -84,6 +85,8 @@ public class MigrationScenario extends AdaptionScenario {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		log.info("Migration needed " + String.valueOf((System.currentTimeMillis() - start) / 1000) + "s.");
 	}
 
 	private void performMigration(Container migrateContainer) {

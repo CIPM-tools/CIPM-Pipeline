@@ -2,6 +2,8 @@ package cipm.consistency.tools.evaluation.accuracy.models.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.palladiosimulator.pcm.allocation.Allocation;
 import org.palladiosimulator.pcm.allocation.AllocationContext;
@@ -11,7 +13,10 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Maps;
 
+import lombok.extern.java.Log;
+
 @Service
+@Log
 public class PCMDeploymentComparator {
 
 	// JACCARD COEFFICIENT
@@ -27,6 +32,8 @@ public class PCMDeploymentComparator {
 
 			if (any) {
 				matches++;
+			} else {
+				log.info("Could not find corresponding allocation context for AC with ID '" + ac1.getId() + "'.");
 			}
 		}
 
@@ -34,20 +41,26 @@ public class PCMDeploymentComparator {
 				+ actual.getAllocationContexts_Allocation().size() - matches;
 
 		// check links
+		Set<String> usedContainerIds = actual.getAllocationContexts_Allocation().stream()
+				.map(ac -> ac.getResourceContainer_AllocationContext().getId()).collect(Collectors.toSet());
 		int linkmatches = 0;
 		int linkcomparisons = 0;
 		for (LinkingResource lr1 : actual.getTargetResourceEnvironment_Allocation()
 				.getLinkingResources__ResourceEnvironment()) {
-			boolean any = expected.getTargetResourceEnvironment_Allocation().getLinkingResources__ResourceEnvironment()
-					.stream().anyMatch(lr2 -> linkEqual(actualToExpectedMapping, lr1, lr2));
-			if (any) {
-				linkmatches++;
+			boolean isConsidered = lr1.getConnectedResourceContainers_LinkingResource().stream()
+					.allMatch(rc -> usedContainerIds.contains(rc.getId()));
+			if (isConsidered) {
+				boolean any = expected.getTargetResourceEnvironment_Allocation()
+						.getLinkingResources__ResourceEnvironment().stream()
+						.anyMatch(lr2 -> linkEqual(actualToExpectedMapping, lr1, lr2));
+				if (any) {
+					linkmatches++;
+				} else {
+					log.info("Could not find corresponding link for link for ID '" + lr1.getId() + "'.");
+				}
+				linkcomparisons++;
 			}
 		}
-		linkcomparisons = expected.getTargetResourceEnvironment_Allocation().getLinkingResources__ResourceEnvironment()
-				.size()
-				+ actual.getTargetResourceEnvironment_Allocation().getLinkingResources__ResourceEnvironment().size()
-				- linkmatches;
 
 		return (double) (linkmatches + matches) / (double) (linkcomparisons + comparisons);
 	}
@@ -76,8 +89,8 @@ public class PCMDeploymentComparator {
 
 	private boolean allocationContextEqual(AllocationContext ac1, AllocationContext ac2,
 			Map<ResourceContainer, ResourceContainer> actualToExpectedMapping) {
-		return ac1.getAssemblyContext_AllocationContext().getId()
-				.equals(ac2.getAssemblyContext_AllocationContext().getId())
+		return ac1.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext().getId()
+				.equals(ac2.getAssemblyContext_AllocationContext().getEncapsulatedComponent__AssemblyContext().getId())
 				&& containerEqual(ac1.getResourceContainer_AllocationContext(), ac1.getAllocation_AllocationContext(),
 						ac2.getResourceContainer_AllocationContext(), ac2.getAllocation_AllocationContext(),
 						actualToExpectedMapping);
@@ -85,6 +98,12 @@ public class PCMDeploymentComparator {
 
 	private boolean containerEqual(ResourceContainer container1, Allocation allocation1, ResourceContainer container2,
 			Allocation allocation2, Map<ResourceContainer, ResourceContainer> actualToExpectedMapping) {
+		if (actualToExpectedMapping.containsKey(container1)) {
+			return actualToExpectedMapping.get(container1) == container2;
+		} else if (actualToExpectedMapping.containsKey(container2)) {
+			return actualToExpectedMapping.get(container2) == container1;
+		}
+
 		Map<String, Integer> acMapping1 = new HashMap<>();
 		Map<String, Integer> acMapping2 = new HashMap<>();
 

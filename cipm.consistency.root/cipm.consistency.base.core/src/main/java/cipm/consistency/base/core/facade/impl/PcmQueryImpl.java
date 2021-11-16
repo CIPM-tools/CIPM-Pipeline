@@ -11,6 +11,7 @@ import cipm.consistency.base.core.facade.pcm.IResourceEnvironmentQueryFacade;
 import cipm.consistency.base.core.facade.pcm.ISystemQueryFacade;
 import cipm.consistency.base.core.facade.pcm.IUsageQueryFacade;
 import cipm.consistency.base.shared.pcm.InMemoryPCM;
+import lombok.Setter;
 
 /**
  * Implementation according to {@link IPCMQueryFacade}. This implementation can
@@ -25,6 +26,7 @@ public class PcmQueryImpl implements IPCMQueryFacade {
 	 * Facade for accessing/modifying the repository model.
 	 */
 	@Autowired
+	@Setter
 	private IRepositoryQueryFacade repositoryQueryFacade;
 
 	/**

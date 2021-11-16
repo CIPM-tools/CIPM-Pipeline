@@ -19,6 +19,7 @@ import cipm.consistency.bridge.monitoring.records.ResponseTimeRecord;
 import cipm.consistency.bridge.monitoring.records.ServiceCallRecord;
 import cipm.consistency.bridge.monitoring.util.ServiceParametersWrapper;
 import lombok.Getter;
+import lombok.Setter;
 
 // TODO code duplication
 public class ExecutionTimesExtractor {
@@ -73,15 +74,18 @@ public class ExecutionTimesExtractor {
 		private SortedMap<Long, Pair<Map<String, Double>, Double>> records;
 		@Getter
 		private String actionId;
+
+		@Setter
+		@Getter
 		private Set<String> containedExecutionIds;
 
-		private RegressionDataset(String actionId) {
+		RegressionDataset(String actionId) {
 			this.records = new TreeMap<>();
 			this.actionId = actionId;
 			this.containedExecutionIds = Sets.newHashSet();
 		}
 
-		private boolean addTuple(long timestamp, String serviceExecutionId, Map<String, Double> parameters,
+		public boolean addTuple(long timestamp, String serviceExecutionId, Map<String, Double> parameters,
 				double executionTime) {
 			if (!containedExecutionIds.contains(serviceExecutionId)) {
 				this.containedExecutionIds.add(serviceExecutionId);
@@ -96,12 +100,15 @@ public class ExecutionTimesExtractor {
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b, TreeMap::new));
 		}
 
+		public SortedMap<Long, Pair<Map<String, Double>, Double>> getUnderlyingRecords() {
+			return records;
+		}
+
 		public List<Pair<Map<String, Double>, Double>> getRecords() {
 			return this.records.entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
 		}
 
-		public void cutData(long windowSizeSeconds) {
-			long currentTime = System.currentTimeMillis();
+		public void cutData(long windowSizeSeconds, long currentTime) {
 			this.records.headMap(currentTime - windowSizeSeconds * 1000).clear();
 		}
 	}

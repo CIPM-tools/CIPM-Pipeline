@@ -19,7 +19,9 @@ import lombok.extern.java.Log;
 @Log
 @EqualsAndHashCode(callSuper = true)
 public class UserBehaviorChangeScenario extends AdaptionScenario {
-	private static DefaultHttpClient http = new DefaultHttpClient(5000L);
+	private static DefaultHttpClient http = new DefaultHttpClient(10000L);
+	private static final int maxRetries = 5;
+	private static final long WAIT_UNTIL_RETRY = 3000;
 
 	private LoadProfileType loadType;
 
@@ -34,21 +36,39 @@ public class UserBehaviorChangeScenario extends AdaptionScenario {
 
 	@Override
 	public void execute(AdaptionScenarioExecutionConfig config) {
-		try {
-			String baseUrl = config.getLoadOrchestratorRestURL().endsWith("/") ? config.getLoadOrchestratorRestURL()
-					: config.getLoadOrchestratorRestURL() + "/";
-			if (loadType == LoadProfileType.NONE) {
-				// stop it
-				String finalUrl = baseUrl + "stop";
-				http.getRequest(finalUrl, Maps.newHashMap());
-			} else {
-				String finalUrl = baseUrl + "start";
-				Map<String, String> attributes = Maps.newHashMap();
-				attributes.put("file", loadType.getName());
-				http.getRequest(finalUrl, attributes);
+		int tries = 0;
+		boolean success = false;
+
+		while (tries < maxRetries && !success) {
+
+			try {
+				String baseUrl = config.getLoadOrchestratorRestURL().endsWith("/") ? config.getLoadOrchestratorRestURL()
+						: config.getLoadOrchestratorRestURL() + "/";
+				if (loadType == LoadProfileType.NONE) {
+					// stop it
+					String finalUrl = baseUrl + "stop";
+					if (http.getRequest(finalUrl, Maps.newHashMap()) != null) {
+						success = true;
+					}
+				} else {
+					String finalUrl = baseUrl + "start";
+					Map<String, String> attributes = Maps.newHashMap();
+					attributes.put("file", loadType.getName());
+					if (http.getRequest(finalUrl, attributes) != null) {
+						success = true;
+					}
+				}
+			} catch (Exception e) {
+				log.warning("Failed to apply load (" + e.getClass().getName() + ").");
 			}
-		} catch (Exception e) {
-			log.warning("Failed to apply load (" + e.getClass().getName() + ").");
+
+			tries++;
+
+			try {
+				Thread.sleep(WAIT_UNTIL_RETRY);
+			} catch (InterruptedException e) {
+				log.warning("Failed to pause thread.");
+			}
 		}
 	}
 

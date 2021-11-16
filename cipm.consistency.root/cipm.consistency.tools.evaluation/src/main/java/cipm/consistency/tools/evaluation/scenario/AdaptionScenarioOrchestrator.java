@@ -27,7 +27,9 @@ public class AdaptionScenarioOrchestrator {
 	private ScheduledExecutorService scenarioExecutionService;
 	private DefaultHttpClient http;
 	private ObjectMapper objectMapper;
+
 	private LoadProfileType currentLoadProfile;
+	private LoadProfileType initialLoadProfile;
 
 	public AdaptionScenarioOrchestrator() {
 		this.scenarioExecutionService = Executors.newSingleThreadScheduledExecutor();
@@ -86,6 +88,7 @@ public class AdaptionScenarioOrchestrator {
 		list.getInitialScenarios().forEach(initial -> {
 			if (initial instanceof UserBehaviorChangeScenario) {
 				this.currentLoadProfile = ((UserBehaviorChangeScenario) initial).getLoadType();
+				this.initialLoadProfile = ((UserBehaviorChangeScenario) initial).getLoadType();
 			}
 
 			initial.execute(config);
@@ -93,9 +96,8 @@ public class AdaptionScenarioOrchestrator {
 
 		log.info("Scheduling all scenarios and wait for their execution.");
 		// start executing all others
-		scenarioExecutionService.scheduleAtFixedRate(() -> executeSingleScenario(list, config),
-				Math.round(config.getSecondsBetweenScenarios() * 0.9f), config.getSecondsBetweenScenarios(),
-				TimeUnit.SECONDS);
+		scenarioExecutionService.schedule(() -> executeSingleScenario(list, config),
+				Math.round(config.getSecondsBetweenScenarios() * 0.9f), TimeUnit.SECONDS);
 	}
 
 	private void executeSingleScenario(AdaptionScenarioList list, AdaptionScenarioExecutionConfig config) {
@@ -106,10 +108,16 @@ public class AdaptionScenarioOrchestrator {
 			try {
 				PipelineUIState pipelineState = objectMapper.readValue(pipelineStatus, PipelineUIState.class);
 				if (pipelineState.isRunning()) {
-					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 1,
-							TimeUnit.SECONDS);
+					// stop load instant
+					new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
+					scenarioExecutionService.schedule(() -> executeSingleScenarioNow(list, config), 2000,
+							TimeUnit.MILLISECONDS); // decouple to increase reprod
+
+					// schedule next execution of scenario (syncs automatically with pipeline)
+					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config),
+							Math.round(config.getSecondsBetweenScenarios() * 0.9f), TimeUnit.SECONDS);
 				} else {
-					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 1000,
+					scenarioExecutionService.schedule(() -> executeSingleScenario(list, config), 250,
 							TimeUnit.MILLISECONDS);
 				}
 			} catch (IOException e) {
@@ -125,10 +133,10 @@ public class AdaptionScenarioOrchestrator {
 
 			if (scen instanceof UserBehaviorChangeScenario) {
 				this.currentLoadProfile = ((UserBehaviorChangeScenario) scen).getLoadType();
+			} else {
+				this.currentLoadProfile = this.initialLoadProfile;
 			}
 
-			// stop load before
-			new UserBehaviorChangeScenario(LoadProfileType.NONE).execute(config);
 			try {
 				scen.execute(config);
 			} catch (Exception e) {

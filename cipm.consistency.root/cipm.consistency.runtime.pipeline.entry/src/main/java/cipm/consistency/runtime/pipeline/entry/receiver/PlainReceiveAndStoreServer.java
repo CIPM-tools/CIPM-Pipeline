@@ -22,6 +22,10 @@ public class PlainReceiveAndStoreServer implements IRecordReceivedListener {
 	public static void main(String[] args) {
 		new PlainReceiveAndStoreServer().start();
 	}
+	
+	public PlainReceiveAndStoreServer(File file) {
+		this.controller = getMonitoringController(file);
+	}
 
 	public PlainReceiveAndStoreServer() {
 		this.controller = getMonitoringController(new File("received"));
