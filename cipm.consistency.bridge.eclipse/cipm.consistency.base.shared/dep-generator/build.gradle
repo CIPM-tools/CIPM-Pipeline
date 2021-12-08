@@ -9,7 +9,7 @@ repositories {
 platform {
     bundle 'org.cache2k:cache2k-core:1.2.4.Final'
 	bundle 'org.projectlombok:lombok:1.18.12'
-	bundle files('org.pcm.headless.api-0.6.3.jar'), {
+	bundle files('../../../cipm.consistency.root/mvn-supplemental/mvn-repo/org/pcm/headless/api/0.6.3/api-0.6.3.jar'), {
 		bnd {
 			version = '0.6.3'
 			symbolicName = 'org.pcm.headless.api'
@@ -18,4 +18,9 @@ platform {
     fetchSources = false
     defaultQualifier = ''
     useBndHashQualifiers = false
+}
+
+task copyBundles(type: Copy) {
+    from "build/plugins"
+    into "../dep-gen"
 }
