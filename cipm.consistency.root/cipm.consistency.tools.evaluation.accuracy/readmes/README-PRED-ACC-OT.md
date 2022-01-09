@@ -39,7 +39,7 @@ All data that we collected using the procedure described in 2. is located [here]
 
 We built a Python script that performs the simulations and the metric calculations, as there is no efficient implementation for calculating the [Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric) available for Java yet.
 
-The script is located at "scripts/evaluation_accuracy_ot.py" within the "cipm.consistency.tools.evaluation.accuracy" project. Depending on the number of simulators you are running and on the ports that they are running on, adjust the lines 36-37 (we used 4 simulator instances):```pcm_clients = [HeadlessPCM("http://127.0.0.1:8080"), HeadlessPCM("http://127.0.0.1:8090"),HeadlessPCM("http://127.0.0.1:8100"), HeadlessPCM("http://127.0.0.1:8110")]``` accordingly. We used Python 3.7 and please do not forget do install the necessary packages:
+The script is located at "scripts/evaluation_accuracy_ot.py" within the "cipm.consistency.tools.evaluation.accuracy" project [[SCRIPT](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/scripts/evaluation_accuracy_ot.py)]. Depending on the number of simulators you are running and on the ports that they are running on, adjust the lines 36-37 (we used 4 simulator instances):```pcm_clients = [HeadlessPCM("http://127.0.0.1:8080"), HeadlessPCM("http://127.0.0.1:8090"),HeadlessPCM("http://127.0.0.1:8100"), HeadlessPCM("http://127.0.0.1:8110")]``` accordingly. We used Python 3.7 and please do not forget do install the necessary packages:
 ```
 import concurrent
 import requests
