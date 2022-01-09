@@ -220,21 +220,12 @@ public class SystemQueryFacadeImpl implements ISystemQueryFacade {
 	 */
 	@Override
 	public synchronized AssemblyContext createAssemblyContext(RepositoryComponent component) {
-		long timestamp = System.currentTimeMillis() / 1000;
-		String name = "Assembly-" + component.getEntityName() + "-" + String.valueOf(timestamp);
-		String staticNameCopy = name;
-
+		String name = "Assembly-" + component.getEntityName();
 		long count = idElementCache.entrySet().stream().filter(f -> f.getValue() instanceof AssemblyContext)
 				.map(e -> e.getValue()).map(AssemblyContext.class::cast)
-				.filter(ctx -> ctx.getEntityName().equals(staticNameCopy)).count();
-
+				.filter(ctx -> ctx.getEncapsulatedComponent__AssemblyContext().getId().equals(component.getId())).count();
 		if (count > 0) {
-			long nId = idElementCache.entrySet().stream().filter(f -> f.getValue() instanceof AssemblyContext)
-					.map(e -> e.getValue()).map(AssemblyContext.class::cast)
-					.filter(ctx -> ctx.getEncapsulatedComponent__AssemblyContext().getId().equals(component.getId()))
-					.count();
-
-			name += "-" + String.valueOf(nId + 1);
+			name += "-" + String.valueOf(count + 1);
 		}
 
 		AssemblyContext nCtx = PCMSystemUtil.createAssemblyContext(pcmModelProvider.getSystem(), component, name);
