@@ -12,6 +12,9 @@ Requires an error-free setup of our Gradle project (see [Setup using Gradle](htt
 
 Please follow this [link](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.docker/teastore/README.md) to access information on how to perform the experiment.
 
+## 1.1. Raw data
+All data concerning the arising monitoring overhead is located [here](https://github.com/CIPM-tools/CIPM-Pipeline/tree/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/test-data/opstime-monitoring-and-models/experiment-executions). For each execution of the experiment the respective data can be found in the subfolder */overhead*.
+
 ### 2. Calculate Results
 
 We built a Python script that performs the analysis of the experiment data. It calculates the sum of the monitoring overhead for intervals of 5 minutes. The script is named "evaluation_overhead.py" and is located at the root folder of the "cipm.consistency.tools.evaluation.overhead" project. Simply execute it, get a plot of the results and the results are also saved in a file named "result.json".

@@ -3,7 +3,7 @@ Our approach is capable of updating the system, environment & allocation model o
 
 We generated ten exemplary sequences of changes (so called scenarios), which consist of (de-)replications, (de-)allocations, migrations, system composition changes and workload changes. In the course of generating the scenarios, we also derived reference models that represent the desired results. Afterwards, we applied the scenarios and our approach managed to update the system/environment/allocation models for different points in time. Finally, we compared the reference models with the models that resulted from the usage of our approach by using the Jaccard coefficient (JC). The comparison process is similar to the one that is described [here](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/readmes/README-MODEL-ACC-DT.md).
 
-In the following, we first describe how you can execute the experiments (application of change scenarios, collection of monitoring data, ...). The first step can be skipped, as it is very time-consuming and we provide the data that arose during the execution of the experiments in our environment. Second we introduce how the JC values can be calculated from the experiment data and finally, we provide the results that were obtained from the second step in our setup.
+In the following, we first describe how you can execute the experiments (application of change scenarios, collection of monitoring data, ...). The first step can be skipped, as it is very time-consuming and we provide the data that arose during the execution of the experiments in our environment (1.1.). Second we introduce how the JC values can be calculated from the experiment data and finally, we provide the results that were obtained from the second step in our setup.
 
 ### 1. Gather Experiment Data
 ***
@@ -13,6 +13,14 @@ Requires an error-free setup of our Gradle project (see [Setup using Gradle](htt
 
 Please follow this [link](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.docker/teastore/README.md) to access information on how to perform the experiment.
 
+## 1.1. Raw data
+All data that we collected using the procedure described in 2. is located [here] (https://github.com/CIPM-tools/CIPM-Pipeline/tree/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/test-data/opstime-monitoring-and-models/experiment-executions). For each execution of the experiment the data is structured as follows:
+
+1. */models*: Contains the derived models over time (each one represents the output after one pipeline execution)
+2. */monitoring*: The collected response times for the services that we want to predict with the derived PCM models.
+3. */overhead*: Arising monitoring overhead that was measured within the TeaStore environment when applying our monitoring system.
+4. */performance*: Execution times of the pipeline and the building blocks within the pipeline.
+
 ### 2. Calculate Metrics
 ***
 **IMPORTANT**
@@ -20,7 +28,7 @@ Requires an error-free setup of our Gradle project (see [Setup using Gradle](htt
 ***
 
 1. Execute the "ModelAccuracyEvaluationTeaStore" class, which is located in the "cipm.consistency.tools.evaluation.accuracy.models.opstime" package. The corresponding project is named "cipm.consistency.tools.evaluation.accuracy".
-2. After the updated models from the experiment results and the reference models were compared, the resulting Jaccard coefficients (JC) are printed and should be equal to 1.0 (which means that the reference models and the extracted models are equal in all cases).
+2. After the updated models from the experiment results and the reference models were compared [[SCRIPT](https://github.com/CIPM-tools/CIPM-Pipeline/blob/documentation/cipm.consistency.root/cipm.consistency.tools.evaluation.accuracy/src/main/java/cipm/consistency/tools/evaluation/accuracy/models/opstime/ModelAccuracyEvaluationTeaStore.java)], the resulting Jaccard coefficients (JC) are printed and should be equal to 1.0 (which means that the reference models and the extracted models are equal in all cases).
 
 ### 3. Summarized Results
 
