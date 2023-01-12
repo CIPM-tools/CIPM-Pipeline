@@ -23,8 +23,8 @@ import org.palladiosimulator.pcm.resourcetype.ResourceRepository;
 import org.palladiosimulator.pcm.resourcetype.ResourcetypePackage;
 
 import de.uka.ipd.sdq.identifier.Identifier;
-import tools.vitruv.dsls.reactions.meta.correspondence.reactions.ReactionsPackage;
-import tools.vitruv.framework.correspondence.CorrespondencePackage;
+//import tools.vitruv.dsls.reactions.meta.correspondence.reactions.ReactionsPackage;
+import tools.vitruv.change.correspondence.CorrespondencePackage;
 
 /**
  * Utility functions that simplify the interaction with Palladio Component Model
@@ -48,7 +48,7 @@ public class PCMUtils {
 
 	public static void initVitruvius() {
 		CorrespondencePackage.eINSTANCE.eClass();
-		ReactionsPackage.eINSTANCE.eClass();
+//		ReactionsPackage.eINSTANCE.eClass();
 	}
 
 	/**
