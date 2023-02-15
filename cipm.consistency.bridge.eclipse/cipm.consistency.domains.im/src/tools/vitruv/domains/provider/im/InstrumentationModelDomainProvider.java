@@ -1,5 +1,6 @@
-package cipm.consistency.domains.im;
+package tools.vitruv.domains.provider.im;
 
+import cipm.consistency.domains.im.InstrumentationModelDomain;
 import tools.vitruv.framework.domains.VitruvDomainProvider;
 
 public class InstrumentationModelDomainProvider implements VitruvDomainProvider<InstrumentationModelDomain> {

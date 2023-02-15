@@ -1,5 +1,6 @@
-package cipm.consistency.domains.pcm;
+package tools.vitruv.domains.provider.pcm;
 
+import cipm.consistency.domains.pcm.ExtendedPcmDomain;
 import tools.vitruv.framework.domains.VitruvDomainProvider;
 
 public class ExtendedPcmDomainProvider implements VitruvDomainProvider<ExtendedPcmDomain> {
