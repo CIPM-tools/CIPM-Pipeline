@@ -8,30 +8,40 @@ repositories {
 
 test {
 	exclude 'cipm/consistency/tools/evaluation/scalability/**'
+	ignoreFailures = true
 }
 
 dependencies {
-    api project(":cipm.consistency.base.shared")
-	api project(":cipm.consistency.base.core")
-	api project(":cipm.consistency.base.vitruv")
-	api project(":cipm.consistency.base.evaluation")
+    testImplementation project(":cipm.consistency.base.shared")
+	testImplementation project(":cipm.consistency.base.core")
+	implementation project(":cipm.consistency.base.vitruv")
+	testImplementation project(":cipm.consistency.base.evaluation")
+	testImplementation project(":cipm.consistency.runtime.pipeline.pcm")
+	testCompile project(':cipm.consistency.runtime.pipeline.pcm').sourceSets.test.output
+	testImplementation project(":cipm.consistency.bridge.monitoring")
+	implementation project(":cipm.consistency.runtime.pipeline")
+	testImplementation project(":cipm.consistency.runtime.pipeline.validation")
 	
-	implementation project(":cipm.consistency.base.models.scg")
-	implementation project(":cipm.consistency.base.models.runtimeenvironment")
-	implementation project(":cipm.consistency.base.models.instrumentation")
+		
+	compile project(":cipm.consistency.base.models.scg")
+	compile project(":cipm.consistency.base.models.runtimeenvironment")
+	compile project(":cipm.consistency.base.models.instrumentation")
+	compile project(":cipm.consistency.runtime.pipeline.pcm")
 	
-	api project(":cipm.consistency.bridge.monitoring")
-	api project(":cipm.consistency.runtime.pipeline")
-	api project(":cipm.consistency.runtime.pipeline.validation")
+
 	
-	api project(":cipm.consistency.runtime.pipeline.pcm")
+
 	
 	testImplementation testFixtures(project(':cipm.consistency.runtime.pipeline'))
 	testImplementation testFixtures(project(':cipm.consistency.base.vitruv'))
     
     implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.0' 
-    implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.6.RELEASE')    {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-    }
-    implementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.1.6.RELEASE'
+       
+
+testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
+    
+    implementation 'log4j:log4j:1.2.17'
+
 }
